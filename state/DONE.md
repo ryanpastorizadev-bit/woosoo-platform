@@ -13,7 +13,7 @@ scope: ecosystem
 
 | Case ID | App | Completed | Verification Evidence | Executioner Verdict | Related Dep | Notes |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — |
+| PLT-CASE-002 | woosoo-platform | 2026-05-17 | Stale-phrase scan no matches; 9 hooks exist; Verifier before Executioner confirmed | APPROVED | none | Canonical hook surface completed |
 
 ---
 <!--

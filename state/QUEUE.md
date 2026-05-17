@@ -26,7 +26,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status |
 |---|---|---|---|---|---|---|
-| P3 | PLT-CASE-002 | woosoo-platform | Complete canonical hook surface | 2 | none | needs_verification |
+| P3 | PLT-CASE-002 | woosoo-platform | Complete canonical hook surface | 2 | none | done |
 
 ---
 
@@ -34,7 +34,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
-| — | — | — | — |
+| PLT-CASE-002 | woosoo-platform | 2026-05-17 | Hook surface verifier checks passed; Executioner APPROVED |
 
 ---
 <!--

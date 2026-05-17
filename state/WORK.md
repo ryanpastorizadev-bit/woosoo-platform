@@ -15,20 +15,19 @@ scope: ecosystem
 ## Current Task
 
 ```
-task_id:      PLT-CASE-002
-status:       needs_verification
+task_id:      (empty)
+status:       done
 tier:         2
 app:          woosoo-platform
 specialist:   dazai-docs
-description:  Complete canonical hook surface.
+description:  Canonical hook surface completed and approved.
 case_file:    docs/cases/plt-case-002-hook-surface-completion.md
 ```
 
 ## Next Action
 
 ```
-VERIFY: rerun stale-phrase scans, hook existence checks, chain-order checks, and git status scope review.
-Then hand off to: verifier
+Pull next task from state/QUEUE.md or triage pending inbox items.
 ```
 
 ## Blocking Dependencies
@@ -40,10 +39,10 @@ none
 ## Last Agent
 
 ```
-role:         specialist:dazai-docs
+role:         executioner
 date:         2026-05-17
-left_off:     specialist:dazai-docs completed canonical hook surface implementation; verification is next.
-files_open:   docs/cases/plt-case-002-hook-surface-completion.md, AGENTS.md, state/WORK.md, hooks/status.md, hooks/verify.md
+left_off:     PLT-CASE-002 approved and handed over. Pull next queued or triaged task.
+files_open:   docs/cases/plt-case-002-hook-surface-completion.md, state/WORK.md, state/QUEUE.md, state/DONE.md
 ```
 
 ## On Completion of Next Task

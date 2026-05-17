@@ -10,18 +10,18 @@ scope: woosoo-platform
 - task_slug: plt-case-002-hook-surface-completion
 - tier: 2
 - branch: main
-- status: IN_PROGRESS
-- last_completed_agent: specialist:dazai-docs
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: codex
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-05-17
 
 ## Handoff
-- Phase in progress: verifier
+- Phase in progress: done
 - Done so far: Added the missing canonical hook files, added inbox files, expanded the AGENTS.md trigger map after hooks existed, normalized state table wording to App terminology, removed pending rows from DONE.md, and kept contract references on existing `contracts/*.contract.md`.
-- Exact next action: Verifier should run the stale-phrase scan, hook existence check, chain-order check, and root/nested git status scope review.
+- Exact next action: Handover complete; pull the next queued or triaged task.
 - Working-tree state:
   - AGENTS.md — trigger map expanded to all installed hooks
   - hooks/status.md — created
@@ -117,13 +117,32 @@ PLT-CASE-001 repaired the canonical protocol but intentionally left the full hoo
 - [x] Stale protocol phrase scan returns no matches.
   - Command: required `rg` scan for stale path/order/source-of-truth/contract-index phrases.
   - Output: no matches.
+  - Fresh verifier run on 2026-05-17: exit 1 with no output, which is the expected `rg` no-match result.
 - [x] Hook existence check returns all true.
   - Output: nine `True` lines for work/status/intake/triage/execute/verify/review/unlock/handover.
+  - Fresh verifier run on 2026-05-17: nine `True` lines.
 - [x] Chain-order scan confirms Verifier before Executioner.
   - Output: AGENTS.md, CLAUDE.md, PROTOCOL.md, and hooks/execute.md show Tier 2/3 as `Contrarian → Specialist → Verifier → Executioner`.
+  - Fresh verifier run on 2026-05-17: same files confirmed Tier 2/3 order.
 - [x] Git status scope review confirms no app code was touched by this case.
-  - Root status includes PLT-CASE-001 repair changes plus PLT-CASE-002 hook/inbox/state/docs changes.
+  - Fresh verifier run on 2026-05-17: root `staging/orchestration-hooks...origin/staging/orchestration-hooks` was clean before closure updates.
   - Nested app worktrees remain dirty from other work; PLT-CASE-002 did not touch app code.
+- [x] Whitespace check passed.
+  - Command: `git diff --check HEAD~1..HEAD`
+  - Output: no output, exit 0.
+
+## Verifier Handoff
+
+Task: PLT-CASE-002
+App: woosoo-platform
+Tier: 2
+Files read: hooks/verify.md, docs/cases/plt-case-002-hook-surface-completion.md, state/WORK.md, ...status outputs
+Finding: Verification evidence confirms the hook surface is present, canonical phrases are clean, and Verifier remains before Executioner.
+Decision: Advance to Executioner for final approval.
+Risks: Nested app worktrees remain dirty from unrelated work.
+Deps: none
+Next action: Executioner reviews evidence and issues verdict.
+Validation: Fresh stale-phrase, hook existence, chain-order, whitespace, and git status checks.
 
 ## Specialist Handoff
 
@@ -140,7 +159,16 @@ Validation: Stale-phrase scan, hook existence check, chain-order scan, and git s
 
 ## Executioner Verdict
 
-PENDING
+APPROVED
+
+Evidence reviewed:
+- Stale protocol phrase scan returned no matches.
+- Hook existence check returned nine `True` lines.
+- Chain-order scan confirmed `Contrarian → Specialist → Verifier → Executioner` in AGENTS.md, CLAUDE.md, PROTOCOL.md, and hooks/execute.md.
+- Whitespace check for the pushed hook commit returned exit 0.
+- Root branch was clean before closure updates; nested app dirtiness is unrelated.
+
+Rollback: revert the orchestration hook commits on `staging/orchestration-hooks`; app repos are unaffected.
 
 ## Remaining Risks
 
