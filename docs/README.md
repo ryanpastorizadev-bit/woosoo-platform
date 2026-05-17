@@ -8,7 +8,7 @@ scope: ecosystem
 
 This is the canonical entry point for all Woosoo platform documentation. Only docs listed here with `status: canonical` are source of truth.
 
-## Boot layer (read first)
+## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform
 - [CLAUDE.md](../CLAUDE.md) — Claude Code–specific instructions

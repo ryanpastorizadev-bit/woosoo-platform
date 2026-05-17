@@ -91,7 +91,7 @@ bash scripts/case-status.sh set  <slug> status=BLOCKED next_agent=verifier
 
 PowerShell equivalent: `pwsh scripts/case-status.ps1 <get|set|init> <slug> ...` (behaviour-
 identical). `set` auto-stamps `updated`. The helper is a convenience — editing the case file
-directly is equally valid; the file, not the script, is the source of truth.
+directly is equally valid; the case document, not the script, is the source of truth.
 
 ## 5. Interruption / rate-limit handling
 
