@@ -105,7 +105,7 @@ Per-app commands the script wraps:
 
 - **woosoo-nexus**: `composer test`, `php artisan route:list`, `php artisan config:clear`
 - **tablet-ordering-pwa**: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run generate`
-- **woosoo-print-bridge**: `flutter analyze`, `flutter test` *(note: test suite is green as of 2026-05-17 — 102 passed / 0 failed; see Print Bridge audit Section 8 resolution log)*
+- **woosoo-print-bridge**: `flutter analyze`, `flutter test` *(note: the Print Bridge audit Section 8 resolution log records the suite as green as of 2026-05-17; this is an attributed claim from the sibling repo's audit and is not independently verifiable from this governance repo — the print-bridge app repo is excluded and not present here. Re-verify in that repo before relying on it.)*
 
 If a command cannot be run, explain why. Do not claim success without script output.
 

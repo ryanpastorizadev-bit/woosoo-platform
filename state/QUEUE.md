@@ -26,6 +26,10 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status |
 |---|---|---|---|---|---|---|
+| P1 | NEX-CASE-001 | woosoo-nexus | Security & auth hardening (Tier 3) | 3 | none | queued |
+| P2 | TAB-CASE-001 | tablet-ordering-pwa | Order & session determinism | 2 | none | queued |
+| P2 | PRN-CASE-001 | woosoo-print-bridge | Print determinism & reliability | 2 | none | queued |
+| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app) | 3 | NEX-CASE-001,TAB-CASE-001,PRN-CASE-001 | queued |
 | P3 | PLT-CASE-002 | woosoo-platform | Complete canonical hook surface | 2 | none | done |
 
 ---
@@ -35,6 +39,8 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
 | PLT-CASE-002 | woosoo-platform | 2026-05-17 | Hook surface verifier checks passed; Executioner APPROVED |
+| PLT-CASE-001 | woosoo-platform | 2026-05-17 | Orchestration system verifier scans passed; Executioner APPROVED |
+| PLT-CASE-004 | woosoo-platform | 2026-05-17 | Documentation-truth remediation verifier scans passed; Executioner APPROVED |
 
 ---
 <!--

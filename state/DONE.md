@@ -14,6 +14,8 @@ scope: ecosystem
 | Case ID | App | Completed | Verification Evidence | Executioner Verdict | Related Dep | Notes |
 |---|---|---|---|---|---|---|
 | PLT-CASE-002 | woosoo-platform | 2026-05-17 | Stale-phrase scan no matches; 9 hooks exist; Verifier before Executioner confirmed | APPROVED | none | Canonical hook surface completed |
+| PLT-CASE-001 | woosoo-platform | 2026-05-17 | Forbidden-phrase scan no matches; reversed chain-order scan no matches; 9 hooks True; zero app code in commits 5ea33b8/ba92667/11111e9; boot order case-before-cache | APPROVED | none | Orchestration system implementation closed (Verifier PASS, resumed by claude-code) |
+| PLT-CASE-004 | woosoo-platform | 2026-05-17 | Documentation-truth scans pass; no live "not a git repo"/"runs on main"/"102 passed" assertion in 8 in-scope files; zero app code; .windsurf excluded; one out-of-scope same-class defect flagged not edited | APPROVED | none | Review remediation — git-repo/branch/print-bridge/README/nex-case-001/.windsurf truth fixes |
 
 ---
 <!--

@@ -8,26 +8,28 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-17 by specialist:dazai-docs          -->
+<!-- Last updated: 2026-05-17 by verifier (claude-code)          -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      (empty)
-status:       done
+task_id:      PLT-CASE-004
+status:       needs_verification
 tier:         2
 app:          woosoo-platform
 specialist:   dazai-docs
-description:  Canonical hook surface completed and approved.
-case_file:    docs/cases/plt-case-002-hook-surface-completion.md
+description:  Documentation-truth review remediation (git-repo/branch/print-bridge/README/nex-case-001/.windsurf).
+case_file:    docs/cases/plt-case-004-review-remediation.md
 ```
 
 ## Next Action
 
 ```
-Pull next task from state/QUEUE.md or triage pending inbox items.
+Verifier → Executioner on PLT-CASE-004 from the case file, then commit + push the
+queued case files + state deltas + remediation, then pull NEX-CASE-001 from queue
+(P1 security hardening for woosoo-nexus).
 ```
 
 ## Blocking Dependencies
@@ -39,10 +41,10 @@ none
 ## Last Agent
 
 ```
-role:         executioner
+role:         verifier
 date:         2026-05-17
-left_off:     PLT-CASE-002 approved and handed over. Pull next queued or triaged task.
-files_open:   docs/cases/plt-case-002-hook-surface-completion.md, state/WORK.md, state/QUEUE.md, state/DONE.md
+left_off:     PLT-CASE-001 closed APPROVED. PLT-CASE-004 specialist edits applied; Verifier scans pass; handing to Executioner.
+files_open:   docs/cases/plt-case-004-review-remediation.md, docs/cases/plt-case-001-orchestration-system.md, state/WORK.md, state/QUEUE.md, state/DONE.md
 ```
 
 ## On Completion of Next Task

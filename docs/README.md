@@ -30,8 +30,15 @@ CLI, and GitHub Copilot.
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **cross-runner resume & handoff** (rate-limit /
   interruption recovery; case file is the durable state)
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
+- [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
   `docs/cases/_TEMPLATE.md`)
+- `hooks/` — the 9 installed hooks routed from the AGENTS.md trigger map:
+  `work.md`, `status.md`, `intake.md`, `triage.md`, `execute.md`, `verify.md`,
+  `review.md`, `unlock.md`, `handover.md`
+- `state/` — machine-readable orchestration state: `WORK.md` (active-case convenience cache,
+  not authoritative), `QUEUE.md` (priority task queue), `DEPS.md` (cross-app dependency
+  ledger), `DONE.md` (append-only verified-completion log)
 
 ## Contracts
 

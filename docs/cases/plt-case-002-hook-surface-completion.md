@@ -9,7 +9,7 @@ scope: woosoo-platform
 ## Run State
 - task_slug: plt-case-002-hook-surface-completion
 - tier: 2
-- branch: main
+- branch: staging/orchestration-hooks
 - status: COMPLETE
 - last_completed_agent: executioner
 - next_agent: done
@@ -52,8 +52,8 @@ scope: woosoo-platform
 2 — Standard
 
 ## Branch
-main
-<!-- Orchestration/docs work runs on main per team convention. App feature work uses agent/<slug> branches. -->
+staging/orchestration-hooks
+<!-- Platform governance/orchestration work runs on the staging/orchestration-hooks branch. App feature work uses agent/<slug> branches. -->
 
 ## Problem
 
