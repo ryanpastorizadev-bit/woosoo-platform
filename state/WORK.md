@@ -8,28 +8,28 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-17 by verifier (claude-code)          -->
+<!-- Last updated: 2026-05-17 by executioner (claude-code)       -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      PLT-CASE-004
-status:       needs_verification
-tier:         2
+task_id:      PLT-CASE-005
+status:       done
+tier:         1
 app:          woosoo-platform
 specialist:   dazai-docs
-description:  Documentation-truth review remediation (git-repo/branch/print-bridge/README/nex-case-001/.windsurf).
-case_file:    docs/cases/plt-case-004-review-remediation.md
+description:  Agent-def git-repo wording truth fix (.claude/agents/ranpo-backend.md:54) — PLT-CASE-004 follow-up.
+case_file:    docs/cases/plt-case-005-agent-def-git-truth.md
 ```
 
 ## Next Action
 
 ```
-Verifier → Executioner on PLT-CASE-004 from the case file, then commit + push the
-queued case files + state deltas + remediation, then pull NEX-CASE-001 from queue
-(P1 security hardening for woosoo-nexus).
+PLT-CASE-005 COMPLETE (Executioner APPROVED) and committed/pushed to
+origin/staging/orchestration-hooks. Pull NEX-CASE-001 from queue (P1, Tier 3,
+security & auth hardening for woosoo-nexus) — fresh Contrarian per RESUME_PROTOCOL §3.
 ```
 
 ## Blocking Dependencies
@@ -41,18 +41,18 @@ none
 ## Last Agent
 
 ```
-role:         verifier
+role:         executioner
 date:         2026-05-17
-left_off:     PLT-CASE-001 closed APPROVED. PLT-CASE-004 specialist edits applied; Verifier scans pass; handing to Executioner.
-files_open:   docs/cases/plt-case-004-review-remediation.md, docs/cases/plt-case-001-orchestration-system.md, state/WORK.md, state/QUEUE.md, state/DONE.md
+left_off:     PLT-CASE-004 closed APPROVED. PLT-CASE-005 (PLT-CASE-004 follow-up) full Tier 1 chain complete — Specialist reworded .claude/agents/ranpo-backend.md:54, Verifier scans PASS, Executioner APPROVED, committed + pushed.
+files_open:   docs/cases/plt-case-005-agent-def-git-truth.md, .claude/agents/ranpo-backend.md, state/WORK.md, state/QUEUE.md, state/DONE.md
 ```
 
 ## On Completion of Next Task
 
 ```
-→ set:  next_agent: verifier in the case file
-→ then: continue Verifier → Executioner from the case file
-→ then: pull next from state/QUEUE.md
+→ pull: NEX-CASE-001 from state/QUEUE.md (P1, Tier 3, woosoo-nexus)
+→ then: create docs/cases/nex-case-001-*.md per _TEMPLATE.md if resuming fresh
+→ then: start the chain as Contrarian (deep, written risk analysis — Tier 3)
 ```
 
 ---
