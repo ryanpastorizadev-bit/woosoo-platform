@@ -67,6 +67,7 @@ These four documents are the authoritative system-state references. Restructured
 ## Strategic
 
 - [WOOSOO_ROADMAP_REVIEW.md](WOOSOO_ROADMAP_REVIEW.md) — strategic roadmap, reconciled with the four 2026-05-14 audits (Audit reconciliation section is canonical; original analysis preserved)
+- [WOOSOO_PRODUCTION_DOCKER_PLAN.md](WOOSOO_PRODUCTION_DOCKER_PLAN.md) — production Docker reference contract for Raspberry Pi deployment
 
 ## Audit trail
 
