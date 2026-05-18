@@ -8,7 +8,7 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-17 by executioner (claude-code)       -->
+<!-- Last updated: 2026-05-18 by executioner (claude-code)       -->
 
 ---
 
@@ -27,8 +27,11 @@ case_file:    docs/cases/tab-case-001-order-session-determinism.md
 ## Next Action
 
 ```
-Contrarian complete. Proceed to Specialist:chuya-frontend for Fix 1 (offline ordering contradiction).
-Start with components/OrderingStep3ReviewSubmit.vue - resolve offline outbox vs submit block inconsistency.
+Fix 1 (offline ordering contradiction) COMPLETE — commit ab0dbae on staging in tablet-ordering-pwa.
+Proceed to specialist:chuya-frontend for Fix 2: consolidate 4 overlapping order submission
+composables (useOrderSubmit.ts, useOrderSubmission.ts, useSubmissionIdempotency.ts,
+useOfflineOrderQueue.ts) into single composable with clear responsibilities.
+See docs/cases/tab-case-001-order-session-determinism.md ## Proposed Fix → Fix 2.
 ```
 
 ## Blocking Dependencies
@@ -40,18 +43,21 @@ none
 ## Last Agent
 
 ```
-role:         contrarian
+role:         specialist:chuya-frontend
 date:         2026-05-18
-left_off:     Contrarian review complete for tab-case-001. 7 questions assessed - Tier 2 confirmed, single-app scope, proceed with Specialist implementation. Fix 1 (offline contradiction) has highest customer impact and should be implemented first.
+left_off:     Fix 1 done. Removed BackgroundSyncPlugin; both order routes NetworkOnly. Disabled
+              submit button when offline; added warning banner. Contract test updated. 366/366
+              tests pass, 0 typecheck, 0 lint. Risks: do not re-add BackgroundSyncPlugin; do not
+              touch stores/OfflineSync.ts until Fix 2 composable consolidation decision.
 files_open:   docs/cases/tab-case-001-order-session-determinism.md, state/WORK.md
 ```
 
 ## On Completion of Next Task
 
 ```
-→ pull: NEX-CASE-001 from state/QUEUE.md (P1, Tier 3, woosoo-nexus)
-→ then: create docs/cases/nex-case-001-*.md per _TEMPLATE.md if resuming fresh
-→ then: start the chain as Contrarian (deep, written risk analysis — Tier 3)
+→ TAB-CASE-001 completes (all 4 fixes done) → update state/DEPS.md DEP-003 to confirmed
+→ PLT-CASE-003 unblocks — start as Contrarian (Tier 3, cross-app orchestration)
+→ TAB-CASE-002 also in_progress (parallel) — 7 validated issues, specialist:chuya-frontend
 ```
 
 ---
