@@ -40,6 +40,27 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d --build
 - MySQL is not published to the host (internal `woosoo` network only).
 - There are no override files; `compose.yaml` is the single source of truth.
 
+## Production guardrails (Nexus + Tablet only)
+
+This document is the canonical Docker reference for the platform-root Nexus +
+Tablet deployment path. Print Bridge Docker/runtime design is intentionally out
+of scope here; `woosoo-print-bridge/` remains the Flutter Android relay and must
+be handled in a separate task if its deployment boundary changes.
+
+- Treat built images as the deployable artifact. Runtime `.env` values come from
+  `woosoo-nexus/.env` via `--env-file`, not from committed secrets or ad-hoc
+  container mutation.
+- Keep health checks aligned with the process each container actually runs:
+  PHP-FPM checks belong on the `app` service, while queue, scheduler, and Reverb
+  workers need process-specific checks before they can be treated as deployment
+  gates.
+- Smoke checks must hit published endpoints from `compose.yaml`: Nexus through
+  ports `80`/`443`, and the Tablet PWA through port `4443`.
+- If a future immutable Nginx/PHP-FPM split replaces the current bind-mounted
+  staging model, ensure the Nginx container can read the Laravel `public/`
+  directory and create `public/storage` before dropping privileges, or grant the
+  runtime user ownership required to create the storage link.
+
 ## The two `docker/` directories (intentional)
 
 | Path | Role |
