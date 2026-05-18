@@ -61,9 +61,9 @@ switch ($App) {
     "woosoo-print-bridge" {
         Push-Location (Join-Path $RootDir "woosoo-print-bridge")
         try {
-            # NOTE: The Flutter test suite is currently red per the 2026-05-14
-            # audit. Do not skip this step - investigate failures and update
-            # the audit instead.
+            # NOTE: The Print Bridge audit is the source of truth for the
+            # current Flutter suite status. Do not skip this step; investigate
+            # failures and update the audit with raw test evidence.
             Invoke-Step "flutter analyze" { flutter analyze }
             Invoke-Step "flutter test" { flutter test }
         } finally {

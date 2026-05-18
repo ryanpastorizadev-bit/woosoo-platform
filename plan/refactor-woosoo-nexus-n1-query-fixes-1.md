@@ -276,7 +276,7 @@ Expected: FAIL because the controller still assembles modifiers with repeated pe
 
 - [ ] **Step 3: Write minimal implementation**
 
-Add one repository method that batches modifier retrieval for a list of IDs and reuse the existing package helper:
+Add one data-access method that batches modifier retrieval for a list of IDs and reuse the existing package helper:
 
 ```php
 public function getMenuModifiersByGroupIds(array $modifierGroupIds): EloquentCollection

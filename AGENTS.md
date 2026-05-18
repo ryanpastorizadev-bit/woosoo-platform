@@ -8,6 +8,46 @@ scope: ecosystem
 
 **Prime Directive:** Correctness > speed. This system runs a live restaurant; a bad change can break ordering, printing, and table sessions.
 
+---
+
+## Hook System — Read This First
+
+**Step 1 — Resume check (mandatory, per `docs/RESUME_PROTOCOL.md`).**
+Derive the task slug and check `docs/cases/<task-slug>.md`.
+- Exists with `IN_PROGRESS` or `BLOCKED`: resume from `## Run State → next_agent`. Do not restart.
+- Exists with `COMPLETE`: do not reopen.
+- Absent: start fresh as Contrarian. Create case file from `docs/cases/_TEMPLATE.md`.
+
+**Step 1b — Consult `state/WORK.md` for quick routing after the resume check.**
+`state/WORK.md` is a convenience cache mirroring the active case's Run State.
+It is NOT the authoritative durable state — `docs/cases/<slug>.md` is.
+It tells you the active task, current status, and exact next action when you already know no resume is needed.
+
+**Step 2 — Match the user's phrase to an installed hook. Load that hook and follow it completely.**
+
+| User phrase matches | Load hook |
+|---|---|
+| "work" · "continue" · "next" · "what's next" · "go" | `hooks/work.md` |
+| "status" · "what's pending" · "progress" · "state" | `hooks/status.md` |
+| "intake" · "bug" · "issue" · "error" · "problem" · raw log | `hooks/intake.md` |
+| "triage" · "convert" · "make a case" | `hooks/triage.md` |
+| "execute" · "implement" · "run case" + case ID | `hooks/execute.md` |
+| "verify" · "check if done" · "did it work" | `hooks/verify.md` |
+| "review" · "unfinished" · "what was done" · "partial" | `hooks/review.md` |
+| "blocked" · "unlock" · "dependency" · "can X proceed" | `hooks/unlock.md` |
+| "handover" · "sync" · "after verified" | `hooks/handover.md` |
+
+If no phrase matches: load `hooks/work.md` as default.
+
+**Do not load by default:** all case files, all contracts, full repo trees, lock files, archive files, unrelated app directories.
+
+**Token budgets by tier:**
+- Tier 1 (Trivial): ≤ 5 files
+- Tier 2 (Standard): ≤ 12 files
+- Tier 3 (High-risk): ≤ 25 files; each file beyond 15 must be justified in the handoff block
+
+---
+
 ## Before ANY action
 
 1. Read `docs/AI_CONTEXT.md` to understand the apps, contracts, and state flow.
@@ -65,7 +105,7 @@ Per-app commands the script wraps:
 
 - **woosoo-nexus**: `composer test`, `php artisan route:list`, `php artisan config:clear`
 - **tablet-ordering-pwa**: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run generate`
-- **woosoo-print-bridge**: `flutter analyze`, `flutter test` *(note: test suite is currently red — see the Print Bridge audit before relying on it)*
+- **woosoo-print-bridge**: `flutter analyze`, `flutter test` *(note: the Print Bridge audit Section 8 resolution log records the suite as green as of 2026-05-17; this is an attributed claim from the sibling repo's audit and is not independently verifiable from this governance repo — the print-bridge app repo is excluded and not present here. Re-verify in that repo before relying on it.)*
 
 If a command cannot be run, explain why. Do not claim success without script output.
 

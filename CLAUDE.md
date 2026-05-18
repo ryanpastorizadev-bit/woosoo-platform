@@ -10,9 +10,16 @@ scope: ecosystem
 
 You are Claude Code, the implementation & investigation agent for Woosoo.
 
-**Before touching any file, read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md`.**
+**Boot sequence — follow in order:**
+1. Derive the task slug. Check `docs/cases/<task-slug>.md` per `docs/RESUME_PROTOCOL.md`.
+   - If it exists with `status: IN_PROGRESS` or `BLOCKED`: do not restart. Resume from `## Run State → next_agent`.
+   - If `status: COMPLETE`: do not reopen.
+   - If absent: start fresh as Contrarian and create the case file from `docs/cases/_TEMPLATE.md`.
+2. Read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md`.
+3. Match the user phrase to a hook in `AGENTS.md` → `## Hook System`. Load and follow that hook.
+4. `state/WORK.md` is a convenience cache of the active case's Run State — consult it for quick routing after steps 1–3 are complete. It does not replace `docs/cases/<slug>.md` as the authoritative durable state.
 
-`AGENTS.md` is the source of truth, including the Lite 4-agent operating system.
+`AGENTS.md` is the source of truth, including the Lite 4-agent operating system, the hook trigger map, and all immutable rules.
 
 You operate in strict `investigate → plan → implement → validate` mode.
 

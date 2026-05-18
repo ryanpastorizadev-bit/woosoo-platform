@@ -1,0 +1,249 @@
+---
+status: under-review
+last_reviewed: 2026-05-17
+scope: woosoo-platform
+---
+
+# CASE: PLT-CASE-004 — Review Remediation (Documentation-Truth Fixes)
+
+## Run State
+- task_slug: plt-case-004-review-remediation
+- tier: 2
+- branch: staging/orchestration-hooks
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-17
+
+## Handoff
+- Phase in progress: done
+- Done so far: Full Tier 2 chain complete (Contrarian → Specialist → Verifier → Executioner APPROVED). All 8 documentation-truth edits applied and verified; out-of-scope ranpo-backend.md:54 flagged as follow-up, not edited.
+- Exact next action: Commit the queued case files + state deltas + remediation, push to origin/staging/orchestration-hooks (secret-scan first), then pull NEX-CASE-001 from queue.
+- Working-tree state:
+  - docs/RESUME_PROTOCOL.md — §5 handoff template + Run State sample reworded (git-repo accurate)
+  - docs/cases/_TEMPLATE.md — removed `n/a (not a git repo)` hint and parenthetical
+  - AGENTS.md — print-bridge line reworded to an attributed, not-independently-verifiable statement
+  - docs/README.md — Agent operating system section extended to index hooks/, state/, PROTOCOL.md
+  - docs/cases/plt-case-001-orchestration-system.md — branch + stale convention comment fixed
+  - docs/cases/plt-case-002-hook-surface-completion.md — branch + stale convention comment fixed
+  - docs/cases/nex-case-001-security-auth-hardening.md — frontmatter vs Run State reconciled
+  - .gitignore — added /.windsurf/
+- Risks / do-not-redo:
+  - Do NOT run print-bridge tests (sibling repo not present here).
+  - Do NOT do any security work in nex-case-001 — only reconcile its status metadata.
+  - Do NOT commit .windsurf/ and do NOT add Windsurf documentation.
+  - Do NOT widen scope beyond the listed governance files.
+
+---
+
+## Tier
+2 — Standard
+
+## Branch
+staging/orchestration-hooks
+<!-- Platform governance/docs work runs on the active staging/orchestration-hooks branch. App feature work uses agent/<slug> branches. -->
+
+## Problem
+
+The post-implementation review of the orchestration system found documentation-truth defects:
+the protocol and case template still assert "not a git repo" though the repo is now a git repo
+on `staging/orchestration-hooks`; PLT-CASE-001/002 Run State say `branch: main` with a
+contradictory "runs on main per team convention" comment; AGENTS.md asserts a print-bridge
+"102 passed / 0 failed" suite result that cannot be verified from this governance repo (the
+sibling app repos are excluded and not present); docs/README.md does not index the hooks/,
+state/, or PROTOCOL.md surface; nex-case-001 has `status: under-review` frontmatter while its
+Run State says `IN_PROGRESS` with work not started; and `.windsurf/` is untracked but not
+gitignored.
+
+## Contrarian Review
+
+**Conducted:** 2026-05-17
+
+1. **Correct app or platform scope?** Yes — `woosoo-platform` governance/docs only. No app code.
+2. **Already exists?** No. These are corrections to existing stale assertions, not new features.
+3. **Scope exactly as described?** Yes — exactly the enumerated governance files. Narrower than
+   "fix all docs"; deliberately bounded to documentation-truth.
+4. **What breaks if wrong?** Resuming runners trust false branch/git-repo state and skip git
+   operations, or treat an unverifiable test claim as proof. Low blast radius (text only).
+5. **Simpler path?** No simpler path that still corrects every false assertion. Each edit is
+   minimal and local.
+6. **Touches a contract, auth, state machine, payment, or print flow?** No. Pure documentation
+   truth. The AGENTS.md print-bridge line is reworded to an *attributed* statement, not a new
+   verification claim — explicitly NOT running print-bridge tests (sibling repo absent).
+7. **Split per app?** No. Single-platform governance case.
+
+**Decision:** Proceed as Tier 2. Specialist: dazai-docs. Hard constraints: no app code, no
+security work in nex-case-001, do not commit/document Windsurf, do not run print-bridge tests.
+
+## Investigation
+
+- `docs/RESUME_PROTOCOL.md`: §2 Run State sample (`# or "n/a (not a git repo)"`) and §5
+  handoff template (`this is NOT a git repo, so list them explicitly — git status cannot be
+  relied on`) are both factually wrong now — the repo is git, branch `staging/orchestration-hooks`.
+- `docs/cases/_TEMPLATE.md`: line 18 `<!-- or "n/a (not a git repo)" -->` and line 32
+  `(list edited files explicitly — not a git repo)` repeat the same false assertion.
+- `AGENTS.md` ~line 108: print-bridge note asserts `test suite is green as of 2026-05-17 — 102
+  passed / 0 failed` — not independently verifiable from this repo (sibling app excluded).
+- `docs/README.md`: "Agent operating system" section lists agents/skills/RESUME/HANDOVER but
+  not `hooks/` (9 hooks), `state/` (WORK/QUEUE/DEPS/DONE), or `PROTOCOL.md`.
+- `docs/cases/plt-case-001` & `plt-case-002`: Run State `branch: main` + `## Branch` body `main`
+  + comment "Orchestration/docs work runs on main per team convention" — contradicts the actual
+  branch `staging/orchestration-hooks`.
+- `docs/cases/nex-case-001`: frontmatter `status: under-review`; Run State `status: IN_PROGRESS`
+  / `last_completed_agent: none` / `next_agent: contrarian` — work has not started; the
+  IN_PROGRESS Run State would wrongly trigger a resume. Reconcile to "triaged/not started".
+- `.gitignore`: no `/.windsurf/` entry; `.windsurf/` is untracked.
+
+## Root Cause
+
+The orchestration repo was bootstrapped with template text written under the assumption it was
+not a git repo and that orchestration ran on `main`. The repo later became a git repo on
+`staging/orchestration-hooks`, but the boilerplate assertions, the print-bridge test claim
+inherited from sibling-repo context, the README index, and the nex-case-001 status metadata
+were not reconciled with current reality.
+
+## Proposed Fix
+
+1. RESUME_PROTOCOL.md §2 sample + §5 template: replace "not a git repo / git status cannot be
+   relied on" with git-repo-accurate wording.
+2. _TEMPLATE.md: drop the `n/a (not a git repo)` branch hint; reword the working-tree comment.
+3. AGENTS.md print-bridge line: reword "102 passed / 0 failed" to an attributed,
+   not-independently-verifiable-from-this-repo statement (cite the Print Bridge audit Section 8).
+4. docs/README.md: extend the agent-OS section to index hooks/ (9 hooks), state/, PROTOCOL.md.
+5. plt-case-001 & plt-case-002: Run State + `## Branch` → `staging/orchestration-hooks`; replace
+   the "runs on main per team convention" comment with the accurate branch statement.
+6. nex-case-001: reconcile frontmatter (`under-review`) vs Run State. Keep the documented
+   status enum (`IN_PROGRESS | BLOCKED | COMPLETE`) — do NOT invent a new status. Set
+   `active_runner: none` and add an explicit comment stating no phase has run, this is not a
+   resume (fresh Contrarian per RESUME_PROTOCOL §3.4), and QUEUE.md (status: queued) is
+   authoritative for scheduling. No security work.
+7. .gitignore: add `/.windsurf/`. Do not commit `.windsurf/`; no Windsurf docs.
+
+## Files Changed
+
+- docs/RESUME_PROTOCOL.md — §2 Run State sample + §5 handoff template reworded
+- docs/cases/_TEMPLATE.md — removed `n/a (not a git repo)` hint + reworded working-tree comment
+- AGENTS.md — print-bridge note reworded to attributed, non-self-verifiable statement
+- docs/README.md — Agent operating system section extended (hooks/, state/, PROTOCOL.md)
+- docs/cases/plt-case-001-orchestration-system.md — branch + convention comment fixed
+- docs/cases/plt-case-002-hook-surface-completion.md — branch + convention comment fixed
+- docs/cases/nex-case-001-security-auth-hardening.md — frontmatter/Run State reconciled
+- .gitignore — `/.windsurf/` added
+
+## Verification
+
+**Conducted:** 2026-05-17 by verifier (claude-code)
+
+### Commands Run
+- Forbidden-phrase scan: `not a git repo|runs on main per team convention|102 passed / 0 failed|on main per team` over all `*.md`
+- RESUME_PROTOCOL.md targeted scan: `git status cannot be relied on|NOT a git repo`
+- plt-case-002 branch scan: `staging/orchestration-hooks`
+- AGENTS.md attribution scan: `attributed claim from the sibling repo|not independently verifiable from this governance repo`
+- README index scan: hooks/state/PROTOCOL.md lines
+- `git status --porcelain` + `git diff --stat HEAD` + app-code grep over working tree
+
+### Results
+- Forbidden-phrase scan: remaining hits are ONLY (a) `.claude/agents/ranpo-backend.md:54` —
+  out-of-PLT-CASE-004-scope, flagged as a follow-up, NOT silently edited; (b) plt-case-001
+  lines 216-217 inside the Executioner Follow-Up *describing* the defect (correct to retain as
+  a quoted reference); (c) this PLT-CASE-004 case file *describing* the work (correct). No
+  forbidden phrase remains as a live false assertion in any of the eight in-scope files.
+- RESUME_PROTOCOL.md targeted scan: `No matches found` — §2 sample and §5 template are clean.
+- plt-case-002: `- branch: staging/orchestration-hooks` (line 12), `## Branch` body
+  `staging/orchestration-hooks` (line 55), accurate comment (line 56). plt-case-001 likewise
+  corrected (Run State + `## Branch` body + comment).
+- AGENTS.md line 108: reworded to "attributed claim from the sibling repo's audit and is not
+  independently verifiable from this governance repo — the print-bridge app repo is excluded
+  and not present here. Re-verify in that repo before relying on it." No "102 passed / 0
+  failed" assertion remains. Print-bridge tests were NOT run (sibling repo absent) — correct.
+- docs/README.md: PROTOCOL.md (line 33), `hooks/` 9-hook list (line 36), `state/` ledger
+  (line 39) now indexed in the Agent operating system section.
+- nex-case-001: frontmatter `status: under-review` + Run State `IN_PROGRESS` reconciled via an
+  explicit comment (no phase run, not a resume, fresh Contrarian per §3.4, QUEUE.md
+  authoritative) and `active_runner: none`. Documented status enum left unchanged (no new
+  status invented). No security work performed.
+- `git status --porcelain`: only `.gitignore`, `AGENTS.md`, `docs/README.md`,
+  `docs/RESUME_PROTOCOL.md`, `docs/cases/_TEMPLATE.md`, `plt-case-001`, `plt-case-002`,
+  `state/DONE.md`, `state/QUEUE.md`, `state/WORK.md` modified; untracked queued case files
+  (nex/prn/tab/plt-003) + plt-case-004. App-code grep: `NO app code in working tree changes`.
+- `.windsurf/` is gitignored (`/.windsurf/` added) and absent from `git status` → will not be
+  committed; no Windsurf documentation added.
+- Note: `git diff --stat` emitted CRLF normalization warnings (Windows line endings) — these
+  are informational, not content defects.
+
+### Functional Proof
+- Every enumerated documentation-truth defect is corrected and no longer asserts a falsehood;
+  the only residual occurrences are descriptive (case files quoting the defect) or explicitly
+  out-of-scope and flagged as a follow-up. Working tree is confined to governance files; zero
+  app code touched; `.windsurf/` excluded as required.
+
+### Warnings / Suspicious Output
+- `.claude/agents/ranpo-backend.md:54` carries the same "not a git repo / git status is not
+  reliable" falsehood. It is OUTSIDE the approved PLT-CASE-004 scope (agent definitions were
+  not enumerated). Per Constraint Absoluteness it was NOT edited; recorded as a follow-up.
+
+### Verdict
+PASS
+
+## Verifier Handoff
+
+Task: PLT-CASE-004
+App: woosoo-platform
+Tier: 2
+Files read: (scans only — no file mutated by verifier) RESUME_PROTOCOL.md, AGENTS.md, docs/README.md, plt-case-002, ...git outputs
+Finding: All eight in-scope documentation-truth fixes verified; no app code touched; .windsurf excluded; one same-class defect found out-of-scope and flagged, not edited.
+Decision: Advance to Executioner. The scope boundary was honored (ranpo-backend.md left untouched, flagged as follow-up).
+Risks: ranpo-backend.md:54 still carries the stale assertion (out of scope — follow-up).
+Deps: none
+Next action: Executioner reviews chain + scope adherence and issues verdict, then commit + push.
+Validation: Forbidden-phrase scan, targeted RESUME_PROTOCOL scan, branch/README/AGENTS positive scans, git working-tree scope + app-code grep.
+
+## Specialist Handoff
+
+Task: PLT-CASE-004
+App: woosoo-platform
+Tier: 2
+Files read: docs/RESUME_PROTOCOL.md, docs/cases/_TEMPLATE.md, AGENTS.md, docs/README.md, ...4 more
+Finding: Eight governance files carried stale/false assertions (git-repo state, branch, unverifiable test claim, README index gap, nex-case-001 status mismatch, missing .windsurf ignore).
+Decision: Applied the minimal scoped documentation-truth edits only; no app code, no security work, no Windsurf docs, no print-bridge test execution.
+Risks: None to runtime — text/metadata only. nex-case-001 still has real security work queued (untouched).
+Deps: none
+Next action: Verifier reruns documentation-truth scans and confirms no app code touched.
+Validation: Forbidden-phrase scan ("not a git repo", "runs on main per team convention", "102 passed / 0 failed"), branch-field check, README index check, nex-case-001 status consistency, git diff scope.
+
+## Executioner Verdict
+
+Verdict: APPROVED
+
+### Reason
+Tier 2 chain complete and checkpointed: Contrarian Review (7 challenges), Specialist (exactly
+the 8 enumerated documentation-truth edits, with the nex-case-001 reconciliation method
+recorded — documented status enum preserved, no new status invented), Verifier Report with
+verbatim scan output and PASS, Executioner judging now. Specialist stayed within
+`docs/**`/`*.md`/`.gitignore`/`AGENTS.md`; verified zero app code in the working tree. All
+hard constraints honored: no print-bridge tests run (sibling repo absent), no security work in
+nex-case-001, `.windsurf/` gitignored and undocumented, scope confined to the enumerated
+governance files. The Verifier surfaced one same-class defect (`.claude/agents/ranpo-backend.md:54`)
+that is OUTSIDE the approved scope and correctly did NOT edit it (Constraint Absoluteness) —
+this is a valid APPROVED follow-up, not a rejection cause. No REJECTED trigger present.
+
+### Required Next Action
+Append PLT-CASE-004 to state/DONE.md, update state/QUEUE.md, then secret-scan and commit the
+queued case files + state deltas + remediation, and push to origin/staging/orchestration-hooks
+as the explicit final step of this APPROVED case.
+
+### Follow-Ups
+- File case: `.claude/agents/ranpo-backend.md:54` still asserts "is not a git repo, so
+  `git status` is not reliable" — same class of documentation-truth defect as PLT-CASE-004 but
+  outside its enumerated scope (agent definitions were not in scope). Reconcile in a dedicated
+  follow-up case (suggested: PLT-CASE-005, scope: `.claude/agents/*.md` git-repo wording only).
+
+## Remaining Risks
+
+- nex-case-001 security hardening (the real Tier 3 work) remains queued and untouched — this
+  case only reconciled its status metadata.
+- `.windsurf/` is gitignored but intentionally not documented; if Windsurf becomes a supported
+  runner, a separate case must add it to the runner matrix.

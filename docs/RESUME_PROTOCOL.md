@@ -38,7 +38,7 @@ header. Agents **rewrite it in full** when they finish their phase:
 ## Run State
 - task_slug: <slug>
 - tier: 1 | 2 | 3
-- branch: agent/<slug>            # or "n/a (not a git repo)"
+- branch: agent/<slug>            # platform governance work uses staging/orchestration-hooks
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
@@ -91,7 +91,7 @@ bash scripts/case-status.sh set  <slug> status=BLOCKED next_agent=verifier
 
 PowerShell equivalent: `pwsh scripts/case-status.ps1 <get|set|init> <slug> ...` (behaviour-
 identical). `set` auto-stamps `updated`. The helper is a convenience — editing the case file
-directly is equally valid; the file, not the script, is the source of truth.
+directly is equally valid; the case document, not the script, is the source of truth.
 
 ## 5. Interruption / rate-limit handling
 
@@ -104,8 +104,8 @@ it can produce any further output, write a `## Handoff` note to the case file an
 - Phase in progress: <agent/role>
 - Done so far: <concrete list>
 - Exact next action: <the single next step the resuming runner should take>
-- Working-tree state: <files edited but unverified; this is NOT a git repo, so list them
-  explicitly — git status cannot be relied on>
+- Working-tree state: <files edited but unverified; list them explicitly and cross-check with
+  `git status` on the active branch (platform governance work: staging/orchestration-hooks)>
 - Risks / do-not-redo: <anything the next runner must not repeat, e.g. an already-applied edit>
 ```
 

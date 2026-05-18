@@ -65,5 +65,8 @@ Thumbs.db
 # --- Machine-local Claude Code settings (not shared) ---
 .claude/settings.local.json
 
+# --- Editor-local Windsurf workspace (not a supported runner; do not commit) ---
+/.windsurf/
+
 # --- Accidental artifact (empty file from a stray shell redirect) ---
 /null
