@@ -13,7 +13,7 @@ Order submission and session consistency fixes for tablet-ordering-pwa to addres
 - tier: 2
 - branch: agent/tab-case-001-order-session-determinism
 - status: IN_PROGRESS
-- last_completed_agent: specialist:chuya-frontend (Fix 1 only)
+- last_completed_agent: specialist:chuya-frontend (Fix 1 + Fix 2)
 - next_agent: specialist:chuya-frontend
 - active_runner: copilot
 - interrupted: false
@@ -21,11 +21,11 @@ Order submission and session consistency fixes for tablet-ordering-pwa to addres
 - updated: 2026-05-18
 
 ## Handoff
-- Phase in progress: specialist:chuya-frontend — Fix 1 of 4 complete; Fix 2–4 remain
-- Done so far: Fix 1 (offline ordering contradiction) committed on staging as `ab0dbae`. Removed BackgroundSyncPlugin from public/sw.ts; both order routes now use plain NetworkOnly. Added !isOnline.value to isButtonDisabled in OrderingStep3ReviewSubmit.vue; added proactive offline warning banner. Updated sw-precache.spec.ts contract test. 366/366 tests pass, 0 typecheck errors.
-- Exact next action: specialist:chuya-frontend — Fix 2: consolidate 4 overlapping order submission composables (useOrderSubmit.ts, useOrderSubmission.ts, useSubmissionIdempotency.ts, useOfflineOrderQueue.ts) into single composable with clear responsibilities. See ## Proposed Fix → Fix 2.
-- Working-tree state: clean (commit ab0dbae on staging branch in tablet-ordering-pwa)
-- Risks / do-not-redo: do not re-add BackgroundSyncPlugin; do not touch stores/OfflineSync.ts until Fix 2 decision on offline infrastructure cleanup
+- Phase in progress: specialist:chuya-frontend — Fix 1+2 of 4 complete; Fix 3–4 remain
+- Done so far: Fix 1 (offline contradiction) `ab0dbae`; Fix 2 (dead composables removed, idempotency key centralised) `2111f84`. 369/369 tests pass.
+- Exact next action: specialist:chuya-frontend — Fix 3: single persistence owner — remove manual localStorage writes in stores/session.js, use only Pinia with proper hydration. See ## Proposed Fix → Fix 3.
+- Working-tree state: clean (commit 2111f84 on staging in tablet-ordering-pwa)
+- Risks / do-not-redo: do not re-add BackgroundSyncPlugin; do not re-introduce useOrderSubmission or useOfflineOrderQueue
 
 ## Tier
 2
@@ -129,9 +129,17 @@ Files identified in audit requiring changes:
 
 ## Files Changed
 
-- `components/order/OrderingStep3ReviewSubmit.vue` — isButtonDisabled now includes `!isOnline.value`; proactive offline warning banner added above CTA; button label shows "No Connection" when offline
-- `public/sw.ts` — BackgroundSyncPlugin removed; create-order route changed to plain NetworkOnly; live-only contract documented in header
-- `tests/sw-precache.spec.ts` — contract test updated to assert no bgSyncPlugin on any order route
+- `components/order/OrderingStep3ReviewSubmit.vue` — isButtonDisabled now includes `!isOnline.value`; proactive offline warning banner added above CTA; button label shows "No Connection" when offline (`ab0dbae`)
+- `public/sw.ts` — BackgroundSyncPlugin removed; create-order route changed to plain NetworkOnly; live-only contract documented in header (`ab0dbae`)
+- `tests/sw-precache.spec.ts` — contract test updated to assert no bgSyncPlugin on any order route (`ab0dbae`)
+- `composables/useOrderSubmission.ts` — DELETED (dead code: imported but never called in review.vue) (`2111f84`)
+- `composables/useSubmissionIdempotency.ts` — DELETED (dead code: only used by deleted composable) (`2111f84`)
+- `composables/useOfflineOrderQueue.ts` — DELETED (dead code: never imported anywhere) (`2111f84`)
+- `utils/orderHelpers.ts` — added exported `generateIdempotencyKey()` utility (`2111f84`)
+- `composables/useOrderSubmit.ts` — import `generateIdempotencyKey` from utils/orderHelpers (`2111f84`)
+- `composables/useRefillSubmit.ts` — import `generateIdempotencyKey` from utils/orderHelpers (`2111f84`)
+- `pages/order/review.vue` — removed unused `useOrderSubmission` import (`2111f84`)
+- `tests/order-submit-source-contract.spec.ts` — 3 new contract tests locking in the cleanup (`2111f84`)
 
 ## Verification
 
