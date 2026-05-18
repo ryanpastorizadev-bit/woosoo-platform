@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-05-18
 scope: ecosystem
 ---
 
@@ -70,6 +70,14 @@ These four documents are the authoritative system-state references. Restructured
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
+
+## Deployment
+
+Docker orchestration authority is the **platform repo root** (3-repo sibling model).
+
+- [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
+- `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
+- `scripts/deployment/README.md` — per-script migration status
 
 ## Strategic
 
