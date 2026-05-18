@@ -1,5 +1,5 @@
 ---
-status: under-review
+status: COMPLETE
 last_reviewed: 2026-05-18
 scope: ecosystem
 ---
@@ -14,9 +14,9 @@ installed-PWA auto-update, and consolidate the platform branches into a single
 - task_slug: plt-case-006-docker-orchestration-root
 - tier: 3
 - branch: staging
-- status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -104,8 +104,13 @@ local/remote, `claude/*`+`agent/infra` gone, only main worktree;
 `docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config` valid.
 
 ## Executioner Verdict
-Pending verification (see above). Do not mark COMPLETE until all Pending
-checks pass.
+APPROVED (2026-05-18). Consolidation verification all green:
+`origin/staging` @ `92ebc46`; `staging/orchestration-hooks` gone local+remote;
+`git diff --stat 9a4e220..origin/staging` = 20 files (19 audited infra + this
+case file), +2352/-1; `docker compose ... config` VALID on `staging`; unrelated
+OS churn left uncommitted (separate workstream). Residual: one session-locked
+`claude/exciting-elbakyan-3c1e61` worktree (strict ancestor of `staging`, zero
+unique work) — benign, remove when its session ends.
 
 ## Remaining Risks
 Deferred (Pi access required): full Pi deploy-cycle verification; rework of the
