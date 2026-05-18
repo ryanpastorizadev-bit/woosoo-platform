@@ -31,7 +31,9 @@ scope: ecosystem
 
 | Dep ID | Provider App | Consumer App | Required Contract / Output | Status | Verification Evidence | Unlocks Case | Date Confirmed | Notes |
 |---|---|---|---|---|---|---|---|---|
-| — | — | — | No dependencies recorded yet | — | — | — | — | — |
+| DEP-001 | woosoo-nexus | woosoo-platform | NEX-CASE-001 security hardening complete (branch scoping, broadcast auth, GET→POST) | confirmed | 396 tests pass; Executioner APPROVED 2026-05-18; routes verified POST | PLT-CASE-003 | 2026-05-18 | — |
+| DEP-002 | woosoo-print-bridge | woosoo-platform | PRN-CASE-001 print determinism complete (6 reliability fixes) | confirmed | 104 tests pass; flutter analyze clean; Executioner APPROVED 2026-05-18 | PLT-CASE-003 | 2026-05-18 | — |
+| DEP-003 | tablet-ordering-pwa | woosoo-platform | TAB-CASE-001 order/session determinism complete | in_progress | Contrarian done; specialist:chuya-frontend not yet started | PLT-CASE-003 | — | PLT-CASE-003 remains blocked until this dep reaches confirmed |
 
 ---
 

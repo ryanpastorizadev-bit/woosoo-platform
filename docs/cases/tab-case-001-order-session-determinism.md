@@ -13,12 +13,12 @@ Order submission and session consistency fixes for tablet-ordering-pwa to addres
 - tier: 2
 - branch: agent/tab-case-001-order-session-determinism
 - status: IN_PROGRESS
-- last_completed_agent: none
-- next_agent: contrarian
+- last_completed_agent: contrarian
+- next_agent: specialist:chuya-frontend
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-17 20:53
+- updated: 2026-05-18
 
 ## Handoff
 - Phase in progress:
@@ -44,18 +44,40 @@ Critical order and session consistency issues identified in the Tablet PWA audit
 
 ## Contrarian Review
 
+**Conducted:** 2026-05-18 (claude-code)
+
 This is Tier 2 work because it fixes critical correctness issues in the customer-facing ordering flow without touching authentication or cross-app contracts. The offline contradiction is the single biggest correctness risk in the PWA.
 
-**Risk assessment:**
+### 7 Questions Assessment
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Correct app scope? | Yes - PWA client-side issues only |
+| 2 | Already exists? | No - novel audit findings |
+| 3 | Scope as described? | Yes - Tier 2 appropriate |
+| 4 | What breaks if wrong? | Customer ordering fails, duplicates, lost sessions |
+| 5 | Simpler path? | No - 4 distinct fixes required |
+| 6 | Contract/auth/state/payment/print? | No - Tier 2 confirmed |
+| 7 | Split per app? | No - single-app scope |
+
+**Verdict:** PROCEED with Tier 2 sequence.
+
+### Risk Assessment
 - **High risk** of duplicate orders due to abstraction overlap
 - **Medium risk** of stale session state causing ordering errors
 - **High risk** of customer frustration from offline inconsistency
 - **Medium risk** of session loss during bootstrap failures
 
-**Dependencies:**
+### Dependencies
 - Contract references: `../contracts/tablet-api.contract.md`
 - Single-app scope (tablet-ordering-pwa only)
 - Depends on Nexus auth fixes for proper session handling
+
+### Specialist Priority
+1. **Fix 1 first** (offline contradiction) - highest customer impact
+2. Fix 2 (consolidate composables)
+3. Fix 3 (persistence owner)
+4. Fix 4 (bootstrap failure)
 
 ## Investigation
 

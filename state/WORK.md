@@ -15,21 +15,20 @@ scope: ecosystem
 ## Current Task
 
 ```
-task_id:      PLT-CASE-005
-status:       done
-tier:         1
-app:          woosoo-platform
-specialist:   dazai-docs
-description:  Agent-def git-repo wording truth fix (.claude/agents/ranpo-backend.md:54) — PLT-CASE-004 follow-up.
-case_file:    docs/cases/plt-case-005-agent-def-git-truth.md
+task_id:      tab-case-001-order-session-determinism
+status:       in_progress
+tier:         2
+app:          tablet-ordering-pwa
+specialist:   chuya-frontend
+description:  Order submission and session consistency fixes for tablet-ordering-pwa
+case_file:    docs/cases/tab-case-001-order-session-determinism.md
 ```
 
 ## Next Action
 
 ```
-PLT-CASE-005 COMPLETE (Executioner APPROVED) and committed/pushed to
-origin/staging/orchestration-hooks. Pull NEX-CASE-001 from queue (P1, Tier 3,
-security & auth hardening for woosoo-nexus) — fresh Contrarian per RESUME_PROTOCOL §3.
+Contrarian complete. Proceed to Specialist:chuya-frontend for Fix 1 (offline ordering contradiction).
+Start with components/OrderingStep3ReviewSubmit.vue - resolve offline outbox vs submit block inconsistency.
 ```
 
 ## Blocking Dependencies
@@ -41,10 +40,10 @@ none
 ## Last Agent
 
 ```
-role:         executioner
-date:         2026-05-17
-left_off:     PLT-CASE-004 closed APPROVED. PLT-CASE-005 (PLT-CASE-004 follow-up) full Tier 1 chain complete — Specialist reworded .claude/agents/ranpo-backend.md:54, Verifier scans PASS, Executioner APPROVED, committed + pushed.
-files_open:   docs/cases/plt-case-005-agent-def-git-truth.md, .claude/agents/ranpo-backend.md, state/WORK.md, state/QUEUE.md, state/DONE.md
+role:         contrarian
+date:         2026-05-18
+left_off:     Contrarian review complete for tab-case-001. 7 questions assessed - Tier 2 confirmed, single-app scope, proceed with Specialist implementation. Fix 1 (offline contradiction) has highest customer impact and should be implemented first.
+files_open:   docs/cases/tab-case-001-order-session-determinism.md, state/WORK.md
 ```
 
 ## On Completion of Next Task

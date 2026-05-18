@@ -1,17 +1,19 @@
 ---
-status: under-review
+status: COMPLETE
 last_reviewed: 2026-05-18
 scope: tablet-ordering-pwa
 ---
 
-# CASE: tab-case-002-pwa-kiosk-stale-shell
+# CASE: tab-case-003-pwa-kiosk-stale-shell
 
 Tablet PWA kiosk stale-shell auto-update fix
 
 ## Run State
-- task_slug: tab-case-002-pwa-kiosk-stale-shell
+- task_slug: tab-case-003-pwa-kiosk-stale-shell
 - tier: 3
 - branch: agent/tab-case-002-pwa-kiosk-stale-shell
+  <!-- NOTE: case slug renumbered 002→003 for governance tracking; the app-repo branch name is
+       unchanged (agent/tab-case-002-pwa-kiosk-stale-shell in tablet-ordering-pwa). -->
 - status: COMPLETE
 - last_completed_agent: executioner
 - next_agent: none
@@ -280,10 +282,10 @@ The PWA kiosk stale-shell auto-update fix is **APPROVED** for merge to staging b
 - **Tier 3** (forced reload can interrupt an in-progress order; SW/race-condition; production deployment behaviour). Chain: Contrarian (deep, written risk analysis) → Specialist `chuya-frontend` → Verifier → Executioner (opus).
 - **Skills:** `nuxt-pwa-flow`, `pinia-state-audit`, `test-verification`
 - **One app only:** `tablet-ordering-pwa/**`. Do NOT touch woosoo-platform infra or woosoo-nexus
-- **Case file** (platform governance repo): `docs/cases/tab-case-002-pwa-kiosk-stale-shell.md` created from `docs/cases/_TEMPLATE.md`; checkpointed per phase per `RESUME_PROTOCOL.md`
+- **Case file** (platform governance repo): `docs/cases/tab-case-003-pwa-kiosk-stale-shell.md` (renamed from 002; app-repo branch is `agent/tab-case-002-pwa-kiosk-stale-shell`); checkpointed per phase per `RESUME_PROTOCOL.md`
 - **Branch in the app repo:** `agent/tab-case-002-pwa-kiosk-stale-shell`
-- **Housekeeping (pending)**: Case file should be renamed `tab-case-003-pwa-kiosk-stale-shell.md` per Verifier review; QUEUE.md and CASE_AUDIT references need update before merge
+- **Housekeeping (resolved)**: Case file renamed `tab-case-002` → `tab-case-003` per Executioner Conditions for Merge. QUEUE.md and CASE_AUDIT references updated. App-repo branch name (`agent/tab-case-002-pwa-kiosk-stale-shell`) is unchanged — the slug renumber is governance-side only.
 
 ## Rollback
 
-Single-app, single-branch change; revert the `agent/tab-case-002-pwa-kiosk-stale-shell` branch (no merge until Executioner `APPROVED`).
+Single-app, single-branch change; revert the `agent/tab-case-002-pwa-kiosk-stale-shell` branch in the tablet-ordering-pwa repo (no merge until Executioner `APPROVED` — already obtained 2026-05-18).
