@@ -98,20 +98,106 @@ needs the `APP_RUNTIME_*` / `NUXT_PUBLIC_*` vars set explicitly in `environment:
 (entrypoint reads only `APP_RUNTIME_*`). This stops Laravel secrets (APP_KEY,
 DB_PASSWORD, …) leaking into the tablet nginx container.
 
-### Known: deployed tablets stay stale after a prod deploy (separate tablet task)
+## Tablet PWA auto-update (installed kiosk tablets)
 
-A correct rebuild still may not reflect on kiosk tablets — this is **PWA app
-behaviour in the `tablet-ordering-pwa` repo, not an infra/config issue**:
+Installed tablets now **update themselves** after a deploy — no per-device
+action, and a customer mid-order is never interrupted. Implemented in
+`tablet-ordering-pwa` (branch `fix/tablet/pwa-auto-update`):
 
-- service worker precaches the app shell `/`; `registerType: autoUpdate` but no
-  forced reload → never-closed kiosk tabs keep the old shell
-  (`public/sw.ts`, `nuxt.config.ts` `@vite-pwa/nuxt`).
-- `useBuildVersion` reads the *build-baked* SHA from the stale cached `index.html`,
-  so staleness is never detected.
-- update is manual, only on the settings page (`useAppUpdate.ts`).
+**How it works**
 
-Fixing this is a scoped `tablet-ordering-pwa` task (chuya-frontend / nuxt-pwa-flow),
-tracked separately — out of platform-infra scope.
+1. **Navigation is network-first** (`public/sw.ts`): a reachable tablet always
+   fetches the live `index.html` (falls back to the precached shell only when
+   offline). The old precache can no longer pin a stale shell forever.
+2. **Order-safe auto-apply** (`composables/useAppUpdate.ts`, wired in
+   `app.vue`): the app polls for a new service worker every **60 s** (and on
+   wake/visibility, plus a 600 s vite-pwa backup). When a new worker is waiting
+   AND there is **no active dining session** (`!sessionStore.isActive`), it
+   auto-activates (`SKIP_WAITING` → `controllerchange` → one reload). If a
+   customer is mid-order it is **held** and applied the instant the session
+   ends — no cart loss, no interruption.
+3. **Build-version backstop** (`composables/useBuildVersion.ts`): every 5 min
+   the app fetches `/build-info.json` (no-store, prerendered per build). Two
+   consecutive sha mismatches → `/recovery` → clean reload. This catches any
+   case where path 1–2 failed.
+4. `sw.js`, `runtime-config.js`, `/build-info.json` are served `no-store`
+   (`tablet-ordering-pwa/docker/nginx/tablet-pwa.conf`); `/build-info.json` is
+   prerendered (`nuxt.config.ts` `nitro.prerender.routes`) so it always
+   reflects the **deployed** build, not the cached one.
+
+Staff can still force it immediately from **/settings → Apply Update**.
+
+Expected propagation after a prod deploy: idle tablets within ~1 minute;
+tablets mid-order at the moment the order completes; worst case (both failed)
+within ~5–10 min via the recovery backstop.
+
+## Operational scenarios — exact commands
+
+All commands run from the **platform repo root** (`woosoo-platform/`).
+
+### 1. Deploy a tablet UI change to production
+
+```bash
+# 1. land the change on the tablet repo branch the deploy pulls
+#    (woosoo-nexus/.env via apply-woosoo-config sets PUBLIC_HOST etc.)
+cd tablet-ordering-pwa && git push origin <branch>   # or merge to deploy branch
+cd ..
+
+# 2. rebuild + restart ONLY the tablet image (no DB/stack downtime)
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  build --no-cache tablet-pwa
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  up -d tablet-pwa
+```
+On the Pi the full `scripts/deployment/deploy.sh` does the per-repo pull +
+build + up. Tablets then auto-update per the mechanism above — **no tablet
+action required**.
+
+### 2. Force one tablet to update now (staff)
+
+On the tablet: **Settings (PIN) → Apply Update**. The button is enabled
+whenever an update is waiting (`needRefresh`). The device reloads once onto
+the new build. Use this only to skip the wait; it is not required.
+
+### 3. A tablet seems stuck on the old UI — diagnose
+
+```bash
+# what build does the SERVER currently serve?
+curl -ks https://<PUBLIC_HOST>:4443/build-info.json | tr ',' '\n' | grep -i sha
+
+# is the tablet container actually the new image?
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  exec tablet-pwa sh -c 'ls -1 /usr/share/nginx/html/_nuxt | head'
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml logs --tail=50 tablet-pwa
+```
+On the device, compare with the running build: open `/settings` (shows build
+sha) or DevTools console — `window.__NUXT__.config.public.buildSha`. If the
+server sha is new but the device sha is old, the backstop will route it to
+`/recovery` within ≤10 min; to force immediately use scenario 2, or as a last
+resort power-cycle the tablet (cold start re-fetches the network-first shell).
+
+### 4. Verify which build is live (server side)
+
+```bash
+curl -ks https://<PUBLIC_HOST>:4443/build-info.json
+# -> { "buildSha": "...", "buildBranch": "...", "buildTime": "..." }
+```
+
+### 5. Roll back a bad tablet build
+
+```bash
+cd tablet-ordering-pwa && git checkout <previous-good-ref> && cd ..
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  build --no-cache tablet-pwa
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  up -d tablet-pwa
+# tablets auto-roll-forward to the rebuilt (older) image the same way
+```
+
+### 6. Local UI dev loop (instant, no rebuild)
+
+See **Tablet UI development loop** above — `--profile dev up tablet-pwa-dev`,
+edit, browser hot-reloads. No service worker / no rebuild in dev.
 
 ## Transition state (important)
 
