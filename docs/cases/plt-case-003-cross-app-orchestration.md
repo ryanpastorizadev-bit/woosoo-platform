@@ -12,20 +12,20 @@ Cross-app orchestration and observability work to be executed after single-app f
 - task_slug: plt-case-003-cross-app-orchestration
 - tier: 3
 - branch: agent/plt-case-003-cross-app-orchestration
-- status: IN_PROGRESS
+- status: BLOCKED
 - last_completed_agent: none
 - next_agent: contrarian
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-17 20:53
+- updated: 2026-05-18
 
 ## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state:
-- Risks / do-not-redo:
+- Phase in progress: none — no agents have run
+- Done so far: case scaffolded; Contrarian not yet started
+- Exact next action: contrarian, once DEP-003 (TAB-CASE-001) reaches `confirmed` in state/DEPS.md
+- Working-tree state: clean
+- Risks / do-not-redo: do not start until DEPS.md shows DEP-003 = confirmed
 
 ## Tier
 3
