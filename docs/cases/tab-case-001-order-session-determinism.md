@@ -13,19 +13,19 @@ Order submission and session consistency fixes for tablet-ordering-pwa to addres
 - tier: 2
 - branch: agent/tab-case-001-order-session-determinism
 - status: IN_PROGRESS
-- last_completed_agent: contrarian
+- last_completed_agent: specialist:chuya-frontend (Fix 1 only)
 - next_agent: specialist:chuya-frontend
-- active_runner: claude-code
+- active_runner: copilot
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-05-18
 
 ## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state:
-- Risks / do-not-redo:
+- Phase in progress: specialist:chuya-frontend — Fix 1 of 4 complete; Fix 2–4 remain
+- Done so far: Fix 1 (offline ordering contradiction) committed on staging as `ab0dbae`. Removed BackgroundSyncPlugin from public/sw.ts; both order routes now use plain NetworkOnly. Added !isOnline.value to isButtonDisabled in OrderingStep3ReviewSubmit.vue; added proactive offline warning banner. Updated sw-precache.spec.ts contract test. 366/366 tests pass, 0 typecheck errors.
+- Exact next action: specialist:chuya-frontend — Fix 2: consolidate 4 overlapping order submission composables (useOrderSubmit.ts, useOrderSubmission.ts, useSubmissionIdempotency.ts, useOfflineOrderQueue.ts) into single composable with clear responsibilities. See ## Proposed Fix → Fix 2.
+- Working-tree state: clean (commit ab0dbae on staging branch in tablet-ordering-pwa)
+- Risks / do-not-redo: do not re-add BackgroundSyncPlugin; do not touch stores/OfflineSync.ts until Fix 2 decision on offline infrastructure cleanup
 
 ## Tier
 2
@@ -129,7 +129,9 @@ Files identified in audit requiring changes:
 
 ## Files Changed
 
-*To be populated during implementation*
+- `components/order/OrderingStep3ReviewSubmit.vue` — isButtonDisabled now includes `!isOnline.value`; proactive offline warning banner added above CTA; button label shows "No Connection" when offline
+- `public/sw.ts` — BackgroundSyncPlugin removed; create-order route changed to plain NetworkOnly; live-only contract documented in header
+- `tests/sw-precache.spec.ts` — contract test updated to assert no bgSyncPlugin on any order route
 
 ## Verification
 
