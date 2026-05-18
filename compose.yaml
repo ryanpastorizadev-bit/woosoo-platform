@@ -176,7 +176,10 @@ services:
         NUXT_PUBLIC_REVERB_PATH: /app
     pull_policy: build
     restart: unless-stopped
-    env_file: ./woosoo-nexus/.env
+    # No env_file: the tablet container only needs the APP_RUNTIME_* / NUXT_PUBLIC_*
+    # vars set explicitly below (entrypoint.sh reads only APP_RUNTIME_*). Loading
+    # woosoo-nexus/.env here would leak Laravel secrets (APP_KEY, DB_PASSWORD) into
+    # the tablet nginx container for no functional reason.
     environment:
       NODE_ENV: production
       APP_RUNTIME_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
@@ -203,6 +206,52 @@ services:
       MAIN_API_URL: https://${PUBLIC_HOST:-woosoo.local}
       NUXT_PUBLIC_PUSHER_KEY: ${REVERB_APP_KEY}
       NUXT_PUBLIC_PUSHER_CLUSTER: mt1
+      NUXT_PUBLIC_DEVICE_AUTH_PASSCODE: ${DEVICE_AUTH_PASSCODE:-}
+    networks:
+      - woosoo
+
+  # ── Tablet PWA — DEV hot-reload (profile: dev) ────────────────────────
+  # NOT started by default or by the production invocation. Use only for fast
+  # tablet UI iteration:
+  #   docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  #     --profile dev up tablet-pwa-dev
+  # Then open http://localhost:3000 — host edits in ./tablet-ordering-pwa
+  # hot-reload instantly (Nuxt dev server, no SSG rebuild, no service worker
+  # precache). The production `tablet-pwa` service is untouched; the main stack
+  # (app/reverb on the `woosoo` network) should be up for API/WS calls.
+  tablet-pwa-dev:
+    profiles: ["dev"]
+    build:
+      context: ./tablet-ordering-pwa
+      dockerfile: Dockerfile.dev
+    pull_policy: build
+    restart: "no"
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./tablet-ordering-pwa:/app
+      - /app/node_modules   # keep image-installed deps (don't shadow with host)
+      - /app/.nuxt
+      - /app/.output
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: "3000"
+      # Reliable file-watching for bind-mounts on Windows/Docker (inotify does
+      # not propagate from the Windows host — poll instead).
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      VITE_HMR_PORT: "3000"
+      # Talk to the running platform stack's API / Reverb (same values as prod).
+      NUXT_PUBLIC_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
+      NUXT_PUBLIC_BROADCAST_CONNECTION: reverb
+      NUXT_PUBLIC_REVERB_APP_ID: ${REVERB_APP_ID:-woosoo}
+      NUXT_PUBLIC_REVERB_APP_KEY: ${REVERB_APP_KEY:-woosoo}
+      NUXT_PUBLIC_REVERB_HOST: ${PUBLIC_HOST:-woosoo.local}
+      NUXT_PUBLIC_REVERB_PORT: "443"
+      NUXT_PUBLIC_REVERB_SCHEME: https
+      NUXT_PUBLIC_REVERB_PATH: /app
       NUXT_PUBLIC_DEVICE_AUTH_PASSCODE: ${DEVICE_AUTH_PASSCODE:-}
     networks:
       - woosoo

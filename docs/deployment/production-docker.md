@@ -75,6 +75,44 @@ Config contract: `/etc/woosoo/woosoo.env` (root-owned, mode 0600). Template:
 - Pi5 runtime (static IP / dnsmasq / systemd / 3-remote pull / live device /
   printer relay): **NOT yet verified — required follow-up with Pi access.**
 
+## Tablet UI development loop
+
+The production `tablet-pwa` service builds a static `nuxi generate` image with **no
+bind-mount** — every UI change otherwise needs a full `docker compose build tablet-pwa`.
+For fast iteration use the profile-gated dev service (same single compose file, not an
+override, production path untouched):
+
+```bash
+# main stack up (for API/Reverb), then:
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  --profile dev up tablet-pwa-dev
+# open http://localhost:3000 — edits in ./tablet-ordering-pwa hot-reload
+```
+
+`tablet-pwa-dev` runs `Dockerfile.dev` (Nuxt dev server) with `./tablet-ordering-pwa`
+bind-mounted and polling watchers (Windows/Docker inotify does not propagate). It is
+**absent** from the default/production invocation (`profiles: ["dev"]`).
+
+The prod `tablet-pwa` service no longer has `env_file: ./woosoo-nexus/.env` — it only
+needs the `APP_RUNTIME_*` / `NUXT_PUBLIC_*` vars set explicitly in `environment:`
+(entrypoint reads only `APP_RUNTIME_*`). This stops Laravel secrets (APP_KEY,
+DB_PASSWORD, …) leaking into the tablet nginx container.
+
+### Known: deployed tablets stay stale after a prod deploy (separate tablet task)
+
+A correct rebuild still may not reflect on kiosk tablets — this is **PWA app
+behaviour in the `tablet-ordering-pwa` repo, not an infra/config issue**:
+
+- service worker precaches the app shell `/`; `registerType: autoUpdate` but no
+  forced reload → never-closed kiosk tabs keep the old shell
+  (`public/sw.ts`, `nuxt.config.ts` `@vite-pwa/nuxt`).
+- `useBuildVersion` reads the *build-baked* SHA from the stale cached `index.html`,
+  so staleness is never detected.
+- update is manual, only on the settings page (`useAppUpdate.ts`).
+
+Fixing this is a scoped `tablet-ordering-pwa` task (chuya-frontend / nuxt-pwa-flow),
+tracked separately — out of platform-infra scope.
+
 ## Transition state (important)
 
 The relocation was done **additively**. The legacy
