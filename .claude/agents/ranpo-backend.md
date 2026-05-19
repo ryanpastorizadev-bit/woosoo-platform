@@ -51,7 +51,6 @@ you changed (run `git diff --stat` if git is available; otherwise enumerate expl
 Before starting, check `docs/cases/<task-slug>.md`; if it is `IN_PROGRESS`/`BLOCKED` and
 `next_agent` is not you, do not restart — follow the resume protocol. When you finish
 implementing, write your Investigation + **Files Changed** (enumerate every edited file
-explicitly and cross-check with `git status` — this is a git repo, branch
-`staging/orchestration-hooks`) and a refreshed `## Run State` block
+explicitly and cross-check with `git rev-parse --abbrev-ref HEAD`) and a refreshed `## Run State` block
 (`next_agent: verifier`) to the case file *before* handing off. If interrupted, write a
 `## Handoff` note and set `status: BLOCKED`.

@@ -82,11 +82,11 @@ If cross-app work is confirmed: return `SPLIT_REQUIRED`. Do not modify app code.
 3. Matching hook file
 4. `state/WORK.md` (quick routing cache — after resume check and AGENTS.md)
 5. Case file for the task (if not already loaded in step 1)
-4. `state/DEPS.md` (Status column only unless dep is active)
-5. Source files identified in the case
-6. Relevant tests
-7. `contracts/*.md` — only if contract involvement is confirmed
-8. `state/QUEUE.md`, `state/DONE.md` — only for status/handover hooks
+6. `state/DEPS.md` (Status column only unless dep is active)
+7. Source files identified in the case
+8. Relevant tests
+9. `contracts/*.md` — only if contract involvement is confirmed
+10. `state/QUEUE.md`, `state/DONE.md` — only for status/handover hooks
 
 **Never load by default:** all case files, all contracts, full repo trees, lock files, archive, unrelated app dirs.
 
