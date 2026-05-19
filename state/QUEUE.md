@@ -26,7 +26,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status |
 |---|---|---|---|---|---|---|
-| P2 | TAB-CASE-001 | tablet-ordering-pwa | Order & session determinism | 2 | none | in_progress |
+| P2 | TAB-CASE-001 | tablet-ordering-pwa | Order & session determinism | 2 | none | done |
 | P2 | TAB-CASE-002 | tablet-ordering-pwa | Validated review follow-ups (dedup/reconnect/types/a11y) | 2 | none | in_progress |
 | P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app) | 3 | DEP-001,DEP-002,DEP-003 | queued |
 
@@ -36,6 +36,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| TAB-CASE-001 | tablet-ordering-pwa | 2026-05-19 | All 4 fixes: offline contract, dead composables, Pinia-only persistence, bootstrap redirect. 382 tests pass, vue-tsc clean, build complete. Executioner APPROVED |
 | TAB-CASE-003 | tablet-ordering-pwa | 2026-05-18 | PWA kiosk stale-shell auto-update; Tier 3 complete. 365 tests pass, typecheck/lint/build/generate PASSED. Executioner APPROVED |
 | PRN-CASE-001 | woosoo-print-bridge | 2026-05-18 | Print determinism: 6 reliability fixes, 104 tests pass, flutter analyze clean. Executioner APPROVED |
 | PRN-CASE-002 | woosoo-print-bridge | 2026-05-18 | Queue retention/purge TTL policy, 108 tests pass |
