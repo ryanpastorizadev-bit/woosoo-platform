@@ -8,30 +8,33 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-19 by executioner (claude-code) — /review sync       -->
+<!-- Last updated: 2026-05-19 by executioner (claude-code) — TAB-CASE-002 COMPLETE -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      tab-case-001-order-session-determinism
-status:       in_progress
-tier:         2
-app:          tablet-ordering-pwa
-specialist:   chuya-frontend
-description:  Order submission and session consistency fixes for tablet-ordering-pwa
-case_file:    docs/cases/tab-case-001-order-session-determinism.md
+task_id:      plt-case-003
+status:       queued
+tier:         3
+app:          cross-app (orchestration)
+specialist:   TBD (Contrarian must triage first)
+description:  Cross-app orchestration (all deps now confirmed)
+case_file:    docs/cases/plt-case-003.md (create from template if absent)
 ```
 
 ## Next Action
 
 ```
-Fix 1+2 COMPLETE (ab0dbae, 2111f84). Proceed to specialist:chuya-frontend for Fix 3:
-single persistence owner — remove manual localStorage writes in stores/session.js;
-use only Pinia with proper hydration. Do not re-add BackgroundSyncPlugin.
-Do not re-introduce useOrderSubmission or useOfflineOrderQueue.
-See docs/cases/tab-case-001-order-session-determinism.md ## Proposed Fix → Fix 3.
+TAB-CASE-002 COMPLETE (Executioner APPROVED 2026-05-19).
+Findings #3/#4/#6/#7 implemented: any types eliminated in useBroadcasts.ts,
+cross-store coupling documented as Pinia-safe, classifyError assessed-clean,
+AbortController added to Menu.ts. 382 tests pass, typecheck clean.
+
+PLT-CASE-003 is fully unblocked (DEP-001 ✓ DEP-002 ✓ DEP-003 ✓).
+Start PLT-CASE-003 as Contrarian (Tier 3, cross-app orchestration).
+Create docs/cases/plt-case-003.md from docs/cases/_TEMPLATE.md if it does not exist.
 ```
 
 ## Blocking Dependencies
@@ -43,23 +46,18 @@ none
 ## Last Agent
 
 ```
-role:         specialist:chuya-frontend
+role:         executioner (claude-code)
 date:         2026-05-19
-left_off:     Fix 2 done. Dead composables removed (useOrderSubmission, useSubmissionIdempotency,
-              useOfflineOrderQueue). generateIdempotencyKey() centralised in utils/orderHelpers.ts.
-              Unused useOrderSubmission import removed from pages/order/review.vue. Contract tests
-              added (order-submit-source-contract.spec.ts). 369/369 tests pass, 0 typecheck, 0 lint.
-files_open:   docs/cases/tab-case-001-order-session-determinism.md, state/WORK.md
+left_off:     TAB-CASE-002 closed. Findings #3/#4/#6/#7 verified: 382 tests pass,
+              typecheck zero errors, lint 0 errors, build + generate clean.
+              Branch: agent/tab-case-002-validated-review-followups (tablet-ordering-pwa).
+files_open:   docs/cases/tab-case-002-validated-review-followups.md, state/WORK.md
 ```
 
 ## On Completion of Next Task
 
 ```text
-→ TAB-CASE-001 completes (all 4 fixes done) → update state/DEPS.md DEP-003 to confirmed
-→ PLT-CASE-003 unblocks — start as Contrarian (Tier 3, cross-app orchestration)
-→ TAB-CASE-002 also in_progress (parallel) — 7 validated findings, specialist:chuya-frontend
-  NOTE: CLAUDE_REVIEW_SUMMARY.md suggests findings #2 + #6 may be partially shipped already;
-  triage against TAB-CASE-002 case file before starting implementation.
+→ PLT-CASE-003 completes → review state/QUEUE.md for the next queued case
 ```
 
 ---
