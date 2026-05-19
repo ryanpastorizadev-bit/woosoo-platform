@@ -17,6 +17,8 @@ scope: ecosystem
 | PLT-CASE-001 | woosoo-platform | 2026-05-17 | Forbidden-phrase scan no matches; reversed chain-order scan no matches; 9 hooks True; zero app code in commits 5ea33b8/ba92667/11111e9; boot order case-before-cache | APPROVED | none | Orchestration system implementation closed (Verifier PASS, resumed by claude-code) |
 | PLT-CASE-004 | woosoo-platform | 2026-05-17 | Documentation-truth scans pass; no live "not a git repo"/"runs on main"/"102 passed" assertion in 8 in-scope files; zero app code; .windsurf excluded; one out-of-scope same-class defect flagged not edited | APPROVED | none | Review remediation — git-repo/branch/print-bridge/README/nex-case-001/.windsurf truth fixes |
 | PLT-CASE-005 | woosoo-platform | 2026-05-17 | Stale-phrasing grep over .claude/agents/ no matches; corrected git-repo wording present at ranpo-backend.md:54; zero app code; sibling repos untouched | APPROVED | none | Closed PLT-CASE-004 follow-up — agent-def git-repo wording truth fix |
+| TAB-CASE-005 | tablet-ordering-pwa | 2026-05-19 | typecheck exit 0, lint 0 errors, nuxt build exit 0; 2 files changed (PackageCard.vue + packageSelection.vue); 9 changes applied | APPROVED | none | Package card delta v2: tap→select, white title, description-as-tagline, View label, italic heading, uppercase inspector CTA, summary opacity |
+| NEX-CASE-003 | woosoo-nexus | 2026-05-19 | php artisan test --filter=OrderRepositoryTest 3/3 (9 assertions); full suite 398/398 (1386 assertions); dashboard routes confirmed registered; Eloquent inline replaces proc, env() removed, test bypass removed | APPROVED | none | Missing stored procedure — OrderRepository Eloquent inline fix; is_open filter; Collection return type; Dashboard.vue empty-state |
 
 ---
 <!--

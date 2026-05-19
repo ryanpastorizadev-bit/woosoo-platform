@@ -13,19 +13,19 @@ Docker `mysql` and `redis` services not resolving — probable infrastructure ro
 - tier: 3
 - branch: agent/plt-case-008-docker-mysql-redis
 - status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:infra
-- active_runner: copilot
+- last_completed_agent: verifier
+- next_agent: executioner
+- active_runner: none
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-19 22:09
+- updated: 2026-05-19
 
 ## Handoff
-- Phase in progress: none — Contrarian not yet started
-- Done so far: Triaged from RAW-20260519-006 (intake 2026-05-19)
-- Exact next action: Contrarian to assess container topology, service health, and downstream impact before any changes
-- Working-tree state: no changes
-- Risks / do-not-redo: none yet
+- Phase in progress: Executioner gate — code change approved locally; Pi runtime verification is a post-deploy step (Fix B, out of scope for code review).
+- Done so far: Contrarian (Tier 3 escalation, PROCEED). Specialist (copilot) — REVERB_HOST=0.0.0.0 → reverb in apply-woosoo-config.sh:344. Verifier — local code checks green (single set_env confirmed, no duplicates, full test suite 398/398).
+- Exact next action: Executioner approves the one-line code change. Post-approval: redeploy on Pi via deploy.sh to regenerate .env; then run on-device Fix B verification (docker compose logs mysql redis).
+- Working-tree state: 1 file changed — scripts/deployment/apply-woosoo-config.sh:344.
+- Risks / do-not-redo: Do NOT restart or recreate the Docker network without on-device log evidence. REVERB_HOST fix is a code-only change; runtime effect confirmed after redeploy on Pi.
 
 ## Tier
 2
@@ -67,14 +67,75 @@ Candidate skills: `docker-deployment-debug`
 
 ## Investigation
 
+**Evidence from `scripts/deployment/apply-woosoo-config.sh`:**
+
+- Line 344 (before fix): `set_env "REVERB_HOST" "0.0.0.0"` — `0.0.0.0` is the Reverb server's bind address. Used as a broadcast client connection target, it is invalid.
+- Line 317: `set_env "DB_HOST" "mysql"` — correct Docker service DNS ✓
+- Line 336: `set_env "REDIS_HOST" "redis"` — correct Docker service DNS ✓
+
+**Evidence from production log (RAW-20260519-003):**
+```
+cURL error 7: Failed to connect to 192.168.100.7 port 8080 after 0 ms: Connection refused
+```
+Production `.env` has `REVERB_HOST=192.168.100.7` (the Pi's LAN IP). Port 8080 is not published on the Pi host (Reverb is internal-only; WebSocket clients reach it via nginx proxy on :443/app/). Connecting host→host at an unpublished port is refused.
+
+**Reverb internal vs public config (compose.yaml):**
+- Server bind: `reverb:start --host=0.0.0.0 --port=8080` (overrides .env for the server process itself)
+- `REVERB_BROADCAST_HOST: ${PUBLIC_HOST}` — what the Reverb server reports to WebSocket clients (public hostname) ✓
+- `REVERB_HOST` in `.env` — what the Laravel PHP broadcast CLIENT uses to push events to Reverb. Must be `reverb` (Docker service DNS) for intra-container communication.
+
+**MySQL/Redis (RAW-20260519-006, 461-error cluster):**
+- `DB_HOST=mysql`, `REDIS_HOST=redis` are correctly set in apply-woosoo-config.sh.
+- Container health requires on-device log pull: `docker compose logs mysql redis`. Cannot diagnose from config alone.
+- If the stack started with mysql/redis in unhealthy state and `app` was also restarted, the healthcheck dependency chain would have protected new connections — but a crash-after-start would not be caught.
+
 ## Root Cause
+
+**Confirmed:** `apply-woosoo-config.sh` line 344 wrote `REVERB_HOST=0.0.0.0` (a server bind address) into `.env`. Every deploy regenerated this wrong value. The production Pi at some point ended up with `REVERB_HOST=192.168.100.7` (possibly from an older script version, manual edit, or an .env.example default). Either value fails: neither `0.0.0.0` nor the LAN IP reaches the Reverb container via Docker DNS.
+
+**Unconfirmed:** MySQL/Redis container health at time of the 461-error cluster. Requires on-device `docker compose ps` and `docker compose logs`.
 
 ## Proposed Fix
 
+**Fix A — `apply-woosoo-config.sh` line 344 (this PR):**
+```diff
+-set_env "REVERB_HOST" "0.0.0.0"
++set_env "REVERB_HOST" "reverb"
+```
+After this change, every `deploy.sh` / `apply-woosoo-config.sh` run regenerates `.env` with `REVERB_HOST=reverb`, pointing the Laravel broadcast client at the Docker service.
+
+**Fix B — On-device (requires Pi access, out of scope for this code change):**
+1. `docker compose logs mysql redis --since=2026-05-19T17:00:00 | grep -E "ERROR|WARN|restart"` — confirm whether containers crashed
+2. `docker compose ps` — check current health status
+3. `docker compose exec mysql mysqladmin ping -h localhost` — live health probe
+4. If mysql crashed: investigate OOM (Pi memory pressure — `mysql` has 640m limit), then `docker compose restart mysql`
+
 ## Files Changed
+
+1. `scripts/deployment/apply-woosoo-config.sh:344` — `REVERB_HOST=0.0.0.0` → `REVERB_HOST=reverb`
 
 ## Verification
 
+**Verifier: PASS (local code checks) — 2026-05-19**
+
+```
+REVERB_HOST set_env calls in apply-woosoo-config.sh: 1 (line 344) → "reverb" ✓
+Duplicate REVERB_HOST set_env: 0 ✓
+VITE_REVERB_HOST (line 349): separate key, correct ($WOOSOO_HOST) ✓
+Full woosoo-nexus test suite: 398 passed (1386 assertions) — no regressions ✓
+```
+
+Pi runtime verification (Fix B) is a post-deploy step, not a code review gate:
+- Run `deploy.sh` on Pi to regenerate `.env` with `REVERB_HOST=reverb`
+- Then: `docker compose logs mysql redis --since=<incident-timestamp> | grep -E "ERROR|WARN|restart"`
+- Then: `docker compose ps` to confirm container health
+
 ## Executioner Verdict
 
+_Pending._
+
 ## Remaining Risks
+
+- **MySQL/Redis container health unconfirmed** — Fix A is deployed but Fix B still requires on-device log review. If mysql/redis did crash, the REVERB_HOST fix alone won't restore full ordering.
+- **Production `.env` must be regenerated** — after merging Fix A, `deploy.sh` or `apply-woosoo-config.sh` must be rerun on the Pi to write the new `REVERB_HOST=reverb` into the live `.env`. A config change without redeploy has no effect.
+- **`woosoo-health.sh` still NOT migrated** — it runs compose from `WOOSOO_NEXUS_PATH` instead of platform root. Fix B on-device should use `deploy.sh` or the correct platform-root compose command, not `woosoo-health.sh`.

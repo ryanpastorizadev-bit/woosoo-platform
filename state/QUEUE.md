@@ -28,7 +28,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 |---|---|---|---|---|---|---|
 | P2 | TAB-CASE-001 | tablet-ordering-pwa | Order & session determinism | 2 | none | done |
 | P2 | TAB-CASE-002 | tablet-ordering-pwa | Validated review follow-ups (dedup/reconnect/types/a11y) | 2 | none | done |
-| P1 | NEX-CASE-003 | woosoo-nexus | Missing stored procedure — order retrieval broken (prod POS DB) | 3 | none | queued |
+| P1 | NEX-CASE-003 | woosoo-nexus | Missing stored procedure — order retrieval broken (prod POS DB) | 3 | none | done |
 | P1 | NEX-CASE-004 | woosoo-nexus | Device login returns HTTP 500 | 3 | none | queued |
 | P2 | NEX-CASE-002 | woosoo-nexus | Pulse routes broken | 2 | none | queued |
 | P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — client_submission_id absent | 2 | none | queued |

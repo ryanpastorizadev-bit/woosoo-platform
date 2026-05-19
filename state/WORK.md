@@ -8,37 +8,33 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-19 by contrarian — NEX-CASE-003 Contrarian gate COMPLETE (preempts PLT-CASE-003) -->
+<!-- Last updated: 2026-05-19 by verifier — NEX-CASE-003 COMPLETE (APPROVED), PLT-CASE-008 at Executioner -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      nex-case-003-missing-stored-procedure
-status:       in_progress
+task_id:      plt-case-008 (P1, at Executioner)
+status:       needs_verification
 tier:         3
-app:          woosoo-nexus
-specialist:   ranpo-backend
-description:  Missing stored procedure — order retrieval broken (prod POS DB)
-case_file:    docs/cases/nex-case-003-missing-stored-procedure.md
+app:          woosoo-platform
+description:  Verifier PASS (local). Awaiting Executioner approval + Pi post-deploy verification (Fix B).
+case_file:    docs/cases/plt-case-008-docker-mysql-redis.md
 ```
 
 ## Next Action
 
 ```
-Contrarian gate COMPLETE (2026-05-19). Risk analysis written (R1–R6).
+NEX-CASE-003: COMPLETE — Executioner APPROVED (2026-05-19), commit f985708 on staging. ✓
 
-Specialist (ranpo-backend) must:
-1. Confirm the actual HTTP 500 source — the catch block should already silence the proc error;
-   the 500 trigger is unconfirmed.
-2. Choose fix path: Eloquent inline (preferred by Contrarian) vs proc recreation (vendor-DB risk).
-3. Remove env('APP_ENV') direct call at OrderRepository.php:138 (Spatie/Laravel violation).
-4. Plan UI-level fallback for empty openOrders (R3 — ops staff are blind when proc fails silently).
-5. Extend test coverage to exercise the production code path (remove or gate the test bypass).
+PLT-CASE-008: Executioner gate — review one-line change (apply-woosoo-config.sh:344,
+REVERB_HOST=0.0.0.0 → reverb). Approve + commit, then on Pi:
+  1. deploy.sh (regenerates .env with REVERB_HOST=reverb)
+  2. docker compose logs mysql redis --since=<incident-ts> | grep -E "ERROR|WARN|restart"
+  3. docker compose ps (confirm container health)
 
-PLT-CASE-003 is preempted by P1. It remains fully unblocked and queued (P3) — resume after
-NEX-CASE-003 and NEX-CASE-004 are resolved.
+QUEUE NEXT after PLT-CASE-008: NEX-CASE-004 Contrarian (POST /api/devices/login → 500, Tier 3)
 ```
 
 ## Blocking Dependencies
@@ -50,25 +46,20 @@ none
 ## Last Agent
 
 ```
-role:         contrarian
+role:         verifier
 date:         2026-05-19
-left_off:     Contrarian analysis complete for NEX-CASE-003.
-              Call chain confirmed: DashboardController::index() → OrderRepository::getOpenOrdersForSession()
-              → CALL get_open_orders_for_session(?) → SQLSTATE[42000].
-              Catch block already present — 500 source unconfirmed.
-              Recommended Eloquent inline fix (avoids vendor-DB ownership risk).
-              R5: env('APP_ENV') direct call flagged for removal.
-files_open:   docs/cases/nex-case-003-missing-stored-procedure.md
-              app/Repositories/Krypton/OrderRepository.php
-              app/Http/Controllers/Admin/DashboardController.php
+left_off:     NEX-CASE-003 Verifier PASS → Executioner APPROVED (commit f985708 on staging).
+              PLT-CASE-008 Verifier PASS (local code checks) → Executioner gate.
+              398/398 nexus tests green. REVERB_HOST single set_env at line 344 confirmed.
+files_open:   docs/cases/plt-case-008-docker-mysql-redis.md
+              state/WORK.md
 ```
 
 ## On Completion of Next Task
 
 ```text
-→ NEX-CASE-003 Specialist done → Verifier → Executioner gate
-→ Then NEX-CASE-004 (device login 500, P1, Tier 3)
-→ Then PLT-CASE-003 (cross-app orchestration, P3, Tier 3)
+→ PLT-CASE-008 + NEX-CASE-003 Executioner APPROVED → NEX-CASE-004 Contrarian
+→ NEX-CASE-004 complete → PLT-CASE-003 (cross-app orchestration, P3)
 ```
 
 ---
