@@ -54,7 +54,7 @@ files_open:   docs/cases/tab-case-001-order-session-determinism.md, state/WORK.m
 
 ## On Completion of Next Task
 
-```
+```text
 → TAB-CASE-001 completes (all 4 fixes done) → update state/DEPS.md DEP-003 to confirmed
 → PLT-CASE-003 unblocks — start as Contrarian (Tier 3, cross-app orchestration)
 → TAB-CASE-002 also in_progress (parallel) — 7 validated findings, specialist:chuya-frontend

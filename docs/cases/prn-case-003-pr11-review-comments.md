@@ -19,11 +19,11 @@ scope: woosoo-print-bridge
 - updated: 2026-05-19
 
 ## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state (list edited files explicitly; cross-check with `git status`):
-- Risks / do-not-redo:
+- Phase in progress: Executioner verdict — final approval gate
+- Done so far: All four phases complete (Contrarian Tier 3, relay-ops specialist, verifier, executioner). Reservation exception path remediated: typed `HttpStatusException`, transient/non-transient classification, `PrintJob.nextReservationAttemptAt` with 30 s cap, dead-letter routing for HTTP 4xx. Audit doc and `.agents.md` stale-risk wording updated.
+- Exact next action: None — task COMPLETE. Commit and push root case file plus print-bridge branch changes when ready.
+- Working-tree state: `woosoo-print-bridge/.agents.md`, `woosoo-print-bridge/docs/WOOSOO_PRINT_BRIDGE_PRODUCTION_RELIABILITY_AUDIT_2026-05-14.md`, `woosoo-print-bridge/lib/models/print_job.dart`, `woosoo-print-bridge/lib/services/api_service.dart`, `woosoo-print-bridge/lib/state/app_controller.dart`, `woosoo-print-bridge/test/unit/app_controller_process_queue_test.dart`, `docs/cases/prn-case-003-pr11-review-comments.md`
+- Risks / do-not-redo: Do not re-run specialist — changes are verified and approved. Local token/queue payload storage, input rejection visibility, queue-clear safety, and local-only order history are separate audit risks tracked in Remaining Risks.
 
 ## Tier
 3
