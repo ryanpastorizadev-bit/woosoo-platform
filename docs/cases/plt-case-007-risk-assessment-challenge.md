@@ -62,7 +62,7 @@ The assessment presents all four risk areas as active unknowns. Risks 3 and 4 ar
 
 The assessment states explicitly:
 
-```
+```text
 // NOT TESTED:
 - performGuardedReload() when isSafeToReload() returns safe: false
 - Deferred check timer firing after 5s delay
