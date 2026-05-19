@@ -1,4 +1,4 @@
-# Root safety-net .gitignore for the woosoo-platform monorepo.
+# Root safety-net .gitignore for the woosoo-platform multi-repo sibling workspace.
 # Per-app .gitignore files (woosoo-nexus/, tablet-ordering-pwa/, woosoo-print-bridge/)
 # remain authoritative for app-specific ignores; this file is the cross-cutting guard
 # so the branch/rollback protocol (git add / commit / restore) can never capture

@@ -59,7 +59,7 @@ Customer-facing screens: friendly messages only. Example fallback: "We could not
 
 Watch for key mismatches: app key, Reverb key, API keys, POS IP. Admin tooling should support a `woosoo:verify-integrity` command. Do not write secrets to `.env` without backup and review.
 
-## Monorepo Rule
+## Workspace Boundary Rule
 
 One app per task unless documented integration. Cross-app changes require updating the relevant contract section in the corresponding audit doc first.
 

@@ -61,7 +61,7 @@ If no phrase matches: load `hooks/work.md` as default.
 - **Backend owns truth.** Tablet may only send `{ guest_count, package_id, items: [ { menu_id, quantity } ] }`. It must never send pricing, tax, modifiers, totals, POS mapping, or state.
 - **Order state machine:** `confirmed → completed | voided | cancelled`. Do not invent new backend states.
 - **Customer-facing UI must never show raw technical errors.** Use friendly messages. Stack traces, SQL errors, and exception dumps belong in logs only.
-- **Monorepo boundary:** one app per branch/commit unless integration-scoped. Cross-app changes require contract updates first.
+- **Sibling-repo boundary:** one app per branch/commit unless integration-scoped. Cross-app changes require contract updates first.
 - **Config integrity:** production POS uses static IP `192.168.1.32`. Detect mismatches; never write secrets to `.env` without backup and review.
 - **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code.
 
@@ -209,7 +209,7 @@ uses the strongest model (opus).
 | Docs/specs/handover/instructions | dazai-docs | `docs/**`, `*.md` (excl. agent/skill defs) |
 | Docker/Nginx/env/deployment/LAN/Raspberry Pi | infra | `docker/**`, `nginx/**`, `scripts/**`, `docker-compose*.yml`, `.env.example` |
 
-## Monorepo Split Rule
+## Workspace Split Rule
 
 One app per task. If a task requires more than one app, the Executioner returns
 `SPLIT_REQUIRED` and no app code is modified until the work is explicitly split.
