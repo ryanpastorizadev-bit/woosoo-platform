@@ -56,6 +56,22 @@ services:
     networks:
       - woosoo
 
+  # ── Deployment model: HOT-DEPLOY (bind-mount active) ─────────────────
+  # The four backend services (app / queue / scheduler / reverb) share a
+  # bind-mount:  ./woosoo-nexus:/var/www/html
+  #
+  # HOT-DEPLOY (current): a `git pull` in ./woosoo-nexus updates the running
+  # container immediately — no image rebuild needed. Suitable for staging and
+  # rapid production patches where downtime must be minimised.
+  #
+  # To switch to IMMUTABLE-IMAGE (recommended for locked production releases):
+  #   1. Remove the `- ./woosoo-nexus:/var/www/html` line from app, queue,
+  #      scheduler, and reverb.
+  #   2. Rebuild: docker compose build app   (add --no-cache for a clean build)
+  #   3. Redeploy: docker compose up -d
+  #   The container then runs exclusively from the built image layer.
+  # ─────────────────────────────────────────────────────────────────────
+
   # ── Laravel app (PHP-FPM) ─────────────────────────────────────────────
   app:
     build:
