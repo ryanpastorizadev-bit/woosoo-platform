@@ -48,7 +48,9 @@ So root problems in this paste are **POS DB procedure drift** and **Nexus → Re
 Notes:
 Immediate triage from raw report only: likely Tier 3 backend/platform issue because it touches POS DB behavior, realtime order broadcasts, and print idempotency warning context. Suspected primary app is woosoo-nexus; Reverb connectivity may involve infrastructure but should be confirmed during triage before splitting.
 
-Status: needs_triage
+Superseded-by: RAW-20260519-001 (stored-proc issue → NEX-CASE-003) / RAW-20260519-002 (legacy print warning) / RAW-20260519-003 (Reverb cURL 7 → PLT-CASE-008). The three production-confirmed re-observations on 2026-05-19 are the active intake records; this entry is the original signal. Do NOT delete — audit trail.
+
+Status: triaged → see RAW-20260519-001 / RAW-20260519-002 / RAW-20260519-003
 
 ### RAW-20260518-001
 Date:        2026-05-18
@@ -170,6 +172,113 @@ woosoo-nexus login returns 500 server error
 Notes:
 Bug report: POST /api/devices/login endpoint returns HTTP 500. Requires investigation of DeviceAuthApiController@authenticate to identify root cause. Could be device lookup failure, token generation failure, or data validation issue.
 
-Deferred: This is a known Critical intake item. Triaging a live nexus 500 is a standalone Tier-3 task (separate from this reconciliation). See TRIAGED.md for tracking. Do not conflate with NEX-CASE-001 (security hardening, now COMPLETE).
+Deferred note (2026-05-18): standalone Tier-3 task, separate from NEX-CASE-001 reconciliation. NEX-CASE-001 now COMPLETE — deferral blocker resolved 2026-05-19.
 
-Status: needs_triage
+Status: triaged → NEX-CASE-004
+
+### RAW-20260519-001
+Date:        2026-05-19
+Source:      Production
+Urgency:     Critical
+App:         woosoo-nexus
+
+Raw report:
+`SQLSTATE[42000]: 1305 PROCEDURE krypton_woosoo.get_open_orders_for_session does not exist` — 500 error at order retrieval endpoint in production, log timestamp 2026-05-19 17:44.
+
+Notes:
+Intake only. No root-cause judgment. This is a pos-connection schema/migration gap — separate from any container-down symptom.
+
+Status: triaged → NEX-CASE-003
+
+### RAW-20260519-002
+Date:        2026-05-19
+Source:      Production
+Urgency:     High
+App:         woosoo-nexus
+
+Raw report:
+`Legacy non-idempotent print event path used` — warning emitted in production log 2026-05-19 18:54. Request submitted without a `client_submission_id`.
+
+Notes:
+Intake only. Production occurrence of a known warning; no confirmed functional order failure at time of observation.
+
+Status: triaged → NEX-CASE-005
+
+### RAW-20260519-003
+Date:        2026-05-19
+Source:      Production
+Urgency:     High
+App:         woosoo-nexus
+
+Raw report:
+`cURL error 7: Failed to connect to 192.168.100.7 port 8080 after 0 ms: Connection refused` — Laravel Reverb broadcast unreachable, production log 2026-05-19 18:54. Order creation succeeded; realtime event not dispatched.
+
+Notes:
+Intake only. Cross-ref D#6 (RAW-20260519-006, Docker MySQL/Redis).
+
+Status: triaged → PLT-CASE-008
+
+### RAW-20260519-004
+Date:        2026-05-19
+Source:      Logs
+Urgency:     High
+App:         woosoo-nexus
+
+Raw report:
+Laravel Pulse routes returning errors — 2 error occurrences observed in logs. Pulse dashboard route producing unexpected responses in production environment.
+
+Notes:
+Intake only.
+
+Status: triaged → NEX-CASE-002
+
+### RAW-20260519-005
+Date:        2026-05-19
+Source:      Logs
+Urgency:     Medium
+App:         woosoo-nexus
+
+Raw report:
+`devices.type` column absent from test SQLite schema — test suite failing with column-not-found error. Test environment schema does not reflect production migration state.
+
+Notes:
+Intake only. Environment/migration gap; test-only impact at time of observation.
+
+Status: deferred — test-only; `devices.type` column is a probable NEX-CASE-001 Phase 2 artifact (7 files uncommitted on woosoo-nexus/staging per D#8). No production impact. Revisit after D#8 is committed and test migrations re-run.
+
+### RAW-20260519-006
+Date:        2026-05-19
+Source:      Logs
+Urgency:     High
+App:         woosoo-platform
+
+Raw report:
+Docker `mysql` and `redis` services not resolving in deployment — 461 error cluster observed in application logs. Container networking or service health issue preventing downstream connections.
+
+Notes:
+Intake only. Cross-ref D#3 (RAW-20260519-003, Reverb cURL 7).
+
+Status: triaged → PLT-CASE-008
+
+### RAW-20260519-007
+Date:        2026-05-19
+Source:      Logs
+Urgency:     Medium
+App:         woosoo-nexus
+
+Raw report:
+`permissions` table migration conflict in woosoo-nexus — migration run error or duplicate table definition detected in logs. Exact error to be confirmed during investigation.
+
+Notes:
+Intake only.
+
+Status: deferred — probable NEX-CASE-001 Phase 2 / D#8 artifact (7 security-hardening files uncommitted on woosoo-nexus/staging). No confirmed prod migration failure at time of observation. Revisit after D#8 committed and migrations validated.
+
+---
+<!-- D#8 — NOT a RAW entry: NEX-CASE-001 Phase 2
+     Sibling-repo commit-discipline flag. 7 files remain uncommitted on woosoo-nexus/staging
+     (security hardening Phase 2 edits from NEX-CASE-001). Manual commit required inside the
+     woosoo-nexus nested repo. No RAW entry — tracked as a flag only; see NEX-CASE-001
+     Remaining Risks. scripts/clean-logs.ps1 reviewed 2026-05-19: benign log-trim utility,
+     safe to stage.
+-->

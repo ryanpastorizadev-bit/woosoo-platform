@@ -1,0 +1,102 @@
+---
+status: canonical
+last_reviewed: 2026-05-19
+scope: tablet-ordering-pwa
+---
+
+# CASE: tab-case-005-package-card-delta-v2
+
+## Run State
+- task_slug: tab-case-005-package-card-delta-v2
+- tier: 2
+- branch: agent/tab-case-005-package-card-delta-v2
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: cascade
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-19 22:17
+
+## Handoff
+- Phase in progress: —
+- Done so far: All phases complete. Contrarian (Tier 2, 4 findings). Specialist (9 changes, 2 files). Verifier (typecheck/lint/build clean). Executioner APPROVED.
+- Exact next action: None — COMPLETE. Docker rebuild next.
+- Working-tree state: modified `tablet-ordering-pwa/components/PackageCard.vue`, `tablet-ordering-pwa/pages/order/packageSelection.vue`
+- Risks / do-not-redo: Do not re-run any phase.
+
+## Tier
+2
+
+## Branch
+agent/tab-case-005-package-card-delta-v2
+
+## Problem
+
+Align `PackageCard.vue` and `packageSelection.vue` to reference design (`classic feast.png`):
+- Card tap should select (show CTA), not open inspector
+- "View" footer button is the sole inspector trigger
+- `pkg.description` used as tagline subtitle; description paragraph removed
+- Title color: white (not gold)
+- Price+duration on one inline line
+- "Package" in h1 italic
+- Inspector CTA all-caps
+
+## Contrarian Review
+
+**Tier 2 — PROCEED**
+
+Findings:
+1. **[HIGH]** `packageDescription` computed orphaned after removing `<p>` — delete it alongside the block
+2. **[MEDIUM]** `@click` is the 3rd handler change this session — verify footer `.stop` intact after edit
+3. **[LOW]** `description` null fallback to `packageSubtitle` confirmed sufficient
+4. **[INFO]** `packageSelection.vue` cards already have `@select="handleCardSelect"` — no wiring changes needed
+
+## Investigation
+
+Files read:
+- `tablet-ordering-pwa/components/PackageCard.vue` — full read (210 lines)
+- `tablet-ordering-pwa/pages/order/packageSelection.vue` — partial read
+- `docs/cases/tablet-package-ui-redesign.md` — confirmed COMPLETE (commits fbd789f + c371d0f)
+- `state/QUEUE.md` — no active tablet work
+- Reference images: `classic feast.png`, `meats.png` (desktop), user-uploaded Image 1 + Image 2
+
+## Root Cause
+
+`c371d0f` deliberately changed article `@click` to `emit('view-modifiers')` as a follow-up tweak after the original redesign case. User intent has since been clarified: card tap = select, View button = inspector.
+
+## Proposed Fix
+
+**`components/PackageCard.vue`** (7 changes):
+1. Article `@click` → `emit('select', pkg)`
+2. Title `<h2>` → `text-white` (remove `text-[#ffbd72]`)
+3. Subtitle `<p>` → `{{ pkg.description || packageSubtitle }}` with `line-clamp-2`
+4. Remove description `<p class="mt-3 line-clamp-3...">` block
+5. Remove dead `packageDescription` computed
+6. Price row → per-guest and duration on one inline muted line
+7. Footer label → `"View"`
+
+**`pages/order/packageSelection.vue`** (2 changes):
+8. h1 `"Package"` span → add `italic`
+9. Inspector CTA button → add `uppercase`
+
+## Files Changed
+
+1. `tablet-ordering-pwa/components/PackageCard.vue` — article `@click` → `emit('select')`, title `text-white`, subtitle uses `pkg.description || packageSubtitle` with `line-clamp-2`, removed description paragraph + dead `packageDescription` computed, price+duration inline, footer label → `"View"`
+2. `tablet-ordering-pwa/pages/order/packageSelection.vue` — `"Package"` in h1 italic, inspector CTA button `uppercase`
+
+## Verification
+
+```
+vue-tsc (typecheck):  PASSED (exit 0)
+eslint (lint):        PASSED (exit 0, 57 pre-existing warnings, 0 errors)
+nuxt build:           PASSED (exit 0, client + server + SW built)
+```
+
+## Executioner Verdict
+
+**APPROVED** — 2026-05-19. Tier 2 complete. All 4 Contrarian findings resolved. typecheck/lint/build pipeline green. No contract impact. No remaining risks.
+
+## Remaining Risks
+
+- None identified beyond Contrarian findings above.

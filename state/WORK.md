@@ -8,33 +8,37 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-19 by executioner (claude-code) — TAB-CASE-002 COMPLETE -->
+<!-- Last updated: 2026-05-19 by contrarian — NEX-CASE-003 Contrarian gate COMPLETE (preempts PLT-CASE-003) -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      plt-case-003
-status:       queued
+task_id:      nex-case-003-missing-stored-procedure
+status:       in_progress
 tier:         3
-app:          cross-app (orchestration)
-specialist:   TBD (Contrarian must triage first)
-description:  Cross-app orchestration (all deps now confirmed)
-case_file:    docs/cases/plt-case-003.md (create from template if absent)
+app:          woosoo-nexus
+specialist:   ranpo-backend
+description:  Missing stored procedure — order retrieval broken (prod POS DB)
+case_file:    docs/cases/nex-case-003-missing-stored-procedure.md
 ```
 
 ## Next Action
 
 ```
-TAB-CASE-002 COMPLETE (Executioner APPROVED 2026-05-19).
-Findings #3/#4/#6/#7 implemented: any types eliminated in useBroadcasts.ts,
-cross-store coupling documented as Pinia-safe, classifyError assessed-clean,
-AbortController added to Menu.ts. 382 tests pass, typecheck clean.
+Contrarian gate COMPLETE (2026-05-19). Risk analysis written (R1–R6).
 
-PLT-CASE-003 is fully unblocked (DEP-001 ✓ DEP-002 ✓ DEP-003 ✓).
-Start PLT-CASE-003 as Contrarian (Tier 3, cross-app orchestration).
-Create docs/cases/plt-case-003.md from docs/cases/_TEMPLATE.md if it does not exist.
+Specialist (ranpo-backend) must:
+1. Confirm the actual HTTP 500 source — the catch block should already silence the proc error;
+   the 500 trigger is unconfirmed.
+2. Choose fix path: Eloquent inline (preferred by Contrarian) vs proc recreation (vendor-DB risk).
+3. Remove env('APP_ENV') direct call at OrderRepository.php:138 (Spatie/Laravel violation).
+4. Plan UI-level fallback for empty openOrders (R3 — ops staff are blind when proc fails silently).
+5. Extend test coverage to exercise the production code path (remove or gate the test bypass).
+
+PLT-CASE-003 is preempted by P1. It remains fully unblocked and queued (P3) — resume after
+NEX-CASE-003 and NEX-CASE-004 are resolved.
 ```
 
 ## Blocking Dependencies
@@ -46,18 +50,25 @@ none
 ## Last Agent
 
 ```
-role:         executioner (claude-code)
+role:         contrarian
 date:         2026-05-19
-left_off:     TAB-CASE-002 closed. Findings #3/#4/#6/#7 verified: 382 tests pass,
-              typecheck zero errors, lint 0 errors, build + generate clean.
-              Branch: agent/tab-case-002-validated-review-followups (tablet-ordering-pwa).
-files_open:   docs/cases/tab-case-002-validated-review-followups.md, state/WORK.md
+left_off:     Contrarian analysis complete for NEX-CASE-003.
+              Call chain confirmed: DashboardController::index() → OrderRepository::getOpenOrdersForSession()
+              → CALL get_open_orders_for_session(?) → SQLSTATE[42000].
+              Catch block already present — 500 source unconfirmed.
+              Recommended Eloquent inline fix (avoids vendor-DB ownership risk).
+              R5: env('APP_ENV') direct call flagged for removal.
+files_open:   docs/cases/nex-case-003-missing-stored-procedure.md
+              app/Repositories/Krypton/OrderRepository.php
+              app/Http/Controllers/Admin/DashboardController.php
 ```
 
 ## On Completion of Next Task
 
 ```text
-→ PLT-CASE-003 completes → review state/QUEUE.md for the next queued case
+→ NEX-CASE-003 Specialist done → Verifier → Executioner gate
+→ Then NEX-CASE-004 (device login 500, P1, Tier 3)
+→ Then PLT-CASE-003 (cross-app orchestration, P3, Tier 3)
 ```
 
 ---
