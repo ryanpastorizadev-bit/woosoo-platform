@@ -8,33 +8,36 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-19 by verifier — NEX-CASE-003 COMPLETE (APPROVED), PLT-CASE-008 at Executioner -->
+<!-- Last updated: 2026-05-19 by contrarian — PLT-CASE-008 APPROVED (Executioner); NEX-CASE-004 Contrarian COMPLETE, at Specialist -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      plt-case-008 (P1, at Executioner)
-status:       needs_verification
+task_id:      nex-case-004-device-login-500 (P1, at Specialist)
+status:       in_progress
 tier:         3
-app:          woosoo-platform
-description:  Verifier PASS (local). Awaiting Executioner approval + Pi post-deploy verification (Fix B).
-case_file:    docs/cases/plt-case-008-docker-mysql-redis.md
+app:          woosoo-nexus
+description:  Contrarian complete. Specialist (ranpo-backend) must add try/catch null-fallback
+              around $device->table()->first() in authenticate() + feature tests (currently zero).
+case_file:    docs/cases/nex-case-004-device-login-500.md
 ```
 
 ## Next Action
 
 ```
-NEX-CASE-003: COMPLETE — Executioner APPROVED (2026-05-19), commit f985708 on staging. ✓
+PLT-CASE-008: APPROVED by Executioner (2026-05-19). Code gate closed.
+  Post-deploy on Pi: deploy.sh → docker compose logs mysql redis → docker compose ps.
 
-PLT-CASE-008: Executioner gate — review one-line change (apply-woosoo-config.sh:344,
-REVERB_HOST=0.0.0.0 → reverb). Approve + commit, then on Pi:
-  1. deploy.sh (regenerates .env with REVERB_HOST=reverb)
-  2. docker compose logs mysql redis --since=<incident-ts> | grep -E "ERROR|WARN|restart"
-  3. docker compose ps (confirm container health)
+NEX-CASE-004: Specialist (ranpo-backend) — two deliverables:
+  1. try/catch null-fallback around $device->table()->first(['id', 'name']) in authenticate()
+  2. Feature tests: successful login with POS down → 200 + null table; device not found → 404;
+     device unregistered → 403. (Currently ZERO tests for DeviceAuthApiController@authenticate.)
+  Scope: authenticate() ONLY. Do NOT touch register(), lookupByIp(), or token issuance logic.
+  Branch: agent/nex-case-004-device-login-500
 
-QUEUE NEXT after PLT-CASE-008: NEX-CASE-004 Contrarian (POST /api/devices/login → 500, Tier 3)
+QUEUE NEXT after NEX-CASE-004: NEX-CASE-002 (Pulse routes broken, P2, Tier 2)
 ```
 
 ## Blocking Dependencies
@@ -46,12 +49,15 @@ none
 ## Last Agent
 
 ```
-role:         verifier
+role:         contrarian
 date:         2026-05-19
-left_off:     NEX-CASE-003 Verifier PASS → Executioner APPROVED (commit f985708 on staging).
-              PLT-CASE-008 Verifier PASS (local code checks) → Executioner gate.
-              398/398 nexus tests green. REVERB_HOST single set_env at line 344 confirmed.
-files_open:   docs/cases/plt-case-008-docker-mysql-redis.md
+left_off:     PLT-CASE-008 Executioner APPROVED — REVERB_HOST fix closed for code review.
+              Pi Fix B (deploy.sh redeploy + mysql/redis log pull) still required on device.
+              NEX-CASE-004 Contrarian complete — root cause: $device->table()->first() in
+              authenticate() uses POS connection (Table::$connection='pos') with no try/catch.
+              POS failure → uncaught QueryException → 500. Specialist next.
+files_open:   docs/cases/nex-case-004-device-login-500.md
+              docs/cases/plt-case-008-docker-mysql-redis.md
               state/WORK.md
 ```
 

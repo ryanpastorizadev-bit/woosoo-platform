@@ -132,7 +132,21 @@ Pi runtime verification (Fix B) is a post-deploy step, not a code review gate:
 
 ## Executioner Verdict
 
-_Pending._
+**APPROVED — 2026-05-19**
+
+One-line change reviewed: `set_env "REVERB_HOST" "0.0.0.0"` → `set_env "REVERB_HOST" "reverb"`.
+Fix is definitively correct — `0.0.0.0` is a network bind address, not a routable host; `reverb`
+is the Docker service DNS name for intra-container broadcast. No state machine, no auth, no DB
+touched. Verifier PASS (single set_env confirmed, 398/398 tests). Scoped commit is clean.
+
+**Post-approval action required on Pi (Fix B — not a code gate):**
+1. `./scripts/deployment/deploy.sh` — regenerates `.env` with `REVERB_HOST=reverb`
+2. `docker compose logs mysql redis --since=2026-05-19T17:00:00 | grep -E "ERROR|WARN|restart"`
+3. `docker compose ps` — confirm all containers healthy
+
+Do not use `woosoo-health.sh` for Fix B — it is NOT migrated (wrong CWD).
+
+**Status: CLOSED for code review. Open for post-deploy runtime verification on Pi.**
 
 ## Remaining Risks
 
