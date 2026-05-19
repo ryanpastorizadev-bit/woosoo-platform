@@ -44,6 +44,10 @@ require_var WOOSOO_GATEWAY
 require_var WOOSOO_CIDR
 require_var WOOSOO_NEXUS_PATH
 require_var WOOSOO_SCHEME
+require_var WOOSOO_POS_HOST
+require_var WOOSOO_POS_PORT
+require_var WOOSOO_REVERB_APP_KEY
+require_var WOOSOO_REVERB_APP_SECRET
 
 # Platform repo root (governance + orchestration). Default: parent of the
 # Laravel app repo. docker compose + compose.yaml + docker/ live here.
@@ -325,8 +329,8 @@ fi
 if [[ -z "${WOOSOO_DB_ROOT_PASSWORD:-}" && "$db_root_password_value" == "change_this_root_password" ]]; then
   echo "WARNING: DB_ROOT_PASSWORD is using default credentials because WOOSOO_DB_ROOT_PASSWORD is unset. Do not use default credentials in production; set WOOSOO_DB_ROOT_PASSWORD in $CONFIG_FILE." >&2
 fi
-set_env "DB_POS_HOST" "${WOOSOO_POS_HOST:-192.168.100.20}"
-set_env "DB_POS_PORT" "${WOOSOO_POS_PORT:-3308}"
+set_env "DB_POS_HOST" "$WOOSOO_POS_HOST"
+set_env "DB_POS_PORT" "$WOOSOO_POS_PORT"
 set_env "DB_POS_DATABASE" "${WOOSOO_POS_DATABASE:-krypton_woosoo}"
 set_env "DB_POS_USERNAME" "${WOOSOO_POS_USERNAME:-krypton_readonly}"
 set_env "DB_POS_PASSWORD" "${WOOSOO_POS_PASSWORD:-}"
@@ -339,13 +343,13 @@ set_env "REDIS_PORT" "6379"
 set_env "BROADCAST_DRIVER" "reverb"
 set_env "BROADCAST_CONNECTION" "reverb"
 set_env "REVERB_APP_ID" "${WOOSOO_REVERB_APP_ID:-woosoo}"
-set_env "REVERB_APP_KEY" "${WOOSOO_REVERB_APP_KEY:-change_this_reverb_key}"
-set_env "REVERB_APP_SECRET" "${WOOSOO_REVERB_APP_SECRET:-change_this_reverb_secret}"
+set_env "REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
+set_env "REVERB_APP_SECRET" "$WOOSOO_REVERB_APP_SECRET"
 set_env "REVERB_HOST" "0.0.0.0"
 set_env "REVERB_PUBLIC_HOST" "$WOOSOO_HOST"
 set_env "REVERB_PORT" "8080"
 set_env "REVERB_SCHEME" "http"
-set_env "VITE_REVERB_APP_KEY" "${WOOSOO_REVERB_APP_KEY:-change_this_reverb_key}"
+set_env "VITE_REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
 set_env "VITE_REVERB_HOST" "$WOOSOO_HOST"
 set_env "VITE_REVERB_PORT" "443"
 set_env "VITE_REVERB_SCHEME" "$WOOSOO_SCHEME"

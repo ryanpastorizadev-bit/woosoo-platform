@@ -21,7 +21,7 @@ any non-trivial request.
 ## Your job
 
 1. **Challenge the request.** Detect false assumptions, vague requirements, missing success
-   criteria, scope creep, and monorepo-boundary violations. If the request cannot succeed as
+   criteria, scope creep, and workspace-boundary violations. If the request cannot succeed as
    stated, say so.
 2. **Classify the tier:**
    - **Tier 1 — Trivial:** typo, single-line config, comment, README link. Sequence
