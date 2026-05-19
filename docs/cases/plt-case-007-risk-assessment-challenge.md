@@ -1,0 +1,187 @@
+---
+status: canonical
+last_reviewed: 2026-05-19
+scope: tablet-ordering-pwa
+---
+
+# CASE: plt-case-007-risk-assessment-challenge
+
+Contrarian challenge of the Risk Probability Breakdown assessment for `tablet-ordering-pwa`.
+
+## Run State
+- task_slug: plt-case-007-risk-assessment-challenge
+- tier: 1
+- branch: staging
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-19
+
+## Handoff
+
+Read-only contrarian analysis. No code changes. No case status changes.
+
+---
+
+## Contrarian Review
+
+**Conducted:** 2026-05-19
+
+A risk probability assessment was submitted claiming:
+
+| Risk | Claimed Probability |
+|------|---------------------|
+| Critical Order Bug | 2% |
+| Session State Bug | 3% |
+| PWA Update Issue | 15% (non-critical) |
+| Service Worker Bug | 5% |
+| **Overall Production Confidence** | **94%** |
+
+**Verdict: CHALLENGED.** The assessment contains six verifiable inaccuracies — three factual errors and three framing errors — that render the 94% confidence figure unsupportable in the current repo state.
+
+---
+
+## Finding 1 — Case files already exist for every risk area
+
+Direct answer to "are there case files with fixes for these risks?":
+
+| Case File | Status | Covers |
+|-----------|--------|--------|
+| [`tab-case-001-order-session-determinism.md`](tab-case-001-order-session-determinism.md) | **IN_PROGRESS** — Fix 3 & 4 outstanding | Order submission (risks 1 & 2) + localStorage/Pinia persistence conflict |
+| [`tab-case-002-validated-review-followups.md`](tab-case-002-validated-review-followups.md) | **IN_PROGRESS** — specialist not yet run | Offline queue dedup gap, WebSocket reconnection, cross-store coupling |
+| [`tab-case-003-pwa-kiosk-stale-shell.md`](tab-case-003-pwa-kiosk-stale-shell.md) | **COMPLETE** — 365 tests, all gates green | PWA update issue + service worker (risks 3 & 4) |
+
+The assessment presents all four risk areas as active unknowns. Risks 3 and 4 are resolved. Risks 1 and 2 are actively in flight with 2 of 4 fixes applied.
+
+---
+
+## Finding 2 — "NOT TESTED" block is factually wrong
+
+The assessment states explicitly:
+
+```
+// NOT TESTED:
+- performGuardedReload() when isSafeToReload() returns safe: false
+- Deferred check timer firing after 5s delay
+- Multiple UPDATE_AVAILABLE messages (idempotency)
+- disposeAppUpdate() cleanup verification
+- recordReloadTimestamp() actually called
+```
+
+**Actual test state (verified by code search):**
+
+| Claimed "NOT TESTED" | Reality |
+|----------------------|---------|
+| `isSafeToReload()` | **7 direct test cases** — `tests/useSafeReload.spec.ts:38–82` |
+| `recordReloadTimestamp()` | **Directly tested** — `tests/useSafeReload.spec.ts:194–206` |
+| `disposeAppUpdate()` | **Wiring tests** — `app-update-wiring.spec.ts` + `pwa-update-wiring.spec.ts` |
+| `performGuardedReload()` | Indirectly covered via `useAppUpdate` init tests |
+| Deferred check timer | Not directly tested (the one genuine gap) |
+
+Three of five "NOT TESTED" items are tested. This inflates the PWA 15% risk figure because it treats covered code as uncovered.
+
+---
+
+## Finding 3 — PWA and SW risk figures are scored on pre-fix code
+
+tab-case-003 (COMPLETE 2026-05-18, Tier 3, all gates verified) delivered:
+
+- `composables/useSafeReload.ts` (NEW) — loop protection, pending request tracking, reload cooldown
+- `composables/useAppUpdate.ts` — guarded auto-reload with deferred check, `hasReloaded` loop guard
+- `isDebugPwaEnabled()` gate — production auto-reload defaults to **false**; only enabled with `?debug=pwa`
+- `watch(needRefresh)` only wired when `autoReloadEnabled === true`
+- `plugins/api.client.ts` — pending request tracking via axios interceptors
+- Full verification: typecheck PASSED, lint PASSED (0 errors), 365 tests PASSED, build PASSED, generate PASSED
+
+The 15% PWA figure and the 5% SW figure describe the system *before* tab-case-003. Post-fix residual is materially lower than 15% and 5%.
+
+---
+
+## Finding 4 — Session state risk ignores outstanding Fix 3
+
+The assessment scores Session State Bug at 3% and states "Recovery screen handles stale state" as mitigation. But tab-case-001 Fix 3 — removing manual `localStorage` writes in `stores/session.js` to resolve the localStorage-vs-Pinia persistence conflict — is **not yet applied**.
+
+tab-case-001's own Contrarian review (2026-05-18) classifies the persistence conflict as **"Medium risk of stale session state causing ordering errors."** The assessment's 3% cannot be justified while Fix 3 is outstanding.
+
+tab-case-001 Fix 3 acceptance criteria (pending):
+- No conflicting state sources between localStorage and Pinia
+- Clean hydration verified across page reloads
+- State Consistency Test passing
+
+---
+
+## Finding 5 — The probability math is pseudo-scientific
+
+The weighted confidence tables (Factor × Weight × Score → Residual Risk) produce precise-looking figures from unmeasured inputs:
+
+- **"E2E test coverage: 95%"** — 20 tests exist. The denominator (the total scenario universe against which 95% is measured) is not defined.
+- **"Idempotency verification: 100%"** — undefined scale. 100% of what?
+- **"Residual Risk = 7% × 0.3 = 2.1%"** — the 0.3 multiplier is invented; no calibration is documented.
+
+The arithmetic is internally consistent but the inputs are assertions, not measurements. The resulting percentages carry false precision that cannot be reproduced or falsified.
+
+---
+
+## Finding 6 — tab-case-002 risks are absent from the assessment
+
+The assessment does not mention tab-case-002 findings, which are validated and implementation-ready:
+
+- Offline queue de-duplication gap (`composables/useOfflineOrderQueue.ts`)
+- WebSocket long-backoff reconnection risk (`composables/useBroadcasts.ts`)
+- Excessive `any` usage in real-time and order-flow paths
+- Cross-store coupling between `stores/Order.ts` and `stores/Session.ts`
+- Potential technical error propagation to customer-facing paths
+
+These are unaddressed risks that cannot appear in an honest production confidence figure.
+
+---
+
+## Corrected Risk Picture
+
+| Risk Area | Assessment Claim | Corrected Assessment | Basis |
+|-----------|-----------------|----------------------|-------|
+| Critical Order Bug | 2% | **Plausible** | Idempotency middleware verified; 10 req/min throttle on `/devices/create-order` confirmed; 409 handling present; 20 e2e scenarios confirmed |
+| Session State Bug | 3% | **Understated** | tab-case-001 Fix 3 (localStorage/Pinia conflict) is outstanding; "Medium risk" per case's own Contrarian |
+| PWA Update Issue | 15% | **Overstated** | tab-case-003 COMPLETE; production auto-reload is false by default; 7 tests cover isSafeToReload |
+| Service Worker Bug | 5% | **Overstated** | tab-case-003 COMPLETE; denylist, NetworkOnly, NetworkFirst all verified present in `public/sw.ts` |
+| Offline queue dedup | Not assessed | **Unaddressed gap** | tab-case-002 tracks this as validated finding; no implementation yet |
+| WebSocket reconnection | Not assessed | **Unaddressed gap** | tab-case-002; long total backoff window unresolved |
+
+**Overall Production Confidence at "94%": Not supportable.**
+
+The actual state is: two of four order/session fixes applied (tab-case-001), zero of seven follow-up fixes applied (tab-case-002). A system with outstanding medium-risk persistence fixes and unaddressed real-time dedup gaps cannot claim 94% production confidence.
+
+---
+
+## What "Ready" Actually Requires
+
+1. **tab-case-001 Fix 3** — remove manual localStorage writes; single Pinia persistence owner (session state conflict resolved)
+2. **tab-case-001 Fix 4** — bootstrap failure policy: no silent proceed
+3. **tab-case-002** — specialist run to address offline dedup, WebSocket backoff, error path hardening
+
+tab-case-003 work is complete and does not need revisiting.
+
+---
+
+## Files Changed
+
+None. This is a read-only contrarian analysis.
+
+## Verification
+
+No test run required. Accuracy of findings verified by:
+- Direct code search confirming test counts (`useSafeReload.spec.ts:38–82`, `:194–206`)
+- Reading `tab-case-003` case file confirming COMPLETE status + full gate output
+- Reading `tab-case-001` case file confirming Fix 3+4 outstanding
+- Reading `tab-case-002` case file confirming no implementation yet
+
+## Executioner Verdict
+
+APPROVED — challenge is well-founded. The six findings are independently verifiable from the case files and source code. The 94% confidence figure cannot be supported while tab-case-001 Fix 3+4 and tab-case-002 remain open. The assessment should not be used as a deploy-readiness signal until those cases close.
+
+**Follow-Ups:**
+- tab-case-001 Fix 3+4 must land before session state risk is reassessed
+- tab-case-002 specialist run must complete before a revised production confidence figure is issued
