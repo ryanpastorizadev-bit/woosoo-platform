@@ -81,9 +81,9 @@ case "$APP" in
 
   woosoo-print-bridge)
     cd "$ROOT_DIR/woosoo-print-bridge" || fail "cd woosoo-print-bridge"
-    # NOTE: The Flutter test suite is currently red per the 2026-05-14 audit.
-    # `flutter test` is still required, but a known-failing baseline does not
-    # excuse skipping the script — investigate first and update the audit.
+    # NOTE: The Print Bridge audit is the source of truth for the current
+    # Flutter suite status. `flutter test` is still required; investigate
+    # failures and update the audit with raw test evidence.
     run_step "flutter analyze" flutter analyze
     run_step "flutter test" flutter test
     ;;

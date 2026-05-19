@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-05-18
 scope: ecosystem
 ---
 
@@ -8,7 +8,7 @@ scope: ecosystem
 
 This is the canonical entry point for all Woosoo platform documentation. Only docs listed here with `status: canonical` are source of truth.
 
-## Boot layer (read first)
+## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform
 - [CLAUDE.md](../CLAUDE.md) — Claude Code–specific instructions
@@ -30,8 +30,15 @@ CLI, and GitHub Copilot.
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **cross-runner resume & handoff** (rate-limit /
   interruption recovery; case file is the durable state)
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
+- [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
   `docs/cases/_TEMPLATE.md`)
+- `hooks/` — the 9 installed hooks routed from the AGENTS.md trigger map:
+  `work.md`, `status.md`, `intake.md`, `triage.md`, `execute.md`, `verify.md`,
+  `review.md`, `unlock.md`, `handover.md`
+- `state/` — machine-readable orchestration state: `WORK.md` (active-case convenience cache,
+  not authoritative), `QUEUE.md` (priority task queue), `DEPS.md` (cross-app dependency
+  ledger), `DONE.md` (append-only verified-completion log)
 
 ## Contracts
 
@@ -63,6 +70,14 @@ These four documents are the authoritative system-state references. Restructured
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
+
+## Deployment
+
+Docker orchestration authority is the **platform repo root** (3-repo sibling model).
+
+- [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
+- `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
+- `scripts/deployment/README.md` — per-script migration status
 
 ## Strategic
 

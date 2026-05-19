@@ -15,7 +15,7 @@ before handing off; any runner (Claude Code / Codex / Copilot) resumes from here
 <!-- Rewritten in full by each agent when it finishes its phase. The resume header. -->
 - task_slug: <slug>
 - tier: 1 | 2 | 3
-- branch: agent/<slug>            <!-- or "n/a (not a git repo)" -->
+- branch: agent/<slug>            <!-- platform governance work uses staging/orchestration-hooks -->
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
@@ -29,7 +29,7 @@ before handing off; any runner (Claude Code / Codex / Copilot) resumes from here
 - Phase in progress:
 - Done so far:
 - Exact next action:
-- Working-tree state (list edited files explicitly — not a git repo):
+- Working-tree state (list edited files explicitly; cross-check with `git status`):
 - Risks / do-not-redo:
 
 ## Tier
