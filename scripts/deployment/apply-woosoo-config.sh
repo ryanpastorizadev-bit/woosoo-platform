@@ -314,7 +314,9 @@ set_env "PUBLIC_HTTPS_PORT" "443"
 set_env "APP_ENV" "production"
 set_env "APP_DEBUG" "false"
 set_env "APP_URL" "${WOOSOO_SCHEME}://${WOOSOO_HOST}"
-set_env "ASSET_URL" "${WOOSOO_SCHEME}://${WOOSOO_HOST}"
+# ASSET_URL intentionally left empty — assets use root-relative paths so the
+# admin panel works from any hostname or IP without cross-origin blocking.
+set_env "ASSET_URL" ""
 set_env "APP_TIMEZONE" "${WOOSOO_TIMEZONE:-Asia/Manila}"
 set_env "DB_CONNECTION" "mysql"
 set_env "DB_HOST" "mysql"
