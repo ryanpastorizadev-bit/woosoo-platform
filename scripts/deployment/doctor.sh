@@ -100,10 +100,10 @@ echo
 echo "--- Reverb Broadcasting (Critical) ---"
 check_required REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo"
 check_required REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
-check_required REVERB_APP_ID "woosoo"
+check_required REVERB_APP_ID
 check_required WOOSOO_REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo"
 check_required WOOSOO_REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
-check_required WOOSOO_REVERB_APP_ID "woosoo"
+check_required WOOSOO_REVERB_APP_ID
 echo
 
 echo "--- Database Credentials ---"
