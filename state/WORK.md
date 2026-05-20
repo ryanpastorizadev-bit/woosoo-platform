@@ -8,33 +8,31 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-19 by executioner (claude-code) — TAB-CASE-002 COMPLETE -->
+<!-- Last updated: 2026-05-20 by executioner — NEX-CASE-004 APPROVED; advancing to NEX-CASE-002 -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      plt-case-003
+task_id:      nex-case-002-pulse-routes (P2, queued)
 status:       queued
-tier:         3
-app:          cross-app (orchestration)
-specialist:   TBD (Contrarian must triage first)
-description:  Cross-app orchestration (all deps now confirmed)
-case_file:    docs/cases/plt-case-003.md (create from template if absent)
+tier:         2
+app:          woosoo-nexus
+description:  Pulse routes broken — requires Contrarian triage before Specialist.
+case_file:    docs/cases/nex-case-002-pulse-routes.md
 ```
 
 ## Next Action
 
 ```
-TAB-CASE-002 COMPLETE (Executioner APPROVED 2026-05-19).
-Findings #3/#4/#6/#7 implemented: any types eliminated in useBroadcasts.ts,
-cross-store coupling documented as Pinia-safe, classifyError assessed-clean,
-AbortController added to Menu.ts. 382 tests pass, typecheck clean.
+NEX-CASE-002: Start with Contrarian — triage the broken Pulse routes issue.
+  Read docs/cases/nex-case-002-pulse-routes.md for any existing investigation notes.
+  Branch: agent/nex-case-002-pulse-routes
 
-PLT-CASE-003 is fully unblocked (DEP-001 ✓ DEP-002 ✓ DEP-003 ✓).
-Start PLT-CASE-003 as Contrarian (Tier 3, cross-app orchestration).
-Create docs/cases/plt-case-003.md from docs/cases/_TEMPLATE.md if it does not exist.
+DEFERRED R3 from NEX-CASE-004: register() and lookupByIp() still call
+  $device->table()->first() without POS null-guard (lines 218, 326 in DeviceAuthApiController).
+  File as NEX-CASE-004b or bundle in a future nexus hardening pass.
 ```
 
 ## Blocking Dependencies
@@ -46,18 +44,20 @@ none
 ## Last Agent
 
 ```
-role:         executioner (claude-code)
-date:         2026-05-19
-left_off:     TAB-CASE-002 closed. Findings #3/#4/#6/#7 verified: 382 tests pass,
-              typecheck zero errors, lint 0 errors, build + generate clean.
-              Branch: agent/tab-case-002-validated-review-followups (tablet-ordering-pwa).
-files_open:   docs/cases/tab-case-002-validated-review-followups.md, state/WORK.md
+role:         executioner
+date:         2026-05-20
+left_off:     NEX-CASE-004 APPROVED. safeLoadDeviceTable() fix + 6 feature tests confirmed.
+              php artisan test --filter DeviceAuthApiControllerTest: 6/6 (25 assertions) PASS.
+              Advancing to NEX-CASE-002 (Pulse routes, P2, Tier 2).
+files_open:   docs/cases/nex-case-004-device-login-500.md
+              state/DONE.md
+              state/WORK.md
 ```
 
 ## On Completion of Next Task
 
 ```text
-→ PLT-CASE-003 completes → review state/QUEUE.md for the next queued case
+→ NEX-CASE-002 complete → PLT-CASE-003 (cross-app orchestration, P3)
 ```
 
 ---

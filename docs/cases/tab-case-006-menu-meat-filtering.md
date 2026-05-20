@@ -1,0 +1,83 @@
+---
+status: COMPLETE
+last_reviewed: 2026-05-20
+scope: tablet-ordering-pwa
+---
+
+# CASE: tab-case-006-menu-meat-filtering
+
+Menu screen Meats category shows all items as active/selectable regardless of selected package.
+
+## Run State
+- task_slug: tab-case-006-menu-meat-filtering
+- tier: 2
+- branch: agent/tab-case-005-package-card-delta-v2
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
+- active_runner: cascade
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-19
+
+## Handoff
+- Phase in progress: Verifier — awaiting typecheck/lint/build
+- Done so far: Contrarian (Tier 2 confirmed, RAW-20260519-008). Specialist: one-line fix applied — `:meats="decorateMeats"` on menu.vue:460.
+- Exact next action: Run typecheck + lint + build; then Executioner.
+- Working-tree state: modified `tablet-ordering-pwa/pages/menu.vue`
+- Risks / do-not-redo: Do not add addToOrder guard — MenuItemGrid already blocks disabled items before emitting. Do not touch refill mode separately — same branch is used.
+
+## Tier
+2
+
+## Branch
+agent/tab-case-005-package-card-delta-v2
+
+## Problem
+
+`pages/menu.vue:460` passes `:meats="meats"` (raw, undecorated) to `<grouped-meats-list>`.
+`decorateMeats` computed at line 151–153 correctly marks non-package items `disabled: true`
+but is bypassed because the `v-else-if="activeCategory === 'meats'"` template branch skips
+`displayItems` entirely. Result: all meats show as active regardless of package allowance.
+
+## Root Cause
+
+```
+// Correct computed — never used in the meats template branch
+const decorateMeats = computed(() =>
+    meats.value.map(item => ({ ...item, disabled: !allowedMeatIds.value.has(item.id) }))
+)
+
+// Bug: passes raw meats, not decorateMeats
+<grouped-meats-list :meats="meats" ...>
+```
+
+`MenuItemGrid` already guards on `item.disabled` before emitting — fix only needs to wire
+the correct prop.
+
+## Contrarian Findings
+
+1. Tier 2 confirmed — UI correctness only, no order state machine or financial impact.
+   Backend validates payload on submit regardless.
+2. Refill mode uses the same `v-else-if` branch — fixed by the same one-line change.
+3. `addToOrder` guard is NOT needed — `MenuItemGrid.addItem` already returns early on
+   `item.disabled` before emitting, so disabled items never reach `addToOrder`.
+4. No conflict with TAB-CASE-005 changes (`PackageCard.vue` + `packageSelection.vue`) —
+   those files are not touched here.
+
+## Files Changed
+
+1. `tablet-ordering-pwa/pages/menu.vue:460` — `:meats="meats"` → `:meats="decorateMeats"`
+
+## Verification
+
+- `npx nuxi typecheck` — exit 0, 0 errors ✅
+- `eslint pages/menu.vue` — exit 0, 0 errors, 0 warnings ✅
+- `eslint packageSelection.vue PackageCard.vue` — 0 errors, 3 pre-existing warnings (unused touch handlers, unrelated) ✅
+- `npm run build` — Nitro built clean, exit 0 ✅
+
+## Executioner Verdict
+
+**APPROVED** — 2026-05-20
+
+Minimal, targeted fix. Root cause addressed directly. No regressions, no contract changes, no cross-app impact. Pre-existing lint warnings are out of scope.
