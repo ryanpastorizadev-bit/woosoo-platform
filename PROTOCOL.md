@@ -128,7 +128,7 @@ tasks `blocked`, reverify before proceeding.
 
 ## Concurrent Work Rule
 
-One app per task. This is a monorepo; "one app" means one of: `woosoo-nexus`, `tablet-ordering-pwa`, `woosoo-print-bridge`, or `woosoo-platform` (orchestration only).
+One app per task. This is a multi-repo sibling workspace; "one app" means one of: `woosoo-nexus`, `tablet-ordering-pwa`, `woosoo-print-bridge`, or `woosoo-platform` (orchestration only).
 
 **Allowed:** multiple tasks each touching only one app, no shared contract being changed,
 no unconfirmed cross-app dependency between them.

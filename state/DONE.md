@@ -19,6 +19,7 @@ scope: ecosystem
 | PLT-CASE-005 | woosoo-platform | 2026-05-17 | Stale-phrasing grep over .claude/agents/ no matches; corrected git-repo wording present at ranpo-backend.md:54; zero app code; sibling repos untouched | APPROVED | none | Closed PLT-CASE-004 follow-up — agent-def git-repo wording truth fix |
 | TAB-CASE-005 | tablet-ordering-pwa | 2026-05-19 | typecheck exit 0, lint 0 errors, nuxt build exit 0; 2 files changed (PackageCard.vue + packageSelection.vue); 9 changes applied | APPROVED | none | Package card delta v2: tap→select, white title, description-as-tagline, View label, italic heading, uppercase inspector CTA, summary opacity |
 | NEX-CASE-003 | woosoo-nexus | 2026-05-19 | php artisan test --filter=OrderRepositoryTest 3/3 (9 assertions); full suite 398/398 (1386 assertions); dashboard routes confirmed registered; Eloquent inline replaces proc, env() removed, test bypass removed | APPROVED | none | Missing stored procedure — OrderRepository Eloquent inline fix; is_open filter; Collection return type; Dashboard.vue empty-state |
+| TAB-CASE-006 | tablet-ordering-pwa | 2026-05-20 | typecheck exit 0; eslint pages/menu.vue 0 errors 0 warnings; build Nitro exit 0; one-line fix confirmed | APPROVED | none | Menu meats filtering: :meats="decorateMeats" wired to grouped-meats-list; decorateMeats was computed correctly but bypassed by v-else-if branch |
 
 ---
 <!--

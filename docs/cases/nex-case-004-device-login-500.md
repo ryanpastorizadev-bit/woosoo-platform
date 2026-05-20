@@ -59,7 +59,7 @@ This is separate from NEX-CASE-003 (`get_open_orders_for_session` stored procedu
    (POS connection instability) but are separate code defects.
 
 3. **Scope right?** Narrower than the slug suggests. The MySQL/Redis container health is tracked
-   under PLT-CASE-008. The 500 here is a code-level failure: `authenticate()` calls
+   under PLT-CASE-009. The 500 here is a code-level failure: `authenticate()` calls
    `$device->table()->first(['id', 'name'])` in its success-path response — `Table` uses
    `$connection = 'pos'` — with no try/catch. POS connection failure throws an uncaught
    `QueryException` → HTTP 500. The auth and token issuance are complete before this call;
@@ -180,7 +180,7 @@ The auth flow itself (IP resolution, device lookup, token creation) completes su
 before this call. The 500 is thrown during response assembly — meaning the device IS
 authenticated and a token IS issued, but the response is never returned.
 
-**Cross-ref:** POS connection instability is the infrastructure root cause (PLT-CASE-008).
+**Cross-ref:** POS connection instability is the infrastructure root cause (PLT-CASE-009).
 This case fixes the application-layer guard that must exist regardless of POS health.
 
 **Confirmation required:** Check `storage/logs/laravel.log` for `QueryException` on the `pos`

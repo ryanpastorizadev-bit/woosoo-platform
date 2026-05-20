@@ -48,7 +48,7 @@ So root problems in this paste are **POS DB procedure drift** and **Nexus → Re
 Notes:
 Immediate triage from raw report only: likely Tier 3 backend/platform issue because it touches POS DB behavior, realtime order broadcasts, and print idempotency warning context. Suspected primary app is woosoo-nexus; Reverb connectivity may involve infrastructure but should be confirmed during triage before splitting.
 
-Superseded-by: RAW-20260519-001 (stored-proc issue → NEX-CASE-003) / RAW-20260519-002 (legacy print warning) / RAW-20260519-003 (Reverb cURL 7 → PLT-CASE-008). The three production-confirmed re-observations on 2026-05-19 are the active intake records; this entry is the original signal. Do NOT delete — audit trail.
+Superseded-by: RAW-20260519-001 (stored-proc issue → NEX-CASE-003) / RAW-20260519-002 (legacy print warning) / RAW-20260519-003 (Reverb cURL 7 → PLT-CASE-009). The three production-confirmed re-observations on 2026-05-19 are the active intake records; this entry is the original signal. Do NOT delete — audit trail.
 
 Status: triaged → see RAW-20260519-001 / RAW-20260519-002 / RAW-20260519-003
 
@@ -216,7 +216,7 @@ Raw report:
 Notes:
 Intake only. Cross-ref D#6 (RAW-20260519-006, Docker MySQL/Redis).
 
-Status: triaged → PLT-CASE-008
+Status: triaged → PLT-CASE-009
 
 ### RAW-20260519-004
 Date:        2026-05-19
@@ -258,7 +258,7 @@ Docker `mysql` and `redis` services not resolving in deployment — 461 error cl
 Notes:
 Intake only. Cross-ref D#3 (RAW-20260519-003, Reverb cURL 7).
 
-Status: triaged → PLT-CASE-008
+Status: triaged → PLT-CASE-009
 
 ### RAW-20260519-007
 Date:        2026-05-19
@@ -273,6 +273,39 @@ Notes:
 Intake only.
 
 Status: deferred — probable NEX-CASE-001 Phase 2 / D#8 artifact (7 security-hardening files uncommitted on woosoo-nexus/staging). No confirmed prod migration failure at time of observation. Revisit after D#8 committed and migrations validated.
+
+### RAW-20260519-008
+Date:        2026-05-19
+Source:      User / Manual Testing
+Urgency:     High
+App:         tablet-ordering-pwa
+
+Raw report:
+tablet-ordering-pwa menu screen issue: Meats category -> shows or menu items are active even though only 5 meats are included on the selected package.
+
+Notes:
+Intake only. Menu items in the Meats category appear active/selectable beyond the package-defined allowance of 5 meats. Expected: only items included in the selected package should be active; items outside the package should be inactive or visually restricted. No source files loaded at intake.
+
+Investigation (2026-05-19): Root cause confirmed across menu and refill screens.
+Three interlocking bugs in tablet-ordering-pwa:
+
+1. menu.vue:460 passes `:meats="meats"` (raw, undecorated) to `<grouped-meats-list>`.
+   `decorateMeats` (which marks non-package items disabled) is computed correctly but
+   never passed to the meats renderer — it only feeds `displayItems` which the meats
+   template branch bypasses entirely via its own `v-else-if`.
+
+2. Refill mode hits the same `v-else-if` branch → same `<grouped-meats-list :meats="meats">` →
+   SAME issue. All meats show as active during refill. The refill-mode displayItems filter
+   also has no `!item.disabled` guard even if the path were reached.
+
+3. `addToOrder` (menu.vue:223) has no `item.disabled` guard — any item tapped is added to
+   cart regardless of package inclusion.
+
+Fix scope: menu.vue (pass decorateMeats, add disabled guard to addToOrder);
+GroupedMeatsList.vue may need disabled prop forwarding to MenuItemGrid.
+Sides category is also undecorated in displayItems but no package restriction reported for sides.
+
+Status: triaged → TAB-CASE-006
 
 ---
 <!-- D#8 — NOT a RAW entry: NEX-CASE-001 Phase 2

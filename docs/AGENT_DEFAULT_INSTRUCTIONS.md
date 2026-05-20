@@ -54,7 +54,7 @@ Every implementation must:
 - avoid temporary hacks unless explicitly documented and removed before completion
 - avoid bloating the codebase
 - remove unused files, dead code, unused imports, abandoned helpers, temporary scripts, and irrelevant artifacts
-- preserve monorepo boundaries
+- preserve workspace boundaries
 - keep changes scoped to the task
 - handle errors clearly and safely
 - prevent silent failures

@@ -72,6 +72,29 @@ pull_repo() {
     exit 1
   fi
   if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    # Safety guard: refuse to reset if the working tree has uncommitted changes
+    if [[ -n "$(git -C "$dir" status --porcelain)" ]]; then
+      if [[ "${WOOSOO_FORCE_RESET:-false}" != "true" ]]; then
+        echo "ERROR: $name has uncommitted changes. Refusing to deploy." >&2
+        echo "Working tree status for $name:" >&2
+        git -C "$dir" status --short >&2
+        echo >&2
+        echo "To proceed, either:" >&2
+        echo "  1. Commit or stash your changes in $dir" >&2
+        echo "  2. Set WOOSOO_FORCE_RESET=true to force reset (changes will be lost)" >&2
+        exit 1
+      else
+        # WOOSOO_FORCE_RESET=true: save a backup patch before resetting
+        echo "WARNING: $name has uncommitted changes, but WOOSOO_FORCE_RESET=true." >&2
+        BACKUP_DIR="${WOOSOO_BACKUP_DIR:-/opt/woosoo/backups}/git-diffs"
+        mkdir -p "$BACKUP_DIR"
+        BACKUP_FILE="$BACKUP_DIR/${name}-$(date +%F_%H%M%S).patch"
+        git -C "$dir" diff > "$BACKUP_FILE"
+        git -C "$dir" diff --cached >> "$BACKUP_FILE"
+        echo "Backup saved: $BACKUP_FILE" >&2
+        echo "Proceeding with reset --hard..." >&2
+      fi
+    fi
     git -C "$dir" fetch origin
     git -C "$dir" checkout "$branch"
     git -C "$dir" reset --hard "origin/$branch"

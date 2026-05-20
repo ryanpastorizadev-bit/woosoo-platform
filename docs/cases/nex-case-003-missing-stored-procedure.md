@@ -42,7 +42,7 @@ Production log 2026-05-19 17:44:
 SQLSTATE[42000]: 1305 PROCEDURE krypton_woosoo.get_open_orders_for_session does not exist
 ```
 
-Order retrieval endpoint returns HTTP 500 in production. The pos connection schema does not have this procedure; this is a schema/migration gap, not a container-down symptom (Docker MySQL/Redis issues are tracked separately under PLT-CASE-008).
+Order retrieval endpoint returns HTTP 500 in production. The pos connection schema does not have this procedure; this is a schema/migration gap, not a container-down symptom (Docker MySQL/Redis issues are tracked separately under PLT-CASE-009).
 
 Source: RAW-20260519-001.
 

@@ -4,14 +4,14 @@ last_reviewed: 2026-05-19
 scope: woosoo-platform
 ---
 
-# CASE: plt-case-008-docker-mysql-redis
+# CASE: plt-case-009-docker-mysql-redis
 
 Docker `mysql` and `redis` services not resolving — probable infrastructure root cause for Reverb broadcast failures and 461-error cluster.
 
 ## Run State
-- task_slug: plt-case-008-docker-mysql-redis
+- task_slug: plt-case-009-docker-mysql-redis
 - tier: 3
-- branch: agent/plt-case-008-docker-mysql-redis
+- branch: agent/plt-case-009-docker-mysql-redis
 - status: IN_PROGRESS
 - last_completed_agent: verifier
 - next_agent: executioner
@@ -31,7 +31,7 @@ Docker `mysql` and `redis` services not resolving — probable infrastructure ro
 2
 
 ## Branch
-agent/plt-case-008-docker-mysql-redis
+agent/plt-case-009-docker-mysql-redis
 
 ## Problem
 
