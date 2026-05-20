@@ -355,7 +355,9 @@ set_env "VITE_REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
 set_env "VITE_REVERB_HOST" "$WOOSOO_HOST"
 set_env "VITE_REVERB_PORT" "443"
 set_env "VITE_REVERB_SCHEME" "$WOOSOO_SCHEME"
-set_env "SESSION_DOMAIN" "$WOOSOO_HOST"
+# SESSION_DOMAIN left empty so the cookie is scoped to whatever host the
+# browser uses (woosoo.local or IP) instead of being locked to one hostname.
+set_env "SESSION_DOMAIN" ""
 set_env "SESSION_SECURE_COOKIE" "true"
 set_env "SESSION_SAME_SITE" "lax"
 set_env "SANCTUM_STATEFUL_DOMAINS" "${WOOSOO_HOST},${WOOSOO_HOST}:443,${WOOSOO_HOST}:80,${WOOSOO_HOST}:4443"
