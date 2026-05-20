@@ -12,20 +12,24 @@ Validated follow-up work from a fact-checked review of tablet-ordering-pwa.
 - task_slug: tab-case-002-validated-review-followups
 - tier: 2
 - branch: agent/tab-case-002-validated-review-followups
-- status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:chuya-frontend
-- active_runner: copilot
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: claude-sonnet-4-6
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-18
+- updated: 2026-05-19
 
 ## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state (list edited files explicitly; cross-check with `git status`):
-- Risks / do-not-redo:
+- Phase in progress: Specialist complete — Verifier is next
+- Done so far: Findings #3, #4, #6, #7 all implemented and validated
+- Exact next action: Verifier runs npm run typecheck, lint, test, build, generate and issues APPROVED/REJECTED
+- Working-tree state (list edited files explicitly):
+  - tablet-ordering-pwa/composables/useBroadcasts.ts (Finding #3 — any types)
+  - tablet-ordering-pwa/stores/Session.ts (Finding #4 — cross-store comments)
+  - tablet-ordering-pwa/stores/Order.ts (Finding #4 — cross-store comments)
+  - tablet-ordering-pwa/stores/Menu.ts (Finding #7 — AbortController)
+- Risks / do-not-redo: Finding #6 (classifyError) is clean — no code change needed, documented in investigation
 
 ## Tier
 2
@@ -69,16 +73,41 @@ Explicitly not carried forward as confirmed defects:
 
 ## Files Changed
 
-- None yet (case created from intake/triage).
+- `tablet-ordering-pwa/composables/useBroadcasts.ts` — Finding #3: extracted ServiceRequest interface, replaced serviceRequests:any[] with ServiceRequest[], DeviceControlEvent.payload index signature Record<string,unknown>, channel vars typed as EchoChannel, boundPusherConnection: unknown, boundStateChangeHandler inner any typed as {current:string;previous:string}, getEventOrderId param Record<string,unknown>, statusMessages type narrowed
+- `tablet-ordering-pwa/stores/Session.ts` — Finding #4: added "Cross-store: called inside action body only (lazy, Pinia-safe)" comments at all four useOrderStore() call sites
+- `tablet-ordering-pwa/stores/Order.ts` — Finding #4: added same comment at all useSessionStore() call sites (action bodies + one computed callback)
+- `tablet-ordering-pwa/stores/Menu.ts` — Finding #7: module-level menuFetchController: AbortController|null; loadAllMenus aborts previous call, passes signal to all five fetch methods; each fetch method handles AbortError/CanceledError silently
+
+## Investigation — Finding #6 (classifyError)
+
+`classifyError` is implemented in `composables/useErrorClassifier.ts`. All return paths use string literals from `ERROR_MESSAGES` constants (e.g., `ERROR_MESSAGES.SERVER_ERROR_MESSAGE`, `ERROR_MESSAGES.VALIDATION_FAILED`). The raw error object is placed only on the internal `raw` field of `ClassifiedError`, which callers use only for logging. The `api.client.ts` interceptor also strips sensitive fields (exception, trace, stack, file, line) from error response data before the error propagates. Result: **assessed clean — no technical detail leak to UI found**.
 
 ## Verification
 
-Required before closure:
-- `npm run typecheck`
-- `npm run lint`
-- `npm run test`
-- `npm run build`
-- `npm run generate`
+Specialist results (2026-05-19, commit 1291632 on branch agent/tab-case-002-validated-review-followups):
+- `npx tsc --noEmit --skipLibCheck`: PASS (no output)
+- `npm run lint`: PASS — 0 errors, 57 warnings (all pre-existing)
+- `npm run test`: PASS — Test Files 69 passed (69), Tests 382 passed | 1 todo (383)
+- `npm run build`: PASS — Build complete
+- `npm run generate`: PASS — deployed to .output/public
+
+### Verifier Checkpoint (2026-05-19, independent run — commit 1291632)
+
+Verifier ran all commands independently on branch `agent/tab-case-002-validated-review-followups`.
+
+- `npm run typecheck`: **PASS** — zero errors
+- `npm run lint`: **PASS** — 0 errors, 57 pre-existing warnings (no new warnings introduced)
+- `npm run test`: **PASS** — Test Files 69 passed (69), Tests 382 passed | 1 todo (383)
+- `npm run build`: **PASS** — build complete, no errors
+- `npm run generate`: **PASS** — 5 routes prerendered to .output/public, PWA precache 48 entries
+
+Code spot-checks (Verifier):
+- `useBroadcasts.ts`: only remaining `any` usages are `(window as any).Echo` casts at external library boundary — not regressions; all interface definitions and channel vars properly typed
+- `Menu.ts`: `menuFetchController: AbortController | null` present at line 18-19; abort-on-reentry at lines 274-278; controller cleared after load at line 298
+- `Session.ts`: `// Cross-store:` comments at lines 342, 386, 414, 458 (all inside action bodies)
+- `Order.ts`: `// Cross-store:` comments at lines 196, 642, 730, 746, 832, 894 (action bodies + one computed)
+
+**Verifier verdict: PASS**
 
 ## Specialist Handoff
 
@@ -86,7 +115,9 @@ Specialist should implement only validated findings in this case and keep scope 
 
 ## Executioner Verdict
 
-Pending.
+APPROVED — independent code re-audit of Findings #3/#4/#6/#7 confirmed; Verifier Checkpoint present with all 5 commands passing (typecheck zero errors, lint 0 errors/57 pre-existing warnings, test 382/382 + 1 todo, build clean, generate 5 routes); single-app scope (tablet-ordering-pwa); no contract/state/security regression.
+
+Note: Findings #1 (offline queue dedup), #2 (WebSocket reconnection), and #5 (PIN modal a11y) appear in Investigation/Proposed Fix but not in Files Changed — these were shipped as part of TAB-CASE-001 Fix 2 and prior work, not omissions. No false claims in the Specialist output.
 
 ## Remaining Risks
 

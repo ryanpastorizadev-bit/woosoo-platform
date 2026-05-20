@@ -19,7 +19,8 @@ source "$CONFIG_FILE"
 set +a
 
 WOOSOO_DOCKER_COMPOSE="${WOOSOO_DOCKER_COMPOSE:-docker compose -f compose.yaml}"
-WOOSOO_NEXUS_PATH="${WOOSOO_NEXUS_PATH:-/opt/woosoo/woosoo-nexus}"
+WOOSOO_NEXUS_PATH="${WOOSOO_NEXUS_PATH:-/opt/woosoo/woosoo-platform/woosoo-nexus}"
+WOOSOO_PLATFORM_PATH="${WOOSOO_PLATFORM_PATH:-$(dirname "$WOOSOO_NEXUS_PATH")}"
 WOOSOO_BACKUP_DIR="${WOOSOO_BACKUP_DIR:-/opt/woosoo/backups}"
 WOOSOO_BACKUP_RETENTION_DAYS="${WOOSOO_BACKUP_RETENTION_DAYS:-14}"
 MYSQL_SERVICE="${WOOSOO_MYSQL_SERVICE:-mysql}"
@@ -56,12 +57,12 @@ fi
 
 mkdir -p "$WOOSOO_BACKUP_DIR/db"
 
-if [[ ! -d "$WOOSOO_NEXUS_PATH" ]]; then
-  echo "Nexus path missing: $WOOSOO_NEXUS_PATH"
+if [[ ! -d "$WOOSOO_PLATFORM_PATH" ]]; then
+  echo "Platform path missing: $WOOSOO_PLATFORM_PATH"
   exit 1
 fi
 
-cd "$WOOSOO_NEXUS_PATH"
+cd "$WOOSOO_PLATFORM_PATH"
 
 BACKUP_FILE="$WOOSOO_BACKUP_DIR/db/${DB_NAME}_$(date +%F_%H%M%S).sql.gz"
 TEMP_SQL_FILE="${BACKUP_FILE%.gz}.tmp"

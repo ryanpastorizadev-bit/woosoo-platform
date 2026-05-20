@@ -19,7 +19,8 @@ source "$CONFIG_FILE"
 set +a
 
 WOOSOO_DOCKER_COMPOSE="${WOOSOO_DOCKER_COMPOSE:-docker compose -f compose.yaml}"
-WOOSOO_NEXUS_PATH="${WOOSOO_NEXUS_PATH:-/opt/woosoo/woosoo-nexus}"
+WOOSOO_NEXUS_PATH="${WOOSOO_NEXUS_PATH:-/opt/woosoo/woosoo-platform/woosoo-nexus}"
+WOOSOO_PLATFORM_PATH="${WOOSOO_PLATFORM_PATH:-$(dirname "$WOOSOO_NEXUS_PATH")}"
 WOOSOO_SCHEME="${WOOSOO_SCHEME:-https}"
 WOOSOO_REVERB_APP_KEY="${WOOSOO_REVERB_APP_KEY:-}"
 
@@ -68,11 +69,11 @@ fi
 
 echo
 echo "[8] Docker containers"
-if [[ -d "$WOOSOO_NEXUS_PATH" ]]; then
-  cd "$WOOSOO_NEXUS_PATH"
+if [[ -d "$WOOSOO_PLATFORM_PATH" ]]; then
+  cd "$WOOSOO_PLATFORM_PATH"
   $WOOSOO_DOCKER_COMPOSE ps || true
 else
-  echo "Nexus path missing: $WOOSOO_NEXUS_PATH"
+  echo "Platform path missing: $WOOSOO_PLATFORM_PATH"
 fi
 
 echo
