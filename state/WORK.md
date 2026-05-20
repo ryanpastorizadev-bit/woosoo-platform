@@ -8,28 +8,42 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-20 — governance sync; NEX-CASE-006 (broadcast integrity PR #120) closed retrospectively; NEX-CASE-002 Contrarian starting -->
+<!-- Last updated: 2026-05-20 — INFRA-CASE-001 Pi platform migration in progress -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      nex-case-002-pulse-routes (P2, in_progress)
+task_id:      infra-case-001-pi-platform-migration (P1, in_progress)
 status:       in_progress
-tier:         2
-app:          woosoo-nexus
-description:  Pulse routes broken — Contrarian starting.
-case_file:    docs/cases/nex-case-002-pulse-routes.md
+tier:         3
+app:          platform infra (scripts/deployment, compose.yaml)
+description:  Migrate Pi from old woosoo-nexus single-repo model to platform-root model.
+              First Pi runtime verification of the new orchestration stack.
+case_file:    docs/cases/infra-case-001-pi-platform-migration.md
 ```
 
 ## Next Action
 
 ```
-NEX-CASE-002: Run Contrarian on Pulse routes.
+INFRA-CASE-001: Execute 8-phase Pi deployment runbook (see case file + plan).
+  Branch: staging (per user instruction)
+  Specialist: infra
+  Script fixes applied (woosoo-health.sh, woosoo-backup.sh) — commit + push to Pi.
+
+  Phase 0: Pre-flight inspection on Pi (SSH 192.168.100.42).
+  Phase 1: docker compose down (NO --volumes) from old nexus root.
+  Phase 2: Clone woosoo-platform; mv woosoo-nexus inside it; clone tablet-ordering-pwa.
+  Phase 3: mkcert certs covering 192.168.100.42 + 192.168.1.31; scp to Pi docker/certs/.
+  Phase 4: Create /etc/woosoo/woosoo.env (WOOSOO_APPLY_STATIC_IP=false).
+  Phase 5: doctor.sh — all green before proceeding.
+  Phase 6: apply-woosoo-config.sh + deploy.sh.
+  Phase 7: Smoke tests + woosoo-health.sh.
+
+DEFERRED (NEX-CASE-002):
+  Pulse routes broken — Contrarian not yet started.
   Branch: agent/nex-case-002-pulse-routes (create in woosoo-nexus)
-  Investigate: php artisan route:list | grep pulse, viewPulse gate, config/pulse.php,
-               storage/logs/laravel.log for actual error text
 
 DEFERRED R3 from NEX-CASE-004: register() and lookupByIp() still call
   $device->table()->first() without POS null-guard (lines 218, 326 in DeviceAuthApiController).
