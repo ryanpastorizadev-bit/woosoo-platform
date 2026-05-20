@@ -198,7 +198,9 @@ services:
     # the tablet nginx container for no functional reason.
     environment:
       NODE_ENV: production
-      APP_RUNTIME_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
+      # Relative /api so the tablet PWA works from any origin (IP or hostname)
+      # without DNS. Port 4443 nginx bridge forwards /api/* to Laravel.
+      APP_RUNTIME_API_BASE_URL: /api
       APP_RUNTIME_REVERB_HOST: ${PUBLIC_HOST:-woosoo.local}
       APP_RUNTIME_REVERB_APP_KEY: ${REVERB_APP_KEY:-REVERB_APP_KEY_REQUIRED}
       APP_RUNTIME_REVERB_PORT: "443"
@@ -211,7 +213,7 @@ services:
       APP_RUNTIME_BUILD_FINGERPRINT: ${TABLET_BUILD_FINGERPRINT:-unknown}
       APP_RUNTIME_DOCKERFILE: ${TABLET_DOCKERFILE:-Dockerfile.prod}
 
-      NUXT_PUBLIC_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
+      NUXT_PUBLIC_API_BASE_URL: /api
       NUXT_PUBLIC_BROADCAST_CONNECTION: reverb
       NUXT_PUBLIC_REVERB_APP_ID: ${REVERB_APP_ID:-woosoo}
       NUXT_PUBLIC_REVERB_APP_KEY: ${REVERB_APP_KEY:-REVERB_APP_KEY_REQUIRED}
