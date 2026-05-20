@@ -20,6 +20,7 @@ scope: ecosystem
 | TAB-CASE-005 | tablet-ordering-pwa | 2026-05-19 | typecheck exit 0, lint 0 errors, nuxt build exit 0; 2 files changed (PackageCard.vue + packageSelection.vue); 9 changes applied | APPROVED | none | Package card delta v2: tap→select, white title, description-as-tagline, View label, italic heading, uppercase inspector CTA, summary opacity |
 | NEX-CASE-003 | woosoo-nexus | 2026-05-19 | php artisan test --filter=OrderRepositoryTest 3/3 (9 assertions); full suite 398/398 (1386 assertions); dashboard routes confirmed registered; Eloquent inline replaces proc, env() removed, test bypass removed | APPROVED | none | Missing stored procedure — OrderRepository Eloquent inline fix; is_open filter; Collection return type; Dashboard.vue empty-state |
 | TAB-CASE-006 | tablet-ordering-pwa | 2026-05-20 | typecheck exit 0; eslint pages/menu.vue 0 errors 0 warnings; build Nitro exit 0; one-line fix confirmed | APPROVED | none | Menu meats filtering: :meats="decorateMeats" wired to grouped-meats-list; decorateMeats was computed correctly but bypassed by v-else-if branch |
+| NEX-CASE-004 | woosoo-nexus | 2026-05-20 | php artisan test --filter DeviceAuthApiControllerTest: 6 passed (25 assertions); safeLoadDeviceTable() catches Throwable from POS connection; authenticate() returns 200 + null table when POS is down | APPROVED | PLT-CASE-008 | Device login 500: uncaught QueryException from table()->first() on POS connection; fixed with try/catch null-fallback; zero test coverage gap closed |
 
 ---
 <!--

@@ -1,6 +1,6 @@
 ---
-status: IN_PROGRESS
-last_reviewed: 2026-05-19
+status: COMPLETE
+last_reviewed: 2026-05-20
 scope: woosoo-nexus
 ---
 
@@ -12,20 +12,18 @@ Device login endpoint (`POST /api/devices/login`) returns HTTP 500 in production
 - task_slug: nex-case-004-device-login-500
 - tier: 3
 - branch: agent/nex-case-004-device-login-500
-- status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:ranpo-backend
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: none
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-19
+- updated: 2026-05-20
 
 ## Handoff
-- Phase in progress: Specialist gate
-- Done so far: Contrarian complete (2026-05-19). Root cause identified: `$device->table()->first()` in success-path response uses POS connection with no try/catch. POS failure → uncaught QueryException → 500. Auth + token issuance complete before the failure site.
-- Exact next action: Specialist (ranpo-backend) must: (1) confirm via log grep, (2) add try/catch null-fallback around `$device->table()->first()` in `authenticate()` only, (3) add feature tests (R2 — currently zero tests for this method). Do NOT touch token issuance, IP resolution, or passcode logic.
-- Working-tree state: no changes — case file only
-- Risks / do-not-redo: Tier 3. Do NOT refactor the full auth flow. Do NOT bundle env() fix (Table.php:56) in this commit. Do NOT apply the fix to register()/lookupByIp() until authenticate() is confirmed correct.
+- Phase in progress: COMPLETE
+- Done so far: Contrarian (2026-05-19) identified root cause. Specialist implemented `safeLoadDeviceTable()` try/catch on `authenticate()` + full feature test suite. Verifier confirmed 6/6 tests pass (25 assertions). Executioner APPROVED.
+- Working-tree state: clean — changes committed to woosoo-nexus repo
 
 ## Tier
 3
@@ -188,10 +186,38 @@ connection co-located with `POST /api/devices/login` requests.
 
 ## Proposed Fix
 
+Wrap `$device->table()->first(['id', 'name'])` in a `private safeLoadDeviceTable(Device $device): mixed` helper that catches `\Throwable` and returns `null` on POS failure. Call it from `authenticate()` only (scope: this method, not `register()` or `lookupByIp()`).
+
 ## Files Changed
+
+- `woosoo-nexus/app/Http/Controllers/Api/V1/Auth/DeviceAuthApiController.php`
+  - `authenticate()` line 295: `$device->table()->first(['id', 'name'])` → `$this->safeLoadDeviceTable($device)`
+  - Added private method `safeLoadDeviceTable()` (lines 483–495): try/catch `\Throwable`, logs warning, returns null
+- `woosoo-nexus/tests/Feature/Api/V1/DeviceAuthApiControllerTest.php` (new file — 6 tests, 25 assertions)
+
+Contract impact: **no** — `table` field was already nullable in the response; null is now returned instead of 500 when POS is down.
 
 ## Verification
 
+```
+php artisan test --filter DeviceAuthApiControllerTest
+Tests:    6 passed (25 assertions)
+Duration: 15.29s
+```
+
+Tests confirmed:
+- ✅ 200 + table data when POS is up
+- ✅ 200 + null table when device has no table_id
+- ✅ 200 + null table when POS is down (key regression test — was previously 500)
+- ✅ 404 when device not found
+- ✅ 403 when device not yet registered
+- ✅ expired tokens pruned, 30-day token issued
+
 ## Executioner Verdict
 
+**APPROVED** — 2026-05-20. Fix is minimal, scoped to `authenticate()` only, no auth flow changes, no contract break, full test coverage added where zero existed.
+
 ## Remaining Risks
+
+- R3 (deferred): `register()` and `lookupByIp()` still call `$device->table()->first()` without protection (lines 218, 326). Schedule as NEX-CASE-004b or bundle into a follow-up nexus hardening pass.
+- R6 (deferred): `Table.php:56` env() violation (`env('APP_ENV') === 'testing'`) — same pattern as NEX-CASE-003 R5. Not in the login path; clean up in a follow-up.
