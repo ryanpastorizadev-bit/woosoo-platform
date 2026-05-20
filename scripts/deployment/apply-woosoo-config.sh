@@ -349,6 +349,11 @@ set_env "REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
 set_env "REVERB_APP_SECRET" "$WOOSOO_REVERB_APP_SECRET"
 set_env "REVERB_HOST" "reverb"
 set_env "REVERB_PUBLIC_HOST" "$WOOSOO_HOST"
+# Laravel reads REVERB_BROADCAST_HOST first when publishing events to Reverb.
+# Inside the Docker network the publish must go to the `reverb` service name
+# (Docker DNS) — woosoo.local is not resolvable from inside the app/queue/scheduler
+# containers. Tablet/browser clients still use REVERB_PUBLIC_HOST.
+set_env "REVERB_BROADCAST_HOST" "reverb"
 set_env "REVERB_PORT" "8080"
 set_env "REVERB_SCHEME" "http"
 set_env "VITE_REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"

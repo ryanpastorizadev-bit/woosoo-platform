@@ -81,7 +81,12 @@ services:
     restart: unless-stopped
     env_file: ./woosoo-nexus/.env
     environment:
-      REVERB_BROADCAST_HOST: ${PUBLIC_HOST:-woosoo.local}
+      # Server-side broadcast publish goes through the internal Docker network
+      # (app -> reverb), NOT through woosoo.local. The container's resolver is
+      # Docker DNS, which does not include the host's dnsmasq entries, so
+      # cURL inside the container cannot resolve woosoo.local. Pin to the
+      # service name; tablet/browser clients still use REVERB_PUBLIC_HOST.
+      REVERB_BROADCAST_HOST: reverb
     volumes:
       - ./woosoo-nexus:/var/www/html  # dev/staging: bind-mount; remove for immutable production image
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
@@ -161,7 +166,8 @@ services:
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
     env_file: ./woosoo-nexus/.env
     environment:
-      REVERB_BROADCAST_HOST: ${PUBLIC_HOST:-woosoo.local}
+      # Keep this consistent with the `app` service. See app.environment for context.
+      REVERB_BROADCAST_HOST: reverb
     volumes:
       - ./woosoo-nexus:/var/www/html
     depends_on:
