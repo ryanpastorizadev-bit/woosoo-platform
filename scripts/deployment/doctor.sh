@@ -1,80 +1,162 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Woosoo Deployment Pre-flight Doctor
+# Woosoo Pi Docker Runtime Preflight Doctor
 # =============================================================================
-# Usage: bash scripts/deployment/doctor.sh
+# Diagnostic only. This script validates production deployment prerequisites.
+# It does not edit compose files, nginx config, env files, Docker resources, or
+# application code.
 #
-# Validates critical deployment environment variables before deploy.sh runs.
-# This script prevents placeholder secrets and missing critical config from
-# reaching production.
+# Usage:
+#   sudo bash scripts/deployment/doctor.sh
 #
 # Exit codes:
-#   0 = all checks passed
-#   1 = one or more critical checks failed
+#   0 = all required checks passed
+#   1 = one or more required checks failed
 # =============================================================================
 set -euo pipefail
 
-CONFIG_FILE="/etc/woosoo/woosoo.env"
-ERRORS=()
+CONFIG_FILE="${CONFIG_FILE:-/etc/woosoo/woosoo.env}"
+PASS=0
+WARN=0
+FAIL=0
 
-# Color output for better readability
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo "========================================"
-echo "  Woosoo Deployment Doctor"
-echo "========================================"
-echo
+pass() { echo -e "${GREEN}[PASS]${NC} $*"; PASS=$((PASS + 1)); }
+warn() { echo -e "${YELLOW}[WARN]${NC} $*"; WARN=$((WARN + 1)); }
+fail() { echo -e "${RED}[FAIL]${NC} $*"; FAIL=$((FAIL + 1)); }
+info() { echo "[INFO] $*"; }
+section() { echo; echo "== $* =="; }
 
-# Check if config file exists
-if [[ ! -f "$CONFIG_FILE" ]]; then
-  echo -e "${RED}ERROR: Config file not found: $CONFIG_FILE${NC}"
-  echo "  Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first."
-  exit 1
-fi
+require_command() {
+  local command_name="$1"
 
-# Source the config file
-set -a
-# shellcheck source=/dev/null
-source "$CONFIG_FILE" 2>/dev/null || {
-  echo -e "${RED}ERROR: Failed to source $CONFIG_FILE${NC}"
-  exit 1
+  if command -v "$command_name" >/dev/null 2>&1; then
+    pass "command available: $command_name"
+  else
+    fail "missing required command: $command_name"
+  fi
 }
-set +a
 
-echo "Checking critical deployment variables..."
-echo
-
-# Function to check if a variable is set and not a placeholder
 check_required() {
   local var_name="$1"
-  local var_value="${!var_name:-}"
-  local forbidden_patterns=("$@")  # Additional forbidden values after var_name
-  shift  # Remove first argument (var_name)
+  shift || true
 
+  local var_value="${!var_name:-}"
   if [[ -z "$var_value" ]]; then
-    ERRORS+=("${var_name} is not set")
-    echo -e "${RED}✗ ${var_name}${NC} - NOT SET"
-    return 1
+    fail "$var_name is not set"
+    return 0
   fi
 
-  # Check against forbidden patterns (placeholders)
-  for pattern in "$@"; do
-    if [[ "$var_value" == "$pattern" ]]; then
-      ERRORS+=("${var_name} is using placeholder value: ${pattern}")
-      echo -e "${RED}✗ ${var_name}${NC} - PLACEHOLDER: ${pattern}"
-      return 1
+  local forbidden
+  for forbidden in "$@"; do
+    if [[ "$var_value" == "$forbidden" ]]; then
+      fail "$var_name is using placeholder value: $forbidden"
+      return 0
     fi
   done
 
-  echo -e "${GREEN}✓ ${var_name}${NC}"
-  return 0
+  pass "$var_name is set"
 }
 
-# Critical variables that must be set and not placeholders
-echo "--- Core Configuration ---"
+compose() {
+  (
+    cd "$WOOSOO_PLATFORM_PATH"
+    # WOOSOO_DOCKER_COMPOSE is intentionally a command string from the root-owned
+    # deployment config. Keep it unquoted so configured compose flags are honored.
+    # shellcheck disable=SC2086
+    $WOOSOO_DOCKER_COMPOSE "$@"
+  )
+}
+
+service_is_disabled() {
+  local service_name="$1"
+  local state
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    warn "systemctl unavailable; cannot check $service_name enablement"
+    return 0
+  fi
+
+  state="$(systemctl is-enabled "$service_name" 2>/dev/null || true)"
+  case "$state" in
+    disabled|masked|"")
+      pass "$service_name is not enabled"
+      ;;
+    *)
+      fail "$service_name is enabled ($state); Docker must own production runtime"
+      ;;
+  esac
+}
+
+service_is_inactive() {
+  local service_name="$1"
+  local state
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    warn "systemctl unavailable; cannot check $service_name activity"
+    return 0
+  fi
+
+  state="$(systemctl is-active "$service_name" 2>/dev/null || true)"
+  case "$state" in
+    inactive|failed|unknown|"")
+      pass "$service_name is not active"
+      ;;
+    *)
+      fail "$service_name is active ($state); stop it before deploying Docker runtime"
+      ;;
+  esac
+}
+
+check_no_host_native_listener() {
+  local port="$1"
+  local lines
+
+  lines="$(ss -ltnp 2>/dev/null | grep -E ":${port}\b" | grep -Ev 'docker-proxy|containerd|dockerd' || true)"
+  if [[ -z "$lines" ]]; then
+    pass "no host-native listener on port $port"
+  else
+    fail "host-native listener found on port $port"
+    echo "$lines"
+  fi
+}
+
+echo "========================================"
+echo "  Woosoo Pi Docker Runtime Doctor"
+echo "========================================"
+
+section "Config file"
+if [[ ! -f "$CONFIG_FILE" || -L "$CONFIG_FILE" ]]; then
+  fail "missing regular config file: $CONFIG_FILE"
+  info "Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first."
+else
+  pass "config file exists: $CONFIG_FILE"
+fi
+
+if [[ ! -r "$CONFIG_FILE" ]]; then
+  fail "config file is not readable: $CONFIG_FILE"
+else
+  # shellcheck source=/dev/null
+  set -a
+  source "$CONFIG_FILE"
+  set +a
+  pass "config file loaded"
+fi
+
+WOOSOO_NEXUS_PATH="${WOOSOO_NEXUS_PATH:-}"
+WOOSOO_PLATFORM_PATH="${WOOSOO_PLATFORM_PATH:-${WOOSOO_NEXUS_PATH:+$(dirname "$WOOSOO_NEXUS_PATH")}}"
+WOOSOO_DOCKER_COMPOSE="${WOOSOO_DOCKER_COMPOSE:-docker compose --env-file ./woosoo-nexus/.env -f compose.yaml}"
+
+section "Required commands"
+require_command docker
+require_command ss
+require_command curl
+
+section "Core configuration"
 check_required PUBLIC_HOST
 check_required WOOSOO_HOST
 check_required WOOSOO_SERVER_IP
@@ -82,58 +164,108 @@ check_required WOOSOO_GATEWAY
 check_required WOOSOO_CIDR
 check_required WOOSOO_NEXUS_PATH
 check_required WOOSOO_SCHEME
-echo
 
-echo "--- POS Integration (Critical) ---"
+if [[ -n "${PUBLIC_HOST:-}" && "$PUBLIC_HOST" == *.local ]]; then
+  warn "PUBLIC_HOST uses .local; verify Android/tablet DNS resolves it reliably"
+fi
+
+section "Platform-root compose authority"
+if [[ -n "$WOOSOO_PLATFORM_PATH" && -d "$WOOSOO_PLATFORM_PATH" ]]; then
+  pass "platform path exists: $WOOSOO_PLATFORM_PATH"
+else
+  fail "platform path missing: ${WOOSOO_PLATFORM_PATH:-<not set>}"
+fi
+
+if [[ -n "$WOOSOO_PLATFORM_PATH" && -f "$WOOSOO_PLATFORM_PATH/compose.yaml" ]]; then
+  pass "platform compose.yaml exists"
+else
+  fail "platform compose.yaml missing at ${WOOSOO_PLATFORM_PATH:-<not set>}/compose.yaml"
+fi
+
+if [[ -n "$WOOSOO_PLATFORM_PATH" && -f "$WOOSOO_PLATFORM_PATH/woosoo-nexus/.env" ]]; then
+  pass "compose env file exists at platform root"
+else
+  fail "compose env file missing: ${WOOSOO_PLATFORM_PATH:-<not set>}/woosoo-nexus/.env"
+fi
+
+if [[ -n "$WOOSOO_PLATFORM_PATH" && -f "$WOOSOO_PLATFORM_PATH/compose.yaml" ]]; then
+  compose_stderr="$(mktemp)"
+  if compose config --quiet >/dev/null 2>"$compose_stderr"; then
+    pass "docker compose config is valid"
+  else
+    fail "docker compose config failed"
+    sed 's/^/  /' "$compose_stderr"
+  fi
+
+  if grep -qi 'REVERB_APP_KEY.*not set\|Defaulting to a blank string' "$compose_stderr"; then
+    fail "compose interpolation emitted a REVERB_APP_KEY warning"
+  else
+    pass "compose interpolation emitted no REVERB_APP_KEY warning"
+  fi
+  rm -f "$compose_stderr"
+fi
+
+section "POS integration"
 check_required WOOSOO_POS_HOST "192.168.100.20"
 check_required WOOSOO_POS_PORT "3308"
 check_required WOOSOO_POS_DATABASE
 check_required WOOSOO_POS_USERNAME
-# WOOSOO_POS_PASSWORD can be empty for some setups, but warn if missing
 if [[ -z "${WOOSOO_POS_PASSWORD:-}" ]]; then
-  echo -e "${YELLOW}⚠ WOOSOO_POS_PASSWORD${NC} - NOT SET (may be acceptable for some POS configs)"
+  warn "WOOSOO_POS_PASSWORD is not set; confirm this is intentional for the POS"
 else
-  echo -e "${GREEN}✓ WOOSOO_POS_PASSWORD${NC}"
+  pass "WOOSOO_POS_PASSWORD is set"
 fi
-echo
 
-echo "--- Reverb Broadcasting (Critical) ---"
-check_required REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo"
+section "Reverb configuration"
+check_required REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo" "REVERB_APP_KEY_REQUIRED"
 check_required REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
 check_required REVERB_APP_ID
-check_required WOOSOO_REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo"
+check_required WOOSOO_REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo" "REVERB_APP_KEY_REQUIRED"
 check_required WOOSOO_REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
 check_required WOOSOO_REVERB_APP_ID
-echo
 
-echo "--- Database Credentials ---"
+if [[ -n "${REVERB_APP_KEY:-}" && -n "${WOOSOO_REVERB_APP_KEY:-}" && "$REVERB_APP_KEY" == "$WOOSOO_REVERB_APP_KEY" ]]; then
+  pass "REVERB_APP_KEY and WOOSOO_REVERB_APP_KEY match"
+elif [[ -n "${REVERB_APP_KEY:-}" && -n "${WOOSOO_REVERB_APP_KEY:-}" ]]; then
+  fail "REVERB_APP_KEY and WOOSOO_REVERB_APP_KEY differ"
+fi
+
+section "Database credentials"
 check_required WOOSOO_DB_PASSWORD "change_this_password"
 check_required WOOSOO_DB_ROOT_PASSWORD "change_this_root_password"
-echo
 
-echo "--- Optional but Recommended ---"
-if [[ -z "${WOOSOO_DEVICE_AUTH_PASSCODE:-}" ]]; then
-  echo -e "${YELLOW}⚠ WOOSOO_DEVICE_AUTH_PASSCODE${NC} - NOT SET (tablets will not be able to register)"
+section "Docker-only host runtime ownership"
+for service_name in mariadb redis-server php8.4-fpm supervisor; do
+  service_is_disabled "$service_name"
+  service_is_inactive "$service_name"
+done
+
+for port in 3306 6379 8080; do
+  check_no_host_native_listener "$port"
+done
+
+section "Pi resource preflight"
+if command -v vcgencmd >/dev/null 2>&1; then
+  vcgencmd get_throttled || warn "could not read Pi throttle flags"
+  vcgencmd measure_temp || warn "could not read Pi temperature"
 else
-  echo -e "${GREEN}✓ WOOSOO_DEVICE_AUTH_PASSCODE${NC}"
+  warn "vcgencmd unavailable; skipping Pi throttle/temperature checks"
 fi
-echo
 
-# Summary
-echo "========================================"
-if [[ ${#ERRORS[@]} -eq 0 ]]; then
-  echo -e "${GREEN}✓ All checks passed${NC}"
-  echo "========================================"
+df -h /
+free -h || warn "free command failed"
+docker system df || warn "docker system df failed"
+
+section "Summary"
+echo "Passed: $PASS"
+echo "Warned: $WARN"
+echo "Failed: $FAIL"
+
+if [[ "$FAIL" -gt 0 ]]; then
   echo
-  exit 0
-else
-  echo -e "${RED}✗ ${#ERRORS[@]} error(s) found:${NC}"
-  echo "========================================"
-  for error in "${ERRORS[@]}"; do
-    echo -e "${RED}  • ${error}${NC}"
-  done
-  echo
-  echo "Fix these issues in $CONFIG_FILE before deploying."
-  echo
+  echo "Preflight FAILED. Resolve failures before deploying."
   exit 1
 fi
+
+echo
+echo "Preflight PASSED."
