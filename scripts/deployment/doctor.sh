@@ -157,7 +157,6 @@ require_command ss
 require_command curl
 
 section "Core configuration"
-check_required PUBLIC_HOST
 check_required WOOSOO_HOST
 check_required WOOSOO_SERVER_IP
 check_required WOOSOO_GATEWAY
@@ -165,9 +164,6 @@ check_required WOOSOO_CIDR
 check_required WOOSOO_NEXUS_PATH
 check_required WOOSOO_SCHEME
 
-if [[ -n "${PUBLIC_HOST:-}" && "$PUBLIC_HOST" == *.local ]]; then
-  warn "PUBLIC_HOST uses .local; verify Android/tablet DNS resolves it reliably"
-fi
 
 section "Platform-root compose authority"
 if [[ -n "$WOOSOO_PLATFORM_PATH" && -d "$WOOSOO_PLATFORM_PATH" ]]; then
@@ -207,7 +203,7 @@ fi
 
 section "POS integration"
 check_required WOOSOO_POS_HOST "192.168.100.20"
-check_required WOOSOO_POS_PORT "3308"
+check_required WOOSOO_POS_PORT
 check_required WOOSOO_POS_DATABASE
 check_required WOOSOO_POS_USERNAME
 if [[ -z "${WOOSOO_POS_PASSWORD:-}" ]]; then
@@ -217,18 +213,9 @@ else
 fi
 
 section "Reverb configuration"
-check_required REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo" "REVERB_APP_KEY_REQUIRED"
-check_required REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
-check_required REVERB_APP_ID
 check_required WOOSOO_REVERB_APP_KEY "change_this_reverb_key" "your_reverb_key_here" "woosoo" "REVERB_APP_KEY_REQUIRED"
 check_required WOOSOO_REVERB_APP_SECRET "change_this_reverb_secret" "your_reverb_secret_here"
 check_required WOOSOO_REVERB_APP_ID
-
-if [[ -n "${REVERB_APP_KEY:-}" && -n "${WOOSOO_REVERB_APP_KEY:-}" && "$REVERB_APP_KEY" == "$WOOSOO_REVERB_APP_KEY" ]]; then
-  pass "REVERB_APP_KEY and WOOSOO_REVERB_APP_KEY match"
-elif [[ -n "${REVERB_APP_KEY:-}" && -n "${WOOSOO_REVERB_APP_KEY:-}" ]]; then
-  fail "REVERB_APP_KEY and WOOSOO_REVERB_APP_KEY differ"
-fi
 
 section "Database credentials"
 check_required WOOSOO_DB_PASSWORD "change_this_password"
