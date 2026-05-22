@@ -20,6 +20,29 @@
 
 set -euo pipefail
 
+CONFIG_FILE="/etc/woosoo/woosoo.env"
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "ERROR: secrets file not found: $CONFIG_FILE" >&2
+  echo "Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first." >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$CONFIG_FILE"
+
+require_secret() {
+  local name="$1"
+  if [[ -z "${!name:-}" ]]; then
+    echo "ERROR: required var $name is unset in $CONFIG_FILE" >&2
+    exit 1
+  fi
+}
+require_secret HOME_DB_POS_USERNAME
+require_secret HOME_DB_POS_PASSWORD
+require_secret RESTO_DB_POS_USERNAME
+require_secret RESTO_DB_POS_PASSWORD
+
 LOC="${1:-}"
 case "$LOC" in
   home)
@@ -27,16 +50,16 @@ case "$LOC" in
     DB_POS_HOST_VAL="192.168.100.7"
     DB_POS_PORT_VAL="3308"
     DB_POS_DATABASE_VAL="krypton_woosoo"
-    DB_POS_USERNAME_VAL="woosoo_pos"
-    DB_POS_PASSWORD_VAL="password"
+    DB_POS_USERNAME_VAL="$HOME_DB_POS_USERNAME"
+    DB_POS_PASSWORD_VAL="$HOME_DB_POS_PASSWORD"
     ;;
   resto)
     PUBLIC_HOST_VAL="192.168.1.31"
     DB_POS_HOST_VAL="192.168.1.32"
     DB_POS_PORT_VAL="2121"
     DB_POS_DATABASE_VAL="krypton_woosoo"
-    DB_POS_USERNAME_VAL="user_1"
-    DB_POS_PASSWORD_VAL="user_1"
+    DB_POS_USERNAME_VAL="$RESTO_DB_POS_USERNAME"
+    DB_POS_PASSWORD_VAL="$RESTO_DB_POS_PASSWORD"
     ;;
   *)
     echo "Usage: $0 {home|resto}" >&2
@@ -63,7 +86,9 @@ set_env() {
   local key="$1"
   local value="$2"
   sed -i "/^${key}=/d" "$ENV_FILE"
-  printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+  # Wrap value in double quotes so spaces and most shell metacharacters are safe.
+  # Single quotes inside the value are escaped as '\''.
+  printf "%s=\"%s\"\n" "$key" "${value//\"/\\\"}" >> "$ENV_FILE"
 }
 
 set_env PUBLIC_HOST              "$PUBLIC_HOST_VAL"

@@ -23,11 +23,17 @@ openssl req -x509 -nodes -newkey rsa:2048 \
     -subj   "/C=PH/ST=Local/L=Local/O=Woosoo/CN=$IP" \
     -addext "subjectAltName=IP:$IP,DNS:woosoo.local,DNS:admin.woosoo.local,DNS:app.woosoo.local,DNS:localhost"
 
+# For a self-signed cert the server cert IS the CA root.
+# Nginx serves rootCA.crt over HTTP so devices can bootstrap trust before
+# they have a valid HTTPS connection (see docker/nginx/default.conf).
+cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/rootCA.crt"
+
 echo ""
 echo "Done."
 echo "  Certificate : $CERT_DIR/fullchain.pem"
 echo "  Private Key : $CERT_DIR/privkey.pem"
+echo "  CA root     : $CERT_DIR/rootCA.crt  (copy of fullchain.pem for device trust)"
 echo ""
-echo "To trust this cert (suppress browser warnings), import fullchain.pem"
+echo "To trust this cert (suppress browser warnings), install rootCA.crt"
 echo "as a trusted CA authority on each device that will access the app."
 echo "See docker/certs/README.md for device-specific instructions."

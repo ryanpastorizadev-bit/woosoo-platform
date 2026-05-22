@@ -1,3 +1,9 @@
+---
+status: canonical
+date: 2026-05-20
+source: WOOSOO_ROADMAP_REVIEW
+---
+
 # Confirmed Order Continuity Design
 
 **Date:** 2026-05-20  
