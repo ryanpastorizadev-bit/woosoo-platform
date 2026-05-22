@@ -92,8 +92,12 @@ echo
 echo "Clearing Laravel config cache..."
 "${COMPOSE[@]}" exec -T app php artisan config:clear
 
-echo "Restarting containers..."
-"${COMPOSE[@]}" restart app queue scheduler reverb nginx tablet-pwa
+echo "Recreating containers (--force-recreate so env_file changes take effect)..."
+# A simple `restart` does NOT refresh a container's OS environment from
+# env_file — env vars stick from container creation time. Force-recreate
+# tears down and rebuilds each container so the new PUBLIC_HOST / DB_POS_*
+# / allow-list values actually appear in process env.
+"${COMPOSE[@]}" up -d --force-recreate app queue scheduler reverb nginx tablet-pwa
 
 echo
 echo "Verification (allowed_origins + public_host as seen by Reverb):"
