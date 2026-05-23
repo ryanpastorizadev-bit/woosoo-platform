@@ -11,8 +11,8 @@ scope: woosoo-nexus
 - tier: 3
 - branch: agent/nex-case-008-transient-token-refresh-guard
 - status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:ranpo-backend
+- last_completed_agent: specialist:ranpo-backend
+- next_agent: verifier
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -20,9 +20,9 @@ scope: woosoo-nexus
 
 ## Handoff
 - Phase in progress: n/a
-- Done so far: Contrarian analysis complete (see below). Tier 3 confirmed per auth-session.contract.md. Specialist not yet started.
-- Exact next action: Specialist implements `instanceof` guards in `refresh()` and `logout()` in `DeviceAuthApiController.php`; adds 2 new tests to `DeviceTokenLifecycleTest.php`. Run `pre-merge-check.ps1 -App woosoo-nexus`.
-- Working-tree state: no files modified yet (woosoo-nexus repo only)
+- Done so far: Contrarian + Specialist complete. instanceof guards added to refresh() and logout(). 2 new tests added. pre-merge: 430 passed (1510 assertions), 0 failures.
+- Exact next action: Verifier runs pre-merge-check.ps1 -App woosoo-nexus and confirms both new tests pass and all prior tests are still green. Then Executioner verdict.
+- Working-tree state: 2 files committed in woosoo-nexus on branch agent/nex-case-008-transient-token-refresh-guard (commit 7b9d5d9).
 - Risks / do-not-redo: do not weaken auth; do not change the happy path for PersonalAccessToken callers; 401 is the correct response for wrong caller type (not 403)
 
 ## Tier
@@ -152,6 +152,52 @@ Note: verify exact line numbers in the actual file before inserting — the draf
 `refresh()` at ~310-312, `logout()` at ~335-345, and test insert point after line 164.
 These may have shifted.
 
+## Specialist Output
+
+Completed: 2026-05-23
+
+### Files Changed
+
+- `woosoo-nexus/app/Http/Controllers/Api/V1/Auth/DeviceAuthApiController.php`
+  - Added `use Illuminate\Http\JsonResponse;` import
+  - `refresh()`: added `instanceof Device` + `instanceof PersonalAccessToken` guards; returns 401 for non-device or web-session callers; happy path byte-for-byte unchanged; return type declared `JsonResponse`
+  - `logout()`: added `instanceof Device` guard; token deletion only runs when `instanceof PersonalAccessToken`; returns 401 for non-device callers; return type declared `JsonResponse`
+
+- `woosoo-nexus/tests/Feature/Api/V1/DeviceTokenLifecycleTest.php`
+  - Added `use App\Models\User;` import
+  - Added `test_refresh_returns_401_when_called_with_web_session()` after `test_valid_token_can_refresh()`
+  - Added `test_logout_returns_401_when_called_with_web_session()` after the refresh test
+
+### Pre-Merge Check Result
+
+Command: `.\scripts\pre-merge-check.ps1 -App woosoo-nexus`
+
+```
+Tests: 430 passed (1510 assertions)
+Duration: 222.71s
+```
+
+All 430 tests passed. 0 failures. Both new tests confirmed green:
+- `refresh returns 401 when called with web session` — PASS
+- `logout returns 401 when called with web session` — PASS
+
+All 5 pre-existing DeviceTokenLifecycleTest tests — PASS.
+
+### Auth Contract Compliance
+
+- No auth weakened — guards only reject non-Device/non-PAT callers, never permit less-privileged callers
+- Happy path for PersonalAccessToken callers is byte-for-byte unchanged
+- 401 (not 403) is the correct status for wrong caller type on a device-only endpoint
+- No secrets printed or logged
+- No CSRF protection disabled
+- No stateful domain config changed
+
+### Commit
+
+Repository: woosoo-nexus  
+Branch: agent/nex-case-008-transient-token-refresh-guard  
+Commit: `7b9d5d9` — `fix(auth): guard refresh() and logout() against TransientToken crash`
+
 ## Files Changed
 
 - `woosoo-nexus/app/Http/Controllers/Api/V1/Auth/DeviceAuthApiController.php`
@@ -163,9 +209,11 @@ These may have shifted.
 .\scripts\pre-merge-check.ps1 -App woosoo-nexus
 ```
 
-Expected: 2 new tests pass (`test_refresh_returns_401_when_called_with_web_session`,
-`test_logout_returns_401_when_called_with_web_session`); all existing device lifecycle
-tests still pass (5 tests in the file).
+Result: 430 passed (1510 assertions), 0 failures.
+
+Both new tests green:
+- `test_refresh_returns_401_when_called_with_web_session` — PASS
+- `test_logout_returns_401_when_called_with_web_session` — PASS
 
 ## Executioner Verdict
 
