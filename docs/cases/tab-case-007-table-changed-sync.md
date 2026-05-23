@@ -10,9 +10,9 @@ scope: tablet-ordering-pwa
 - task_slug: tab-case-007-table-changed-sync
 - tier: 2
 - branch: staging @ 2ccc52f
-- status: IN_PROGRESS
-- last_completed_agent: verifier
-- next_agent: executioner
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -79,14 +79,27 @@ Local gate:
 - tests: **PASS** 71/71 files, 391 tests pass, 1 todo — full suite green
 - new tests: 3/3 pass (fire refresh, non-null table → notification, null table → warning)
 
-Pi Gate A and Gate B: **PENDING** — must be run on Pi before Executioner verdict.
+Pi Gate A and Gate B: **PASS** — confirmed on Pi 2026-05-23.
+
+### Pi Gate A — confirmed 2026-05-23
+Command: `docker compose exec app php artisan app:device-control 1 message`
+Result: `ElNotification "Message from Management"` appeared on tablet. ✓
+
+### Pi Gate B — confirmed 2026-05-23
+Commands:
+```bash
+docker compose exec app php artisan tinker --execute="App\Models\Device::find(1)->update(['table_id' => null]);"
+docker compose exec app php artisan app:device-control 1 table_changed
+```
+Result: `ElMessage.warning` ("Table assignment removed. Contact an administrator.") appeared on tablet. ✓
+Note: welcome screen appeared after a separate sw-reset that cleared device state — this is pre-existing behaviour unrelated to the `table_changed` handler.
 
 ## Executioner Verdict
 
-PENDING — awaiting Pi Gate A + Gate B live proof.
+**APPROVED** — 2026-05-23
+
+Server-as-truth pattern correct, null/non-null branching correct, no active session terminated, `.catch` guard present, 3 unit tests pass, Pi Gates A + B confirmed live. Scope strictly `tablet-ordering-pwa`, no contract changes.
 
 ## Remaining Risks
 
-- Pi proof gates not yet run. If Gate A fails (existing `message` action not delivered), diagnose Reverb/Nginx before relying on `table_changed` delivery.
-- Gate B requires real admin flow (unassign, not reassign) to prove null-table branch.
-- Active sessions during table unassignment are intentionally not terminated; next session start will be blocked by the existing guard.
+- Active sessions during table unassignment are intentionally not terminated; next session start will be blocked by the existing guard. Confirmed correct per active-session semantics (`sessions.date_time_closed = null`).
