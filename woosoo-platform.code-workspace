@@ -1,8 +1,8 @@
 {
 	"folders": [
-		{
-			"path": "."
-		}
+		{ "path": "." },
+		{ "path": "tablet-ordering-pwa", "name": "tablet-ordering-pwa" },
+		{ "path": "woosoo-nexus", "name": "woosoo-nexus" }
 	],
 	"settings": {}
 }
