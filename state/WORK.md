@@ -8,26 +8,24 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-23 — NEX-CASE-008 TransientToken guard -->
+<!-- Last updated: 2026-05-23 — NEX-CASE-009 admin Menus filters -->
 
 ---
 
 ## Current Task
 
 ```
-task_id:      nex-case-008-transient-token-refresh-guard (P1, done)
+task_id:      nex-case-009-admin-menus-filters (P2, done)
 status:       done
-tier:         3
+tier:         2
 app:          woosoo-nexus
 specialist:   ranpo-backend
-description:  Guard refresh() and logout() in DeviceAuthApiController against
-              non-Device principals and TransientToken — returns 401 instead of 500.
-case_file:    docs/cases/nex-case-008-transient-token-refresh-guard.md
-next_action:  VERIFY: run pre-merge-check.ps1 -App woosoo-nexus; confirm 2 new tests PASS,
-              all existing device lifecycle tests still PASS. Then Executioner verdict.
-last_agent:   specialist:ranpo-backend — 2026-05-23 — Added instanceof guards to refresh()
-              and logout(); 2 new tests added to DeviceTokenLifecycleTest.php.
-              Pre-merge: 430 passed (1510 assertions), 0 failures.
+description:  Restore Course/Group/Image filters in admin Menus DataTable by registering
+              course, group, has_uploaded_image columns. Adds Uploaded/Missing toolbar toggles.
+case_file:    docs/cases/nex-case-009-admin-menus-filters.md
+next_action:  Merge agent/nex-case-009-admin-menus-filters to staging in woosoo-nexus.
+last_agent:   specialist:ranpo-backend — 2026-05-23 — 3 files changed; typecheck exit 0;
+              430 passed (1510 assertions), 0 failures. Executioner APPROVED.
 ```
 
 ## Blocking Dependencies
@@ -41,11 +39,11 @@ none
 ```
 role:         specialist:ranpo-backend (2026-05-23)
 date:         2026-05-23
-left_off:     Implementation complete. Branch: agent/nex-case-008-transient-token-refresh-guard.
-              Commit: fix(auth): guard refresh() and logout() against TransientToken crash.
-              pre-merge-check.ps1 -App woosoo-nexus: 430 passed, 0 failures.
-              Both new tests green. All 5 prior DeviceTokenLifecycleTest tests green.
-files_open:   docs/cases/nex-case-008-transient-token-refresh-guard.md
+left_off:     Implementation complete. Branch: agent/nex-case-009-admin-menus-filters.
+              Commit 84193ab: feat(menus): restore Course/Group/Image filters in admin Menus DataTable.
+              typecheck exit 0; pre-merge-check.ps1 -App woosoo-nexus: 430 passed, 0 failures.
+              Executioner APPROVED.
+files_open:   docs/cases/nex-case-009-admin-menus-filters.md
               state/WORK.md
 ```
 
