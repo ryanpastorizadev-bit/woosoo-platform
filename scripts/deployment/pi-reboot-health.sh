@@ -150,7 +150,15 @@ done
 section "Docker stack after reboot"
 if [[ -d "$WOOSOO_PLATFORM_PATH" && -f "$WOOSOO_PLATFORM_PATH/compose.yaml" ]]; then
   pass "platform compose path exists"
-  compose ps
+  # Guard compose ps so a transient failure under set -e doesn't skip FAIL
+  # accounting and the summary block.
+  if compose_ps_out="$(compose ps 2>&1)"; then
+    pass "docker compose ps succeeded"
+    echo "$compose_ps_out"
+  else
+    fail "docker compose ps failed"
+    echo "$compose_ps_out"
+  fi
 else
   fail "platform compose path is invalid: $WOOSOO_PLATFORM_PATH"
 fi

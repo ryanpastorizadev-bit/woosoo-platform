@@ -96,4 +96,4 @@
 | End-of-day session close → all tablets reset | manual force-end | automatic via new session-close outbox + consumer |
 | Multi-table safety | manual force-end risks all-tablet reset only if WS healthy on others | safe — per-order events only hit the right tablet |
 
-Plan file with full detail: `C:\Users\Pc1\.claude\plans\let-s-deploy-on-raspberry-jolly-prism.md` (Phase 15).
+Plan file with full detail lives in each contributor's local `~/.claude/plans/` directory (Phase 15 plan: `let-s-deploy-on-raspberry-jolly-prism.md`).

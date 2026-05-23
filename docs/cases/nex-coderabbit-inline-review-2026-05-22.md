@@ -102,7 +102,7 @@ Refactoring only; not a bug.
 - `php artisan test --compact` (full suite)
 
 ### Results
-```
+```text
 Tests:    15 passed (34 assertions)     [filtered run]
 Tests:    427 passed (1505 assertions)  [full suite]
 Duration: 148.18s

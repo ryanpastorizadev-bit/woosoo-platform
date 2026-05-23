@@ -184,6 +184,18 @@ else
   fail "compose env file missing: ${WOOSOO_PLATFORM_PATH:-<not set>}/woosoo-nexus/.env"
 fi
 
+if [[ -n "$WOOSOO_PLATFORM_PATH" ]]; then
+  # nginx serves /woosoo-ca.crt → /etc/nginx/certs/rootCA.crt as the trust-bootstrap
+  # endpoint for tablets/devices. If this file is missing the endpoint 404s and new
+  # devices cannot install the CA. generate-dev-certs.sh creates it as a copy of
+  # fullchain.pem; in production it is the mkcert CA root.
+  if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" ]]; then
+    pass "docker/certs/rootCA.crt exists (bootstrap endpoint will resolve)"
+  else
+    fail "docker/certs/rootCA.crt missing — /woosoo-ca.crt will 404. Run docker/certs/generate-dev-certs.sh or copy the mkcert CA."
+  fi
+fi
+
 if [[ -n "$WOOSOO_PLATFORM_PATH" && -f "$WOOSOO_PLATFORM_PATH/compose.yaml" ]]; then
   compose_stderr="$(mktemp)"
   if compose config --quiet >/dev/null 2>"$compose_stderr"; then
@@ -203,6 +215,23 @@ fi
 
 section "POS integration"
 check_required WOOSOO_POS_HOST "192.168.100.20"
+# Production POS uses the static IP 192.168.1.32 (per AGENTS.md "Config integrity").
+# 192.168.100.7 is the dev/home POS; warn rather than fail so the doctor can run
+# in dev mode, but make the mismatch loud.
+case "${WOOSOO_POS_HOST:-}" in
+  192.168.1.32)
+    pass "WOOSOO_POS_HOST matches production static IP (192.168.1.32)"
+    ;;
+  192.168.100.7)
+    warn "WOOSOO_POS_HOST=192.168.100.7 (dev/home network); production requires 192.168.1.32"
+    ;;
+  "")
+    : # already failed by check_required above
+    ;;
+  *)
+    fail "WOOSOO_POS_HOST=${WOOSOO_POS_HOST} is neither prod (192.168.1.32) nor dev (192.168.100.7)"
+    ;;
+esac
 check_required WOOSOO_POS_PORT
 check_required WOOSOO_POS_DATABASE
 check_required WOOSOO_POS_USERNAME
