@@ -15,8 +15,8 @@ scope: ecosystem
 ## Current Task
 
 ```
-task_id:      nex-case-008-transient-token-refresh-guard (P1, needs_verification)
-status:       needs_verification
+task_id:      nex-case-008-transient-token-refresh-guard (P1, done)
+status:       done
 tier:         3
 app:          woosoo-nexus
 specialist:   ranpo-backend

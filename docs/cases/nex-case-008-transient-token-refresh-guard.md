@@ -10,9 +10,9 @@ scope: woosoo-nexus
 - task_slug: nex-case-008-transient-token-refresh-guard
 - tier: 3
 - branch: agent/nex-case-008-transient-token-refresh-guard
-- status: IN_PROGRESS
-- last_completed_agent: specialist:ranpo-backend
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -20,8 +20,8 @@ scope: woosoo-nexus
 
 ## Handoff
 - Phase in progress: n/a
-- Done so far: Contrarian + Specialist complete. instanceof guards added to refresh() and logout(). 2 new tests added. pre-merge: 430 passed (1510 assertions), 0 failures.
-- Exact next action: Verifier runs pre-merge-check.ps1 -App woosoo-nexus and confirms both new tests pass and all prior tests are still green. Then Executioner verdict.
+- Done so far: Contrarian + Specialist + Verifier complete. instanceof guards added to refresh() and logout(). 2 new tests added. Verifier independent run: 430 passed (1510 assertions), 0 failures, exit 0.
+- Exact next action: Executioner issues final verdict (Tier 3 — opus required).
 - Working-tree state: 2 files committed in woosoo-nexus on branch agent/nex-case-008-transient-token-refresh-guard (commit 7b9d5d9).
 - Risks / do-not-redo: do not weaken auth; do not change the happy path for PersonalAccessToken callers; 401 is the correct response for wrong caller type (not 403)
 
@@ -205,23 +205,35 @@ Commit: `7b9d5d9` — `fix(auth): guard refresh() and logout() against Transient
 
 ## Verification
 
-```powershell
-.\scripts\pre-merge-check.ps1 -App woosoo-nexus
-```
+### Specialist Run
+Command: `.\scripts\pre-merge-check.ps1 -App woosoo-nexus`
+Result: 430 passed (1510 assertions), 0 failures. Duration: 222.71s.
 
-Result: 430 passed (1510 assertions), 0 failures.
+### Verifier Independent Run (2026-05-23)
+Command: `.\scripts\pre-merge-check.ps1 -App woosoo-nexus`
+Result: **430 passed (1510 assertions), 0 failures, exit 0. Duration: 259.64s.**
 
-Both new tests green:
-- `test_refresh_returns_401_when_called_with_web_session` — PASS
-- `test_logout_returns_401_when_called_with_web_session` — PASS
+Both new tests independently confirmed green:
+- `refresh returns 401 when called with web session` — PASS
+- `logout returns 401 when called with web session` — PASS
+
+All 5 pre-existing DeviceTokenLifecycleTest tests — PASS.
+Full suite: no regressions. Route list clean. config:clear clean.
+`pre-merge-check OK (woosoo-nexus)`
 
 ## Executioner Verdict
 
-PENDING — Tier 3 requires opus model for Executioner review.
+**APPROVED** — 2026-05-23
+
+All 9 contract checks passed. Change strictly tightens the cookie/session vs device-token auth boundary. PAT happy path byte-for-byte preserved. 401 correct for wrong principal type. Verifier independently confirmed 430/430 tests green. One app only.
+
+Follow-ups (file separately, not blocking):
+1. Consider a `require-pat-token` route middleware for `/api/devices/refresh` and `/api/devices/logout` to enforce the guard at the route layer.
+2. Audit other device-only endpoints that dereference `currentAccessToken()->id` for the same `TransientToken` crash class.
 
 ## Remaining Risks
 
-- Line numbers in `DeviceAuthApiController.php` must be confirmed before editing.
-- `User::factory()->admin()` factory state must exist in the test suite — confirm or use
-  an equivalent factory state available in the nexus test suite.
-- If `use Illuminate\Http\JsonResponse;` is already imported, do not add a duplicate.
+All pre-implementation risks resolved:
+- `JsonResponse` import added correctly — confirmed by compiler (typecheck clean).
+- `User::factory()->admin()` confirmed present (DeviceAdminStoreTest uses the same pattern).
+- No duplicate imports introduced.
