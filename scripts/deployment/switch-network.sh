@@ -91,7 +91,16 @@ set_env() {
   printf "%s=\"%s\"\n" "$key" "${value//\"/\\\"}" >> "$ENV_FILE"
 }
 
+env_value() {
+  local key="$1"
+  awk -F= -v key="$key" '$1 == key { value = substr($0, length(key) + 2) } END { print value }' "$ENV_FILE" \
+    | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+}
+
+REVERB_APP_KEY_VAL="$(env_value REVERB_APP_KEY)"
+
 set_env PUBLIC_HOST              "$PUBLIC_HOST_VAL"
+set_env APP_URL                  "https://${PUBLIC_HOST_VAL}"
 set_env DB_POS_HOST              "$DB_POS_HOST_VAL"
 set_env DB_POS_PORT              "$DB_POS_PORT_VAL"
 set_env DB_POS_DATABASE          "$DB_POS_DATABASE_VAL"
@@ -104,9 +113,35 @@ set_env SANCTUM_STATEFUL_DOMAINS "192.168.100.42,192.168.100.42:443,192.168.100.
 set_env CORS_ALLOWED_ORIGINS     "https://192.168.100.42,https://192.168.100.42:443,https://192.168.100.42:4443,https://192.168.1.31,https://192.168.1.31:443,https://192.168.1.31:4443"
 set_env REVERB_ALLOWED_ORIGINS   "192.168.100.42,192.168.1.31"
 
+# Keep Docker-internal publish config separate from browser/tablet public config.
+set_env REVERB_HOST              "reverb"
+set_env REVERB_PUBLIC_HOST       "$PUBLIC_HOST_VAL"
+set_env REVERB_BROADCAST_HOST    "reverb"
+set_env REVERB_PORT              "8080"
+set_env REVERB_SCHEME            "http"
+set_env VITE_REVERB_HOST         "$PUBLIC_HOST_VAL"
+set_env VITE_REVERB_PORT         "443"
+set_env VITE_REVERB_SCHEME       "https"
+set_env NUXT_PUBLIC_API_BASE_URL "https://${PUBLIC_HOST_VAL}/api"
+set_env NUXT_PUBLIC_REVERB_HOST  "$PUBLIC_HOST_VAL"
+set_env NUXT_PUBLIC_REVERB_PORT  "443"
+set_env NUXT_PUBLIC_REVERB_SCHEME "https"
+set_env MAIN_API_URL             "https://${PUBLIC_HOST_VAL}"
+set_env APP_RUNTIME_API_BASE_URL "https://${PUBLIC_HOST_VAL}/api"
+set_env APP_RUNTIME_REVERB_HOST  "$PUBLIC_HOST_VAL"
+set_env APP_RUNTIME_REVERB_PORT  "443"
+set_env APP_RUNTIME_REVERB_SCHEME "https"
+
+if [[ -n "$REVERB_APP_KEY_VAL" ]]; then
+  set_env VITE_REVERB_APP_KEY        "$REVERB_APP_KEY_VAL"
+  set_env NUXT_PUBLIC_REVERB_APP_KEY "$REVERB_APP_KEY_VAL"
+  set_env NUXT_PUBLIC_PUSHER_KEY     "$REVERB_APP_KEY_VAL"
+  set_env APP_RUNTIME_REVERB_APP_KEY "$REVERB_APP_KEY_VAL"
+fi
+
 echo
 echo "Applied .env values:"
-grep -E "^(PUBLIC_HOST|DB_POS_|SANCTUM_STATEFUL_DOMAINS|CORS_ALLOWED_ORIGINS|REVERB_ALLOWED_ORIGINS)=" "$ENV_FILE"
+grep -E "^(PUBLIC_HOST|APP_URL|DB_POS_|SANCTUM_STATEFUL_DOMAINS|CORS_ALLOWED_ORIGINS|REVERB_ALLOWED_ORIGINS|REVERB_HOST|REVERB_PUBLIC_HOST|REVERB_BROADCAST_HOST|REVERB_PORT|REVERB_SCHEME|VITE_REVERB_HOST|VITE_REVERB_PORT|VITE_REVERB_SCHEME|NUXT_PUBLIC_API_BASE_URL|NUXT_PUBLIC_REVERB_HOST|NUXT_PUBLIC_REVERB_PORT|NUXT_PUBLIC_REVERB_SCHEME|APP_RUNTIME_API_BASE_URL|APP_RUNTIME_REVERB_HOST|APP_RUNTIME_REVERB_PORT|APP_RUNTIME_REVERB_SCHEME)=" "$ENV_FILE"
 
 # Apply: clear Laravel config cache and restart anything whose configuration
 # depends on PUBLIC_HOST / DB_POS_* / allow-lists.
@@ -125,8 +160,12 @@ echo "Recreating containers (--force-recreate so env_file changes take effect)..
 "${COMPOSE[@]}" up -d --force-recreate app queue scheduler reverb nginx tablet-pwa
 
 echo
-echo "Verification (allowed_origins + public_host as seen by Reverb):"
-"${COMPOSE[@]}" exec -T reverb php artisan tinker --execute="echo json_encode(['allowed_origins'=>config('reverb.apps.apps.0.allowed_origins'),'public_host'=>env('PUBLIC_HOST'),'broadcast_host'=>config('reverb.apps.apps.0.options.host')]);"
+echo "Verification (Reverb/Laravel runtime host split):"
+"${COMPOSE[@]}" exec -T reverb php artisan tinker --execute="echo json_encode(['allowed_origins'=>config('reverb.apps.apps.0.allowed_origins'),'public_host'=>env('PUBLIC_HOST'),'reverb_public_host'=>env('REVERB_PUBLIC_HOST'),'reverb_host'=>env('REVERB_HOST'),'broadcast_host'=>config('reverb.apps.apps.0.options.host'),'broadcast_port'=>config('reverb.apps.apps.0.options.port'),'broadcast_scheme'=>config('reverb.apps.apps.0.options.scheme')]);"
+
+echo
+echo "Verification (tablet runtime env):"
+"${COMPOSE[@]}" exec -T tablet-pwa printenv | grep -E "^(APP_RUNTIME_API_BASE_URL|APP_RUNTIME_REVERB_HOST|APP_RUNTIME_REVERB_PORT|APP_RUNTIME_REVERB_SCHEME|NUXT_PUBLIC_API_BASE_URL|NUXT_PUBLIC_REVERB_HOST|NUXT_PUBLIC_REVERB_PORT|NUXT_PUBLIC_REVERB_SCHEME)="
 
 echo
 echo "Done. Network switched to: $LOC"
