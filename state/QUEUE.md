@@ -30,6 +30,8 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P2 | TAB-CASE-002 | tablet-ordering-pwa | Validated review follow-ups (dedup/reconnect/types/a11y) | 2 | none | done |
 | P1 | NEX-CASE-003 | woosoo-nexus | Missing stored procedure — order retrieval broken (prod POS DB) | 3 | none | done |
 | P1 | NEX-CASE-004 | woosoo-nexus | Device login returns HTTP 500 | 3 | none | done |
+| P1 | NEX-CASE-008 | woosoo-nexus | TransientToken 500 on /refresh + /logout when admin web session hits endpoint | 3 | none | done |
+| P2 | NEX-CASE-009 | woosoo-nexus | Restore admin Menus Course/Group/Image filters | 2 | none | done |
 | P2 | NEX-CASE-002 | woosoo-nexus | Pulse routes broken | 2 | none | queued |
 | P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — client_submission_id absent | 2 | none | queued |
 | P2 | PLT-CASE-009 | woosoo-platform | Docker MySQL/Redis not resolving | infra | none | queued |

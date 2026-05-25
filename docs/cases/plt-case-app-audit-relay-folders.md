@@ -1,0 +1,85 @@
+---
+status: canonical
+last_reviewed: 2026-05-20
+scope: ecosystem
+---
+
+# CASE: plt-case-app-audit-relay-folders
+
+## Run State
+- task_slug: plt-case-app-audit-relay-folders
+- tier: 2
+- branch: agent/plt-case-app-audit-relay-folders
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: copilot
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-20 21:30
+
+## Handoff
+- Phase in progress:
+- Done so far:
+- Exact next action:
+- Working-tree state (list edited files explicitly; cross-check with `git status`):
+- Risks / do-not-redo:
+
+## Tier
+2
+
+## Branch
+agent/plt-case-app-audit-relay-folders
+
+## Problem
+Audit `woosoo-print-bridge/` for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no longer relevant. This is a read-only review task; findings should distinguish between intentional archives and true cleanup candidates.
+
+## Contrarian Review
+Tier 2. Multi-app user request split into app-scoped audits per AGENTS.md workspace boundary rule. Print bridge scope assigned to relay-ops. Focus on read-only inventory and relevance review only.
+
+## Investigation
+- The active print-bridge docs surface is small and mostly clean: one canonical audit, one active runbook, and one intentional archive tree.
+- `docs/archive/2026-05/` appears intentionally historical and is explicitly recognized by the root docs index.
+- The strongest suspicious area is hidden repo-local AI tooling under `.agents/` plus `skills-lock.json`; these do not appear in canonical docs and contain generic skill content unrelated to print relay behavior.
+- Generated local artifacts are present in the working tree (`.dart_tool/`, `build/`, `android/build/`, `.flutter-plugins-dependencies`). Verifier confirmed ignore rules for `.dart_tool/`, `build/`, and `.flutter-plugins-dependencies`; `android/build/` still looks generated but its ignore status was not proven from the repo's ignore files.
+- `packages/blue_thermal_printer/` appears intentionally vendored and is still referenced by the app.
+
+## Root Cause
+- The bridge app itself has relatively little documentation debt; most clutter comes from local generated artifacts and hidden runner/tooling folders rather than customer-facing docs.
+- Repo-local AI tooling appears to have been added historically without being reconciled with the platform's canonical governance model.
+
+## Proposed Fix
+- Remove local generated artifacts from the working tree when cleaning the repo, and explicitly decide whether `android/build/` should also be ignored if it is meant to stay untracked.
+- Confirm whether `.agents/` and `skills-lock.json` are still part of an intentional bridge workflow; if not, archive or delete them.
+- Keep the canonical audit, runbook, archive tree, and vendored printer package.
+
+## Files Changed
+- `docs/cases/plt-case-app-audit-relay-folders.md` — specialist audit checkpoint only
+- No Print Bridge app files edited
+
+## Verification
+- PASS — The bridge docs surface is minimal: one canonical audit, one active runbook, and one archive tree.
+- PASS — `docs/archive/2026-05/README.md` and `CASE_FILE.md` both exist with archived frontmatter.
+- PASS — Hidden `.agents/` and `skills-lock.json` exist and are not referenced from the bridge docs set that was searched.
+- PARTIAL — `.dart_tool/`, `build/`, and `.flutter-plugins-dependencies` are present and ignored by `.gitignore`; `android/build/` exists and looks generated, but verifier did not find a matching ignore rule for that exact path.
+- PASS — `packages/blue_thermal_printer/` is present, referenced via `pubspec.yaml`, imported in app code, and excluded from analysis as vendored third-party code.
+- Read-only verifier pass only; no builds or tests were run because no app files were edited.
+
+## Executioner Verdict
+Verdict: APPROVED
+
+Reason:
+- Tier 2 read-only audit chain completed with all required checkpoints.
+- Verifier confirmed the minimal active docs surface, intentional archive, hidden `.agents/`/`skills-lock.json`, and active vendored printer package.
+- The only nuance was corrected before approval: `android/build/` still looks generated, but its ignore status was not proven and is now recorded as a remaining risk instead of a verified fact.
+
+Required Next Action:
+- None mandatory for this audit case. Execute any cleanup as separate follow-up tasks.
+
+Follow-Ups:
+- Confirm whether `android/build/` should be ignored and kept out of the working tree.
+- Confirm ownership of `.agents/` and `skills-lock.json`; archive or delete them if they are no longer intentional.
+
+## Remaining Risks
+- `.agents/` may still be used by a runner outside the canonical docs surfaces, so it should not be deleted without owner confirmation.
+- `android/build/` may be legitimate local build output, but it should not be described as ignored until the ignore rule is verified or added.

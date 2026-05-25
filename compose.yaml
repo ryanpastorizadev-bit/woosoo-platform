@@ -81,7 +81,12 @@ services:
     restart: unless-stopped
     env_file: ./woosoo-nexus/.env
     environment:
-      REVERB_BROADCAST_HOST: ${PUBLIC_HOST:-woosoo.local}
+      # Server-side broadcast publish goes through the internal Docker network
+      # (app -> reverb), NOT through woosoo.local. The container's resolver is
+      # Docker DNS, which does not include the host's dnsmasq entries, so
+      # cURL inside the container cannot resolve woosoo.local. Pin to the
+      # service name; tablet/browser clients still use REVERB_PUBLIC_HOST.
+      REVERB_BROADCAST_HOST: reverb
     volumes:
       - ./woosoo-nexus:/var/www/html  # dev/staging: bind-mount; remove for immutable production image
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
@@ -161,7 +166,8 @@ services:
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
     env_file: ./woosoo-nexus/.env
     environment:
-      REVERB_BROADCAST_HOST: ${PUBLIC_HOST:-woosoo.local}
+      # Keep this consistent with the `app` service. See app.environment for context.
+      REVERB_BROADCAST_HOST: reverb
     volumes:
       - ./woosoo-nexus:/var/www/html
     depends_on:
@@ -198,7 +204,9 @@ services:
     # the tablet nginx container for no functional reason.
     environment:
       NODE_ENV: production
-      APP_RUNTIME_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
+      # Relative /api so the tablet PWA works from any origin (IP or hostname)
+      # without DNS. Port 4443 nginx bridge forwards /api/* to Laravel.
+      APP_RUNTIME_API_BASE_URL: /api
       APP_RUNTIME_REVERB_HOST: ${PUBLIC_HOST:-woosoo.local}
       APP_RUNTIME_REVERB_APP_KEY: ${REVERB_APP_KEY:-REVERB_APP_KEY_REQUIRED}
       APP_RUNTIME_REVERB_PORT: "443"
@@ -211,7 +219,7 @@ services:
       APP_RUNTIME_BUILD_FINGERPRINT: ${TABLET_BUILD_FINGERPRINT:-unknown}
       APP_RUNTIME_DOCKERFILE: ${TABLET_DOCKERFILE:-Dockerfile.prod}
 
-      NUXT_PUBLIC_API_BASE_URL: https://${PUBLIC_HOST:-woosoo.local}/api
+      NUXT_PUBLIC_API_BASE_URL: /api
       NUXT_PUBLIC_BROADCAST_CONNECTION: reverb
       NUXT_PUBLIC_REVERB_APP_ID: ${REVERB_APP_ID:-woosoo}
       NUXT_PUBLIC_REVERB_APP_KEY: ${REVERB_APP_KEY:-REVERB_APP_KEY_REQUIRED}

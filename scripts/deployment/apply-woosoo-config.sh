@@ -314,7 +314,9 @@ set_env "PUBLIC_HTTPS_PORT" "443"
 set_env "APP_ENV" "production"
 set_env "APP_DEBUG" "false"
 set_env "APP_URL" "${WOOSOO_SCHEME}://${WOOSOO_HOST}"
-set_env "ASSET_URL" "${WOOSOO_SCHEME}://${WOOSOO_HOST}"
+# ASSET_URL intentionally left empty — assets use root-relative paths so the
+# admin panel works from any hostname or IP without cross-origin blocking.
+set_env "ASSET_URL" ""
 set_env "APP_TIMEZONE" "${WOOSOO_TIMEZONE:-Asia/Manila}"
 set_env "DB_CONNECTION" "mysql"
 set_env "DB_HOST" "mysql"
@@ -347,16 +349,23 @@ set_env "REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
 set_env "REVERB_APP_SECRET" "$WOOSOO_REVERB_APP_SECRET"
 set_env "REVERB_HOST" "reverb"
 set_env "REVERB_PUBLIC_HOST" "$WOOSOO_HOST"
+# Laravel reads REVERB_BROADCAST_HOST first when publishing events to Reverb.
+# Inside the Docker network the publish must go to the `reverb` service name
+# (Docker DNS) — woosoo.local is not resolvable from inside the app/queue/scheduler
+# containers. Tablet/browser clients still use REVERB_PUBLIC_HOST.
+set_env "REVERB_BROADCAST_HOST" "reverb"
 set_env "REVERB_PORT" "8080"
 set_env "REVERB_SCHEME" "http"
 set_env "VITE_REVERB_APP_KEY" "$WOOSOO_REVERB_APP_KEY"
 set_env "VITE_REVERB_HOST" "$WOOSOO_HOST"
 set_env "VITE_REVERB_PORT" "443"
 set_env "VITE_REVERB_SCHEME" "$WOOSOO_SCHEME"
-set_env "SESSION_DOMAIN" "$WOOSOO_HOST"
+# SESSION_DOMAIN left empty so the cookie is scoped to whatever host the
+# browser uses (woosoo.local or IP) instead of being locked to one hostname.
+set_env "SESSION_DOMAIN" ""
 set_env "SESSION_SECURE_COOKIE" "true"
 set_env "SESSION_SAME_SITE" "lax"
-set_env "SANCTUM_STATEFUL_DOMAINS" "${WOOSOO_HOST},${WOOSOO_HOST}:443,${WOOSOO_HOST}:80,${WOOSOO_HOST}:4443"
+set_env "SANCTUM_STATEFUL_DOMAINS" "${WOOSOO_HOST},${WOOSOO_HOST}:443,${WOOSOO_HOST}:80,${WOOSOO_HOST}:4443,${WOOSOO_SERVER_IP},${WOOSOO_SERVER_IP}:443,${WOOSOO_SERVER_IP}:4443"
 set_env "CORS_ALLOWED_ORIGINS" "${WOOSOO_SCHEME}://${WOOSOO_HOST},http://${WOOSOO_HOST},${WOOSOO_SCHEME}://${WOOSOO_HOST}:4443"
 set_env "DEVICE_AUTH_PASSCODE" "${WOOSOO_DEVICE_AUTH_PASSCODE:-}"
 set_env "LOG_LEVEL" "error"

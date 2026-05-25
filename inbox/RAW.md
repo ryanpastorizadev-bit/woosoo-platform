@@ -307,6 +307,22 @@ Sides category is also undecorated in displayItems but no package restriction re
 
 Status: triaged → TAB-CASE-006
 
+### RAW-20260522-001
+Date:        2026-05-22
+Source:      User
+Urgency:     Medium
+App:         woosoo-platform
+
+Raw report:
+PS E:\Projects\woosoo-platform> codex mcp login github-mcp-server
+Error: Registration failed: Dynamic registration failed: Registration failed: Dynamic client registration not supported
+PS E:\Projects\woosoo-platform>
+
+Notes:
+Local tooling/auth onboarding failure while attempting to log the Codex MCP client into `github-mcp-server`. Error text points to OAuth dynamic client registration being attempted against a server/provider that does not support dynamic registration, so this likely needs either a preconfigured MCP server entry or a different GitHub connector/login flow rather than an app-code fix.
+
+Status: needs_triage
+
 ---
 <!-- D#8 — NOT a RAW entry: NEX-CASE-001 Phase 2
      Sibling-repo commit-discipline flag. 7 files remain uncommitted on woosoo-nexus/staging
@@ -315,3 +331,26 @@ Status: triaged → TAB-CASE-006
      Remaining Risks. scripts/clean-logs.ps1 reviewed 2026-05-19: benign log-trim utility,
      safe to stage.
 -->
+
+### RAW-20260523-001
+Date:        2026-05-23
+Source:      User / Manual Testing / Screenshot
+Urgency:     Critical
+App:         Unknown / tablet-ordering-pwa / woosoo-nexus
+
+Raw report:
+Found recurring several errors when testing tablet ordering.
+
+Screenshot evidence:
+- Tablet review screen shows customer-safe failure: "Something went wrong. Please ask a staff member for assistance."
+- Browser console shows `POST https://192.168.100.42:4443/api/devices/create-order 500 (Internal Server Error)`.
+- Browser console shows `API Error` for `/api/devices/create-order`, then `Order submission failed: Request failed with status code 500`.
+- Browser console classifies the final customer error as `Ordering is unavailable. Please call staff.`
+- Browser console also shows `GET https://192.168.100.42:4443/icons/pwa-icon-192.png 404 (Not Found)` and manifest icon warning.
+- Browser console shows fullscreen request warning and repeated `Failed parsing 'srcset' attribute value since its 'w' descriptor is invalid` warnings.
+- Reverb/Echo connects to `wss://192.168.100.42:443` and menu/session startup appears successful before submit.
+
+Notes:
+Intake only. The order-submit 500 is Tier 3 until proven otherwise because it hits the create-order contract and backend order path. Best first triage target is the request/response boundary between tablet-ordering-pwa and woosoo-nexus: confirm the tablet sends intent-only payload, then inspect Nexus logs for the 500 root cause. Icon/fullscreen/srcset warnings may be separate PWA polish/runtime issues, but the blocking order failure is the create-order 500.
+
+Status: needs_triage
