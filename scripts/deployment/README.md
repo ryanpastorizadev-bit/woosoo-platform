@@ -8,9 +8,15 @@ Run from the **platform repo root** (`woosoo-platform/`), as root:
 |---|---|
 | Full safe deploy (doctor → backup → deploy → health) | `sudo bash scripts/deployment/deploy-all.sh` |
 | Deploy step only (skip preflight + backup) | `sudo bash scripts/deployment/deploy.sh` |
-| Rollback last deploy | `sudo bash scripts/deployment/rollback-client.sh "$(ls -1dt /opt/woosoo/backups/update-* \| head -1)"` |
+| Rollback last deploy | see fenced command below the table |
 | Post-reboot check only | `sudo bash scripts/deployment/pi-reboot-health.sh` |
 | Verify what's live | `curl -ks https://$WOOSOO_HOST:4443/build-info.json` |
+
+Rollback the last deploy (picks the most recent `update-*` snapshot dir):
+
+```bash
+sudo bash scripts/deployment/rollback-client.sh "$(ls -1dt /opt/woosoo/backups/update-* | head -1)"
+```
 
 Branch deployed is `dev` by default. Override with `WOOSOO_DEPLOY_BRANCH=<branch>`
 in `/etc/woosoo/woosoo.env` or as an env var on the command line.

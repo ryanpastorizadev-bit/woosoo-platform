@@ -14,7 +14,7 @@ scope: ecosystem
 
 ## Current Task
 
-```
+```yaml
 task_id:      docs-status-reconciliation (docs-only, done)
 status:       done
 tier:         n/a
