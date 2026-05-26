@@ -83,7 +83,7 @@ Migration from the per-app orchestration model to platform-root was done additiv
 - `scripts/deployment/legacy/` — **new directory**. `git mv` quarantined: `deploy-tablet.sh`, `verify-tablet-deploy-context.sh`, `update-client.sh`, `verify-client.sh`.
 - `scripts/deployment/legacy/README.md` — **new**. Explains why these are broken under platform-root and points to the migrated replacements.
 - `scripts/deployment/README.md` — prepended operator quick-reference card; updated status table to reflect rollback migration, new `deploy-all.sh`, the new `update-*` snapshot format `deploy.sh` writes, and `legacy/` quarantine. Quick-reference rollback command now uses `$(ls -1dt /opt/woosoo/backups/update-* | head -1)` so the operator doesn't have to type the timestamp.
-- `docs/deployment/examples/woosoo.env.example` — added `WOOSOO_DEPLOY_BRANCH=dev` as the supported override; flipped `WOOSOO_NEXUS_BRANCH` / `WOOSOO_TABLET_BRANCH` defaults `staging` → `dev`; updated IPs to real values: `WOOSOO_SERVER_IP=192.168.100.42` (home Pi), `WOOSOO_POS_HOST=192.168.100.7` (POS / krypton_woosoo). Added documentation comment listing both home (`192.168.100.0/24`) and resto (`192.168.1.0/24`) network values.
+- `docs/deployment/examples/woosoo.env.example` — added `WOOSOO_DEPLOY_BRANCH=dev` as the supported override; flipped `WOOSOO_NEXUS_BRANCH` / `WOOSOO_TABLET_BRANCH` defaults `staging` → `dev`; updated IPs to real values: `WOOSOO_SERVER_IP=192.168.100.42` (home Pi), `WOOSOO_POS_HOST=192.168.1.32` (POS / krypton_woosoo, production-required per AGENTS.md). Added documentation comment listing both home (`192.168.100.0/24`) and resto (`192.168.1.0/24`) network values. Per AGENTS.md, the production POS host **must** be `192.168.1.32`; `192.168.100.7` is the home/dev value only.
 
 No change to: `compose.yaml`, any Dockerfile, any application code, `apply-woosoo-config.sh`, `woosoo-backup.sh`, the read-only diagnostic scripts.
 
@@ -93,7 +93,7 @@ No change to: `compose.yaml`, any Dockerfile, any application code, `apply-wooso
 
 Raw output:
 
-```
+```bash
 $ bash -n scripts/deployment/{deploy-all,deploy,rollback-client,doctor,woosoo-backup,woosoo-health,pi-reboot-health,apply-woosoo-config}.sh
 OK: scripts/deployment/deploy-all.sh
 OK: scripts/deployment/deploy.sh
@@ -128,7 +128,7 @@ After the review pass surfaced the rollback contract gap, `deploy.sh` gained a
 pre-deploy snapshot block, `deploy-all.sh` gained a `latest_snapshot()` helper,
 and the example .env was updated with real IPs. Re-ran the cheap gates:
 
-```
+```bash
 $ bash -n scripts/deployment/{deploy-all,deploy,rollback-client}.sh
 OK: scripts/deployment/deploy-all.sh
 OK: scripts/deployment/deploy.sh
