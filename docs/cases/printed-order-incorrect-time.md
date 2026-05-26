@@ -1,0 +1,87 @@
+---
+status: canonical
+last_reviewed: 2026-05-25
+scope: woosoo-print-bridge
+---
+
+# CASE: printed-order-incorrect-time
+
+Fix paper receipt order time rendering so UTC backend timestamps display as the Android
+device's local restaurant time.
+
+## Run State
+- task_slug: printed-order-incorrect-time
+- tier: 2
+- branch: agent/printed-order-incorrect-time
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: codex
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-25 13:22
+
+## Handoff
+- Phase in progress: COMPLETE
+- Done so far: Receipt timestamp rendering fixed and verified.
+- Exact next action: None.
+- Working-tree state (list edited files explicitly; cross-check with `git status`): modified `woosoo-print-bridge/lib/services/receipt/receipt_builder_58mm.dart`, `woosoo-print-bridge/test/unit/receipt_builder_58mm_test.dart`, and this case file.
+- Risks / do-not-redo: Do not touch queue state, ACK UTC payloads, polling, backend contracts, order history UI, or deployment files.
+
+## Tier
+2
+
+## Branch
+agent/printed-order-incorrect-time
+
+## Problem
+
+Paper receipts can show the order creation time in UTC instead of local restaurant/device time.
+Example symptom: an order created around local midday can print as `4:30 AM`.
+
+## Contrarian Review
+
+This is a single-app print bridge bug. The backend should continue sending canonical timestamps,
+and the bridge should only format receipt display time locally. No API contract change is
+needed. The fix must be deterministic in tests and must not affect print idempotency.
+
+## Investigation
+
+`ReceiptBuilder58mm` parses `created_at` / `createdAt`, uses `createdAt.toLocal()` for the date,
+but formats the time from raw `createdAt`. For UTC payloads, date and time can be derived from
+different timezone interpretations.
+
+## Root Cause
+
+The receipt builder does not normalize a single display timestamp before formatting both date and
+time.
+
+## Proposed Fix
+
+Compute one display timestamp from the parsed order timestamp or a local fallback `now`, then use
+that same value for both `dateStr` and `timeStr`. Add constructor injection for localizer and
+clock functions so tests can prove UTC-to-local display behavior without depending on the CI
+machine timezone.
+
+## Files Changed
+
+- `woosoo-print-bridge/lib/services/receipt/receipt_builder_58mm.dart` — Added deterministic clock/localizer injection and formats receipt date/time from one local display timestamp.
+- `woosoo-print-bridge/test/unit/receipt_builder_58mm_test.dart` — Added deterministic regression coverage for UTC `created_at` and missing timestamp fallback.
+- `docs/cases/printed-order-incorrect-time.md` — Added this protocol case file and final checkpoint.
+
+## Verification
+
+- `flutter test test/unit/receipt_builder_58mm_test.dart` — `00:00 +5: All tests passed!`
+- `.\scripts\pre-merge-check.ps1 -App woosoo-print-bridge`
+  - `flutter analyze` — `No issues found!`
+  - `flutter test` — `00:11 +113: All tests passed!`
+  - wrapper — `pre-merge-check OK (woosoo-print-bridge)`
+
+## Executioner Verdict
+
+APPROVED
+
+## Remaining Risks
+
+No known remaining risk. Backend `printed_at` continues to use UTC and no print-event contract
+fields were changed.

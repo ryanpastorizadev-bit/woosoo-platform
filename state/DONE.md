@@ -23,6 +23,7 @@ scope: ecosystem
 | NEX-CASE-004 | woosoo-nexus | 2026-05-20 | php artisan test --filter DeviceAuthApiControllerTest: 6 passed (25 assertions); safeLoadDeviceTable() catches Throwable from POS connection; authenticate() returns 200 + null table when POS is down | APPROVED | PLT-CASE-008 | Device login 500: uncaught QueryException from table()->first() on POS connection; fixed with try/catch null-fallback; zero test coverage gap closed |
 | NEX-CASE-006 | woosoo-nexus | 2026-05-20 | HealthBroadcastingTest (143 lines) + VerifyIntegrityCommandTest (128 lines); /api/health broadcasting key/config consistency; VerifyIntegrityCommand artisan command; merged to staging via PR #120 | APPROVED (retrospective) | none | Broadcast integrity check — was QUARANTINE branch; retrospectively closed |
 | PLT-CASE-008 | woosoo-platform | 2026-05-20 | PROTOCOL.md + docs multi-repo terminology corrected; apply-woosoo-config.sh require_var guards + REVERB_HOST=reverb; PR #10 merged | APPROVED | none | GitHub Issue #9 P1 remediation — multi-repo terminology + deploy script hardening |
+| PLT-CASE-009 | woosoo-platform | 2026-05-19 | REVERB_HOST set_env corrected to Docker service DNS `reverb`; single set_env/no duplicate checks green; woosoo-nexus full suite 398 passed (1386 assertions) | APPROVED | none | Docker MySQL/Redis code case closed; Pi logs/health checks remain post-deploy operational follow-up |
 
 ---
 <!--
