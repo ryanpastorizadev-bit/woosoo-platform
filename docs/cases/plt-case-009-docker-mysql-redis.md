@@ -28,7 +28,7 @@ Docker `mysql` and `redis` services not resolving — probable infrastructure ro
 - Risks / do-not-redo: Do NOT restart or recreate the Docker network without on-device log evidence. Treat MySQL/Redis health checks as post-deploy runtime verification, not a new code case.
 
 ## Tier
-2
+3
 
 ## Branch
 agent/plt-case-009-docker-mysql-redis

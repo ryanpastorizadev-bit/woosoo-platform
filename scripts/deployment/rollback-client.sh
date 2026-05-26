@@ -141,9 +141,10 @@ for i in $(seq 1 "$WAIT_ATTEMPTS"); do
     break
   fi
   if [[ "$i" -eq "$WAIT_ATTEMPTS" ]]; then
-    echo "  WARNING: app service not ready after ${WAIT_ATTEMPTS}x${WAIT_DELAY}s — skipping cache warm."
-    echo "  Run manually: $COMPOSE_CMD exec $APP_SERVICE php artisan optimize:clear"
-    break
+    echo "  ERROR: app service not ready after ${WAIT_ATTEMPTS}x${WAIT_DELAY}s — rollback INCOMPLETE." >&2
+    echo "  Manual recovery: $COMPOSE_CMD exec $APP_SERVICE php artisan optimize:clear" >&2
+    echo "  Forward-roll point: $SNAPSHOT_DIR" >&2
+    exit 1
   fi
   sleep "$WAIT_DELAY"
 done
