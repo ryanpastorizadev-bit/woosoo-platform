@@ -1,0 +1,75 @@
+---
+status: canonical
+last_reviewed: 2026-05-26
+scope: woosoo-nexus
+---
+
+# CASE: public-user-manual-welcome-page
+
+## Run State
+- task_slug: public-user-manual-welcome-page
+- tier: 2
+- branch: n/a
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: codex
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-26
+
+## Handoff
+- Phase in progress: complete
+- Done so far: Added and verified a Nexus-only public user manual route, welcome-page entry point, and safe user-facing manual page.
+- Exact next action: none
+- Working-tree state (list edited files explicitly; cross-check with `git status`): `woosoo-nexus/routes/web.php`, `woosoo-nexus/resources/views/devices/certificate.blade.php`, `woosoo-nexus/resources/views/manual/user.blade.php`, `docs/cases/public-user-manual-welcome-page.md`.
+- Risks / do-not-redo: Do not expose deployment handover DOCX, private IPs, database settings, credentials, or operational internals on the public page.
+
+## Tier
+2
+
+## Branch
+n/a
+
+## Problem
+The public host welcome page only provides certificate setup. Restaurant staff need a safe public user manual for navigation: how to use Nexus admin screens, how to add/manage devices, and how guests/staff navigate the tablet ordering app.
+
+## Contrarian Review
+This should not publish the existing operations handover manual because that manual contains production topology and operational details. A public user manual is acceptable if it only explains navigation and usage, keeps sensitive deployment material private, and modifies only the Nexus public documentation surface.
+
+## Investigation
+- `woosoo-nexus/routes/web.php` maps `/` to the public certificate page and keeps `/manual` behind auth/admin middleware.
+- `woosoo-nexus/resources/views/devices/certificate.blade.php` is the current public welcome/certificate page.
+- `woosoo-nexus/resources/js/components/AppSidebar.vue` confirms Nexus sidebar groups and admin navigation labels.
+- `woosoo-nexus/resources/js/components/Devices/DeviceForm.vue` confirms device fields: name, IP address, optional port, type, security code behavior, and table assignment.
+- `tablet-ordering-pwa/pages/**` confirms the user flow: welcome, start, package selection, menu, review, in-session, session-ended, and settings.
+
+## Root Cause
+The existing public page is setup-focused and the authenticated manual is admin-only. There was no safe public route that explains day-to-day app navigation without exposing technical handover content.
+
+## Proposed Fix
+Add a public, read-only user manual route and page under Nexus, link it from the welcome/certificate page, and keep all content limited to safe navigation and usage guidance.
+
+## Files Changed
+- `woosoo-nexus/routes/web.php`
+- `woosoo-nexus/resources/views/devices/certificate.blade.php`
+- `woosoo-nexus/resources/views/manual/user.blade.php`
+- `docs/cases/public-user-manual-welcome-page.md`
+
+## Verification
+- `php artisan route:list --path=user-manual` exited 0 and showed `GET|HEAD user-manual ... public.user-manual`.
+- `php artisan route:list --path=manual` exited 0 and confirmed the existing authenticated `manual.index`, `manual.edit`, `manual.update`, and `manual.upload.image` routes still exist, alongside `user-manual`.
+- `php artisan view:cache` exited 0 with `INFO  Blade templates cached successfully.`
+- `php artisan view:clear` exited 0 with `INFO  Compiled views cleared successfully.`
+- `rg -n "192\.168\.|krypton|DB_|password|credential|secret|deploy|deployment|rollback|docker|artisan|ssh|mysql|redis|\.env" woosoo-nexus\resources\views\manual\user.blade.php` exited 1 with no matches.
+- Temporary local HTTP render check with process-only `APP_KEY`, `SESSION_DRIVER=array`, `CACHE_STORE=array`, and `QUEUE_CONNECTION=sync` exited 0:
+  - `manual_status=200 manual_has_title=True manual_has_device=True manual_has_tablet=True`
+  - `welcome_status=200 welcome_has_manual_link=True`
+- `.\scripts\pre-merge-check.ps1 -App woosoo-nexus` exited 0 with `pre-merge-check OK (woosoo-nexus)`. The run emitted pre-existing PHPUnit doc-comment metadata deprecation warnings.
+
+## Executioner Verdict
+APPROVED
+
+## Remaining Risks
+- No app behavior, API contract, order state, POS flow, tablet code, print bridge code, or deployment behavior was changed.
+- Public route is intentionally view-only and contains navigation guidance only.

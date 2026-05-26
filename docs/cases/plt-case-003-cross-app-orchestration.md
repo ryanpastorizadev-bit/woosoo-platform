@@ -1,6 +1,6 @@
 ---
-status: under-review
-last_reviewed: 2026-05-17
+status: canonical
+last_reviewed: 2026-05-25
 scope: woosoo-platform
 ---
 
@@ -12,20 +12,20 @@ Cross-app orchestration and observability work to be executed after single-app f
 - task_slug: plt-case-003-cross-app-orchestration
 - tier: 3
 - branch: agent/plt-case-003-cross-app-orchestration
-- status: BLOCKED
+- status: IN_PROGRESS
 - last_completed_agent: none
 - next_agent: contrarian
-- active_runner: claude-code
+- active_runner: none
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-18
+- updated: 2026-05-25
 
 ## Handoff
 - Phase in progress: none — no agents have run
-- Done so far: case scaffolded; Contrarian not yet started
-- Exact next action: contrarian, once DEP-003 (TAB-CASE-001) reaches `confirmed` in state/DEPS.md
+- Done so far: case scaffolded; Contrarian not yet started; `DEP-001`, `DEP-002`, and `DEP-003` are all confirmed in `state/DEPS.md`.
+- Exact next action: Contrarian may start when this queued case is selected.
 - Working-tree state: clean
-- Risks / do-not-redo: do not start until DEPS.md shows DEP-003 = confirmed
+- Risks / do-not-redo: keep Tier 3 cross-app scope; re-check `state/DEPS.md` before implementation in case a dependency has changed.
 
 ## Tier
 3
@@ -86,7 +86,8 @@ Cross-app work identified in roadmap:
 ## Verification
 
 ### Acceptance Criteria
-- [ ] All single-app cases complete and verified
+- [x] All prerequisite single-app dependency records confirmed in `state/DEPS.md` (`DEP-001`, `DEP-002`, `DEP-003`)
+- [ ] All single-app case evidence re-checked by Contrarian at task start
 - [ ] API contracts frozen and versioned
 - [ ] Cross-app request correlation functional
 - [ ] Health dashboard shows all three apps
