@@ -1,4 +1,21 @@
-# Deployment scripts — migration status
+# Deployment scripts — operator reference
+
+## Operator quick reference (the only commands you need 99% of the time)
+
+Run from the **platform repo root** (`woosoo-platform/`), as root:
+
+| Goal | Command |
+|---|---|
+| Full safe deploy (doctor → backup → deploy → health) | `sudo bash scripts/deployment/deploy-all.sh` |
+| Deploy step only (skip preflight + backup) | `sudo bash scripts/deployment/deploy.sh` |
+| Rollback last deploy | `sudo bash scripts/deployment/rollback-client.sh "$(ls -1dt /opt/woosoo/backups/update-* \| head -1)"` |
+| Post-reboot check only | `sudo bash scripts/deployment/pi-reboot-health.sh` |
+| Verify what's live | `curl -ks https://$WOOSOO_HOST:4443/build-info.json` |
+
+Branch deployed is `dev` by default. Override with `WOOSOO_DEPLOY_BRANCH=<branch>`
+in `/etc/woosoo/woosoo.env` or as an env var on the command line.
+
+## Migration status
 
 These scripts moved here from `woosoo-nexus/scripts/deployment/` as part of
 lifting Docker orchestration to the platform repo root (3-repo sibling model:
@@ -9,36 +26,34 @@ Run everything from the **platform repo root** (`woosoo-platform/`).
 
 | Script | Status | Notes |
 |---|---|---|
-| `deploy.sh` | **Migrated** | Platform-root; pulls each app repo in place; `bash -n` clean. Run `doctor.sh` before it and `woosoo-health.sh` after it on the Pi. |
+| `deploy-all.sh` | **Migrated (new)** | Strict-ordered wrapper: `doctor` → `backup` → `deploy` → `health`. Hard stops on any failure. The default operator command for a full deploy. |
+| `deploy.sh` | **Migrated** | Platform-root; pulls each app repo in place; `bash -n` clean. Default branch is `dev` (overridable via `WOOSOO_DEPLOY_BRANCH`). **Writes a pre-deploy snapshot** to `$WOOSOO_BACKUP_DIR/update-YYYYMMDD-HHMMSS/` containing `woosoo-nexus.commit`, `tablet-ordering-pwa.commit`, and `woosoo-nexus.env` BEFORE `git reset --hard` — this is the input `rollback-client.sh` consumes. Path is printed at end of deploy. |
+| `rollback-client.sh` | **Migrated** | Platform-root; consumes a backup directory (`update-YYYYMMDD-HHMMSS`) produced by `deploy.sh`. Saves a forward-roll snapshot to `/opt/woosoo/backups/rollback-points/` before resetting so you can step forward again if the rollback target was also bad. |
 | `apply-woosoo-config.sh` | **Migrated** | Adds `WOOSOO_PLATFORM_PATH`; writes `woosoo-nexus/.env`; runs compose from platform root; `bash -n` clean. Pi runtime verification still required after config changes. |
-| `deploy-tablet.sh` | **NOT migrated** | Still assumes `NEXUS_DIR/compose.yaml`. Do not rely on Pi until reworked + Pi-verified. |
-| `verify-tablet-deploy-context.sh` | **NOT migrated** | Same compose-path assumption. |
-| `update-client.sh` | **NOT migrated** | Own `git pull` + `docker compose` assume single-repo / nexus CWD. |
-| `rollback-client.sh` | **NOT migrated** | `git reset --hard` + compose assume single-repo / nexus CWD. |
-| `verify-client.sh` | **NOT migrated** | `docker compose` calls assume nexus CWD. |
-| `woosoo-backup.sh` | **Migrated** | Uses `WOOSOO_PLATFORM_PATH` for compose execution; verify on Pi before relying on it as the only backup path. |
+| `woosoo-backup.sh` | **Migrated** | Uses `WOOSOO_PLATFORM_PATH` for compose execution; flock-protected; 14-day retention. |
 | `doctor.sh` | **Migrated** | Preflight gate for Docker-only Pi runtime: required config, compose interpolation, host service drift, port ownership, and Pi resource checks. Diagnostic only. |
 | `woosoo-health.sh` | **Migrated** | Runtime smoke gate for Docker MySQL/Redis, tablet runtime config, Reverb origin/WSS, queue logs, and public endpoints. Diagnostic only. |
 | `pi-reboot-health.sh` | **Migrated** | Post-controlled-reboot gate: persistent journal, host services, port ownership, Docker stack, and Reverb listener evidence. Diagnostic only. |
+| `switch-network.sh` | **Migrated** | Home ↔ resto IP swap via `force-recreate`. |
+| `legacy/` | **Quarantined** | `deploy-tablet.sh`, `verify-tablet-deploy-context.sh`, `update-client.sh`, `verify-client.sh` — assume the pre-platform-root single-repo model and will misbehave if run. See `legacy/README.md`. |
 
 ## Production diagnostic order
 
-Run these from the platform repo root on the Pi:
+The `deploy-all.sh` wrapper now enforces this order. Run the steps individually
+only if you have a specific reason (e.g. running just the preflight without
+mutating state).
 
 ```bash
-# 1. Before deploy/config changes
-sudo bash scripts/deployment/doctor.sh
+# Default: do everything safely, in order
+sudo bash scripts/deployment/deploy-all.sh
 
-# 2. Back up before mutating runtime state
-sudo bash scripts/deployment/woosoo-backup.sh
+# Equivalent manual sequence (in case you want to gate between steps)
+sudo bash scripts/deployment/doctor.sh         # preflight
+sudo bash scripts/deployment/woosoo-backup.sh  # backup before mutation
+sudo bash scripts/deployment/deploy.sh         # the deploy
+sudo bash scripts/deployment/woosoo-health.sh  # post-deploy verify
 
-# 3. Deploy or apply config using the migrated platform-root scripts
-sudo bash scripts/deployment/deploy.sh
-
-# 4. After deploy
-sudo bash scripts/deployment/woosoo-health.sh
-
-# 5. After a controlled maintenance-window reboot
+# After a controlled maintenance-window reboot
 sudo bash scripts/deployment/pi-reboot-health.sh
 ```
 
@@ -63,7 +78,8 @@ and rollbacks.
 **Verification gap:** the full Pi deploy path (static IP / dnsmasq / systemd /
 `/etc/woosoo/woosoo.env` / 3-remote git pull / live tablet and Reverb traffic)
 cannot be fully exercised on a Windows dev box. Syntax checks and compose config
-validation are local gates; the diagnostic order above is the required Pi gate.
+validation are local gates; the diagnostic order above (or `deploy-all.sh`) is
+the required Pi gate.
 
 Old copies remain in `woosoo-nexus/scripts/deployment/` until the platform
 deploy path is verified on the Pi, then they are removed in a cleanup commit.
