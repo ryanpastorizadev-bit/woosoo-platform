@@ -83,8 +83,8 @@ service_is_disabled() {
 
   state="$(systemctl is-enabled "$service_name" 2>/dev/null || true)"
   case "$state" in
-    disabled|masked|"")
-      pass "$service_name is not enabled"
+    disabled|masked|not-found|"")
+      pass "$service_name is not enabled (state: ${state:-empty})"
       ;;
     *)
       fail "$service_name is enabled ($state); Docker must own production runtime"

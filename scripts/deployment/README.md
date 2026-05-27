@@ -1,5 +1,9 @@
 # Deployment scripts — operator reference
 
+> **Pi/production** → `apply-woosoo-config.sh` then `deploy-all.sh` (requires `/etc/woosoo/woosoo.env`, installs dnsmasq, sets static IP via nmcli).
+> **WSL / Docker Desktop dev** → `dev-docker-bootstrap.sh` then `docker compose build/up` (no system packages, no nmcli, no dnsmasq).
+> Running the Pi path on a WSL host will break `systemd-resolved` and host DNS. The script now detects WSL and aborts early.
+
 ## Operator quick reference (the only commands you need 99% of the time)
 
 Run from the **platform repo root** (`woosoo-platform/`), as root:

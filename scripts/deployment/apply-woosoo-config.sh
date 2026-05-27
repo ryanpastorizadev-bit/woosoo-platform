@@ -30,6 +30,32 @@ set -a
 source "$CONFIG_FILE"
 set +a
 
+# Refuse to run on WSL or Docker Desktop hosts unless explicitly overridden.
+# This script installs dnsmasq, disables systemd-resolved, and applies a static
+# IP via nmcli — all of which damage a dev workstation and are meaningless
+# outside a real Pi/Linux server environment. Use dev-docker-bootstrap.sh instead.
+if [[ "${WOOSOO_ALLOW_NON_PI:-false}" != "true" ]]; then
+  _wsl_detected=false
+  if grep -qiE 'microsoft|WSL' /proc/version 2>/dev/null; then
+    _wsl_detected=true
+    _wsl_reason="WSL kernel detected in /proc/version"
+  elif [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+    _wsl_detected=true
+    _wsl_reason="WSL_DISTRO_NAME is set (${WSL_DISTRO_NAME})"
+  fi
+  if [[ "$_wsl_detected" == "true" ]]; then
+    echo "ERROR: apply-woosoo-config.sh is a Pi provisioning script." >&2
+    echo "       Detected: ${_wsl_reason}" >&2
+    echo "" >&2
+    echo "       On this host, use the dev bootstrap instead:" >&2
+    echo "         bash scripts/deployment/dev-docker-bootstrap.sh" >&2
+    echo "" >&2
+    echo "       To override (only if you know what you're doing):" >&2
+    echo "         WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/apply-woosoo-config.sh" >&2
+    exit 1
+  fi
+fi
+
 require_var() {
   local name="$1"
   if [[ -z "${!name:-}" ]]; then
