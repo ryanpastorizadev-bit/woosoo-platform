@@ -1,0 +1,93 @@
+---
+status: canonical
+last_reviewed: 2026-05-25
+scope: tablet-ordering-pwa
+---
+
+# CASE: tab-case-008-begin-feast-token-refresh-fallback
+
+## Run State
+- task_slug: tab-case-008-begin-feast-token-refresh-fallback
+- tier: 3
+- branch: dev
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: codex
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-25 11:44
+
+## Handoff
+- Phase in progress: n/a
+- Done so far: Tablet session start now falls back to IP auth when token refresh fails; auth payload handling now rejects non-object HTML shell responses instead of storing them as registration JSON.
+- Exact next action: none
+- Working-tree state: tablet-ordering-pwa has 4 modified files; platform root has this new case file plus a pre-existing unrelated untracked `docs/cases/nexus-colors-backgrounds-fonts.md`.
+- Risks / do-not-redo: do not reopen `nex-case-008-transient-token-refresh-guard`; that was a completed backend TransientToken guard. This case is tablet-only.
+
+## Tier
+3
+
+## Branch
+dev
+
+## Problem
+
+Tapping "Begin the Feast" could block when the tablet had a stale persisted token. `stores/Session.ts::start()` attempted `deviceStore.refresh()` and returned `false` immediately when refresh failed, so the existing IP-auth recovery path was never tried.
+
+During implementation, a related auth-boundary symptom was reported from Settings: "Last Registration Response" displayed an HTML Nuxt app shell instead of JSON. That meant `Device.ts` was willing to store a non-object auth response in `lastAuthResponse`.
+
+## Contrarian Review
+
+- App scope: `tablet-ordering-pwa` only.
+- `nex-case-008-transient-token-refresh-guard` is complete and backend-scoped; this is a new tablet case.
+- Tier: 3 because the task changes token/auth recovery behavior.
+- Contract impact: no backend API shape change. The tablet still calls existing `/api/devices/refresh`, `/api/devices/login`, and `/api/devices/register` endpoints.
+
+## Investigation
+
+- `stores/Session.ts` refreshed expired/missing/near-expiry tokens but returned `false` on refresh failure.
+- `app.vue` already used the safer pattern: try refresh, then fall back to `deviceStore.authenticate()`.
+- `Device.ts::applyAuthPayload()` stored `payload` in `lastAuthResponse` before validating that the response was a JSON object, so an HTML string could appear in Settings.
+- `plugins/api.client.ts` already sends `Accept: application/json`; the tablet store still needs to reject invalid auth payloads defensively.
+
+## Root Cause
+
+The session-start guard handled refresh failure as a terminal authentication failure instead of trying the existing IP-auth recovery path. Separately, auth payload application did not validate that the response data was an object before persisting it as the last auth response.
+
+## Proposed Fix
+
+- In `tablet-ordering-pwa/stores/Session.ts`, replace the refresh-failure `return false` with IP-auth fallback via `deviceStore.authenticate()`.
+- In `tablet-ordering-pwa/stores/Device.ts`, make `applyAuthPayload()` reject non-object payloads, keep `lastAuthResponse` null for invalid responses, and surface a friendly store error message.
+- Add regression coverage for both the session fallback and invalid HTML auth response.
+
+## Files Changed
+
+- `tablet-ordering-pwa/stores/Session.ts`
+- `tablet-ordering-pwa/stores/Device.ts`
+- `tablet-ordering-pwa/tests/session.start.spec.ts`
+- `tablet-ordering-pwa/tests/unit/stores/Device.store.security-code.test.ts`
+- `docs/cases/tab-case-008-begin-feast-token-refresh-fallback.md`
+
+## Verification
+
+RED evidence before production changes:
+- `npm.cmd run test:run -- tests/session.start.spec.ts` failed with `Tests  1 failed | 9 passed (10)` because `session.start()` returned `false` after refresh failure.
+- `npm.cmd run test:run -- tests/unit/stores/Device.store.security-code.test.ts` failed with `Tests  1 failed | 12 passed (13)` because `lastAuthResponse` stored the HTML shell string.
+
+Focused GREEN evidence:
+- `npm.cmd run test:run -- tests/session.start.spec.ts` -> `Tests  10 passed (10)`.
+- `npm.cmd run test:run -- tests/unit/stores/Device.store.security-code.test.ts` -> `Tests  13 passed (13)`.
+
+Full gate:
+- `$env:CI='true'; .\scripts\pre-merge-check.ps1 -App tablet-ordering-pwa` -> `pre-merge-check OK (tablet-ordering-pwa)`.
+- Full test line from gate: `Tests  391 passed | 1 todo (392)`.
+- Lint completed with 0 errors and 60 existing warnings.
+
+## Executioner Verdict
+
+APPROVED
+
+## Remaining Risks
+
+- The invalid-response guard prevents the Settings page from storing/displaying an HTML shell as auth JSON, but if the tablet is still receiving HTML from a live device, the deployment/proxy/API base URL still needs live Pi inspection.

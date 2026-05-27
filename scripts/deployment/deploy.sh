@@ -29,8 +29,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 NEXUS_DIR="$PLATFORM_ROOT/woosoo-nexus"
 TABLET_DIR="$PLATFORM_ROOT/tablet-ordering-pwa"
-NEXUS_BRANCH="${WOOSOO_NEXUS_BRANCH:-${WOOSOO_DEPLOY_BRANCH:-staging}}"
-TABLET_BRANCH="${WOOSOO_TABLET_BRANCH:-${WOOSOO_DEPLOY_BRANCH:-staging}}"
+NEXUS_BRANCH="${WOOSOO_NEXUS_BRANCH:-${WOOSOO_DEPLOY_BRANCH:-dev}}"
+TABLET_BRANCH="${WOOSOO_TABLET_BRANCH:-${WOOSOO_DEPLOY_BRANCH:-dev}}"
 CONFIG_SCRIPT="$SCRIPT_DIR/apply-woosoo-config.sh"
 COMPOSE_CMD="${WOOSOO_DOCKER_COMPOSE:-docker compose --env-file ./woosoo-nexus/.env -f compose.yaml}"
 APP_SERVICE="${WOOSOO_APP_SERVICE:-app}"
@@ -84,14 +84,17 @@ pull_repo() {
         echo "  2. Set WOOSOO_FORCE_RESET=true to force reset (changes will be lost)" >&2
         exit 1
       else
-        # WOOSOO_FORCE_RESET=true: save a backup patch before resetting
+        # WOOSOO_FORCE_RESET=true: save a backup patch before resetting.
+        # Note: local variable names use DIFF_ prefix so they don't collide
+        # with the script-level BACKUP_DIR snapshot path created below.
         echo "WARNING: $name has uncommitted changes, but WOOSOO_FORCE_RESET=true." >&2
-        BACKUP_DIR="${WOOSOO_BACKUP_DIR:-/opt/woosoo/backups}/git-diffs"
-        mkdir -p "$BACKUP_DIR"
-        BACKUP_FILE="$BACKUP_DIR/${name}-$(date +%F_%H%M%S).patch"
-        git -C "$dir" diff > "$BACKUP_FILE"
-        git -C "$dir" diff --cached >> "$BACKUP_FILE"
-        echo "Backup saved: $BACKUP_FILE" >&2
+        local DIFF_BACKUP_DIR DIFF_BACKUP_FILE
+        DIFF_BACKUP_DIR="${WOOSOO_BACKUP_DIR:-/opt/woosoo/backups}/git-diffs"
+        mkdir -p "$DIFF_BACKUP_DIR"
+        DIFF_BACKUP_FILE="$DIFF_BACKUP_DIR/${name}-$(date +%F_%H%M%S).patch"
+        git -C "$dir" diff > "$DIFF_BACKUP_FILE"
+        git -C "$dir" diff --cached >> "$DIFF_BACKUP_FILE"
+        echo "Backup saved: $DIFF_BACKUP_FILE" >&2
         echo "Proceeding with reset --hard..." >&2
       fi
     fi
@@ -104,7 +107,33 @@ pull_repo() {
   fi
 }
 
-echo ">>> [1/5] Pulling app repos ..."
+echo ">>> [1/5] Snapshot + pull app repos ..."
+
+# Pre-deploy snapshot — written BEFORE git reset --hard so rollback-client.sh
+# can restore the pre-deploy state by SHA + .env. This is the rollback handle.
+WOOSOO_BACKUP_DIR="${WOOSOO_BACKUP_DIR:-/opt/woosoo/backups}"
+BACKUP_DIR="$WOOSOO_BACKUP_DIR/update-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+
+snapshot_repo() {
+  local dir="$1" name="$2"
+  if [[ -d "$dir/.git" ]] && git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$dir" rev-parse HEAD > "$BACKUP_DIR/${name}.commit"
+    echo "  snapshot $name -> $(git -C "$dir" rev-parse --short HEAD)"
+  else
+    echo "  snapshot $name -> SKIPPED (not a git repo)"
+  fi
+}
+
+snapshot_repo "$NEXUS_DIR"  "woosoo-nexus"
+snapshot_repo "$TABLET_DIR" "tablet-ordering-pwa"
+if [[ -f "$NEXUS_DIR/.env" ]]; then
+  cp "$NEXUS_DIR/.env" "$BACKUP_DIR/woosoo-nexus.env"
+  echo "  snapshot woosoo-nexus/.env -> saved"
+fi
+echo "  rollback handle: $BACKUP_DIR"
+echo
+
 pull_repo "$NEXUS_DIR"  "$NEXUS_BRANCH"  "woosoo-nexus"
 pull_repo "$TABLET_DIR" "$TABLET_BRANCH" "tablet-ordering-pwa"
 echo
@@ -173,4 +202,7 @@ echo "  Admin panel : ${WOOSOO_SCHEME}://${WOOSOO_HOST}"
 echo "  Tablet PWA  : ${WOOSOO_SCHEME}://${WOOSOO_HOST}:4443"
 echo
 echo "  Tablet DNS must point to: $(ip -4 addr | grep -Eo '192\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || echo '<server-ip>')"
+echo
+echo "  Rollback handle (if this deploy goes bad):"
+echo "    sudo bash scripts/deployment/rollback-client.sh $BACKUP_DIR"
 echo

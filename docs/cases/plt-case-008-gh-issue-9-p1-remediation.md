@@ -1,6 +1,6 @@
 ---
-status: under-review
-last_reviewed: 2026-05-19
+status: COMPLETE
+last_reviewed: 2026-05-25
 scope: woosoo-platform
 ---
 
@@ -10,20 +10,20 @@ scope: woosoo-platform
 - task_slug: plt-case-008-gh-issue-9-p1-remediation
 - tier: 3
 - branch: claude/review-critic-feedback
-- status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-19
+- updated: 2026-05-25
 
 ## Handoff
-- Phase in progress: verifier
-- Done so far: All 5 P1 fixes implemented, syntax validated
-- Exact next action: Verifier runs full validation suite
-- Working-tree state: 8 files modified, 2 new files (case file + doctor.sh)
-- Risks / do-not-redo: none
+- Phase in progress: complete
+- Done so far: All 5 P1 fixes implemented, verified, merged via PR #10, and recorded in `state/DONE.md`.
+- Exact next action: none.
+- Working-tree state: completed platform-governance case; no app code involved.
+- Risks / do-not-redo: P2/P3 follow-ups from Issue #9 remain separate future work; do not reopen this P1 case for them.
 
 ## Tier
 3 — High-risk (deployment safety, configuration integrity, platform governance)
@@ -161,11 +161,18 @@ In `apply-woosoo-config.sh`:
 
 ## Verification
 
-(To be completed by Verifier)
+Verifier evidence is recorded in `state/DONE.md`:
+
+- `PROTOCOL.md` and canonical docs multi-repo terminology corrected.
+- Deployment scripts hardened with `require_var` guards.
+- `REVERB_HOST` corrected to Docker service DNS `reverb`.
+- PR #10 merged.
 
 ## Executioner Verdict
 
-(To be completed by Executioner)
+APPROVED — 2026-05-20
+
+This case is complete. The P1 governance and deployment-safety remediation was merged via PR #10 and logged in `state/DONE.md`.
 
 ## Remaining Risks
 

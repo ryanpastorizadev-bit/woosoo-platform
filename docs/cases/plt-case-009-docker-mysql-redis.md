@@ -1,6 +1,6 @@
 ---
-status: IN_PROGRESS
-last_reviewed: 2026-05-19
+status: COMPLETE
+last_reviewed: 2026-05-25
 scope: woosoo-platform
 ---
 
@@ -12,23 +12,23 @@ Docker `mysql` and `redis` services not resolving — probable infrastructure ro
 - task_slug: plt-case-009-docker-mysql-redis
 - tier: 3
 - branch: agent/plt-case-009-docker-mysql-redis
-- status: IN_PROGRESS
-- last_completed_agent: verifier
-- next_agent: executioner
-- active_runner: none
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: codex
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-19
+- updated: 2026-05-25
 
 ## Handoff
-- Phase in progress: Executioner gate — code change approved locally; Pi runtime verification is a post-deploy step (Fix B, out of scope for code review).
-- Done so far: Contrarian (Tier 3 escalation, PROCEED). Specialist (copilot) — REVERB_HOST=0.0.0.0 → reverb in apply-woosoo-config.sh:344. Verifier — local code checks green (single set_env confirmed, no duplicates, full test suite 398/398).
-- Exact next action: Executioner approves the one-line code change. Post-approval: redeploy on Pi via deploy.sh to regenerate .env; then run on-device Fix B verification (docker compose logs mysql redis).
-- Working-tree state: 1 file changed — scripts/deployment/apply-woosoo-config.sh:344.
-- Risks / do-not-redo: Do NOT restart or recreate the Docker network without on-device log evidence. REVERB_HOST fix is a code-only change; runtime effect confirmed after redeploy on Pi.
+- Phase in progress: complete for code review; Pi runtime verification remains an operational follow-up.
+- Done so far: Contrarian (Tier 3 escalation, PROCEED). Specialist (copilot) — `REVERB_HOST=0.0.0.0` → `reverb` in `apply-woosoo-config.sh:344`. Verifier — local code checks green (single `set_env` confirmed, no duplicates, full test suite 398/398). Executioner APPROVED.
+- Exact next action: redeploy on Pi via `deploy.sh` to regenerate `.env`; then run on-device Fix B verification (`docker compose logs mysql redis`, `docker compose ps`).
+- Working-tree state: code case closed; no active code edit remains in this case.
+- Risks / do-not-redo: Do NOT restart or recreate the Docker network without on-device log evidence. Treat MySQL/Redis health checks as post-deploy runtime verification, not a new code case.
 
 ## Tier
-2
+3
 
 ## Branch
 agent/plt-case-009-docker-mysql-redis

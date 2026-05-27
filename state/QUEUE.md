@@ -34,8 +34,8 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P2 | NEX-CASE-009 | woosoo-nexus | Restore admin Menus Course/Group/Image filters | 2 | none | done |
 | P2 | NEX-CASE-002 | woosoo-nexus | Pulse routes broken | 2 | none | queued |
 | P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — client_submission_id absent | 2 | none | queued |
-| P2 | PLT-CASE-009 | woosoo-platform | Docker MySQL/Redis not resolving | infra | none | queued |
-| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app) | 3 | DEP-001,DEP-002,DEP-003 | queued |
+| P2 | PLT-CASE-009 | woosoo-platform | Docker MySQL/Redis not resolving | infra | none | done |
+| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app; deps confirmed) | 3 | DEP-001,DEP-002,DEP-003 | queued |
 
 ---
 
@@ -49,6 +49,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | TAB-CASE-005 | tablet-ordering-pwa | 2026-05-19 | typecheck exit 0, lint 0 errors, build exit 0; PackageCard.vue + packageSelection.vue; 9 UI changes. Executioner APPROVED |
 | TAB-CASE-006 | tablet-ordering-pwa | 2026-05-20 | typecheck exit 0; eslint 0 errors; build exit 0; :meats="decorateMeats" one-line fix. Executioner APPROVED |
 | PLT-CASE-008 | woosoo-platform | 2026-05-20 | PR #10 merged; PROTOCOL.md + docs multi-repo terminology; deploy scripts hardened (require_var guards, REVERB_HOST=reverb). APPROVED |
+| PLT-CASE-009 | woosoo-platform | 2026-05-19 | REVERB_HOST set_env corrected to Docker DNS `reverb`; local checks green; Executioner APPROVED. Pi runtime verification remains operational follow-up. |
 | TAB-CASE-002 | tablet-ordering-pwa | 2026-05-19 | Findings #3/#4/#6/#7: ce81a37 (nexus) / 1291632 (pwa). 382/382 tests, typecheck clean. Executioner APPROVED |
 | tablet-package-ui-redesign | tablet-ordering-pwa | 2026-05-19 | fbd789f+c371d0f on staging. 382/382 tests, full pipeline green. Executioner APPROVED |
 | TAB-CASE-001 | tablet-ordering-pwa | 2026-05-19 | All 4 fixes: offline contract, dead composables, Pinia-only persistence, bootstrap redirect. 382 tests pass, vue-tsc clean, build complete. Executioner APPROVED |
