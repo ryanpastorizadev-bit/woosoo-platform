@@ -50,6 +50,10 @@ Authoritative cross-app contracts. Implementation must be verified against actua
 - [pos-db.contract.md](../contracts/pos-db.contract.md) — POS DB access safety
 - [auth-session.contract.md](../contracts/auth-session.contract.md) — Sanctum/device auth boundaries
 
+## Business Requirements Documents
+
+- [Woosoo Platform BRD Supplement](business/WOOSOO_PLATFORM_BRD_SUPPLEMENT.md) — Platform role as 4th system component (orchestration, contracts, AI agent OS, governance); complements the Nexus BRD
+
 ## Canonical audit documents (2026-05-14)
 
 These four documents are the authoritative system-state references. Restructured against a unified template; read the relevant one for any non-trivial task.
