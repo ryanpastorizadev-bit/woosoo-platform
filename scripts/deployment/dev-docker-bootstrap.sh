@@ -19,6 +19,12 @@
 #     exec -T app php artisan migrate --force
 #
 # This script never starts containers — you control when to build/up.
+#
+# Environment overrides (rare):
+#   WOOSOO_DEV_CONFIRM=yes            Skip the interactive confirmation prompt
+#                                     (required for non-interactive runs).
+#   WOOSOO_DEV_ALLOW_PROD_POS_IP=yes  Allow writing 192.168.1.32 (production POS
+#                                     static IP) from this dev script. Default: refuse.
 # =============================================================================
 set -euo pipefail
 
@@ -52,6 +58,52 @@ DEV_REVERB_APP_KEY="${DEV_REVERB_APP_KEY:-dev-reverb-key-please-rotate}"
 DEV_REVERB_APP_SECRET="${DEV_REVERB_APP_SECRET:-dev-reverb-secret-please-rotate}"
 
 DEV_DEVICE_AUTH_PASSCODE="${DEV_DEVICE_AUTH_PASSCODE:-123456}"
+
+# ── Safety latches (dev-script-specific) ─────────────────────────────────────
+# 1) Refuse to run on a production Pi. /etc/woosoo/woosoo.env is the Pi runtime
+#    config marker; if present, the operator should be running apply-woosoo-config.sh
+#    instead — that is the canonical production path per AGENTS.md.
+if [[ -f /etc/woosoo/woosoo.env ]]; then
+  echo "ERROR: /etc/woosoo/woosoo.env is present — this looks like the production Pi." >&2
+  echo "       dev-docker-bootstrap.sh is for Windows / Docker Desktop / WSL only." >&2
+  echo "       On the Pi, use: sudo bash scripts/deployment/apply-woosoo-config.sh" >&2
+  exit 1
+fi
+
+# 2) Refuse to write the production POS IP from the dev script. Per AGENTS.md the
+#    production POS host is 192.168.1.32 and must only be set via the Pi path. If
+#    the operator really wants this (e.g. mirroring prod locally), they must
+#    consciously override.
+PROD_POS_IP="192.168.1.32"
+if [[ "$DEV_POS_HOST" == "$PROD_POS_IP" ]]; then
+  if [[ "${WOOSOO_DEV_ALLOW_PROD_POS_IP:-no}" != "yes" ]]; then
+    echo "ERROR: DEV_POS_HOST=$DEV_POS_HOST is the production POS static IP." >&2
+    echo "       Refusing to write the production POS host from a dev-bootstrap script." >&2
+    echo "       If this is intentional, set WOOSOO_DEV_ALLOW_PROD_POS_IP=yes." >&2
+    exit 1
+  fi
+  echo "WARNING: writing production POS IP ($DEV_POS_HOST) — override flag is set." >&2
+fi
+
+# 3) Explicit operator review step before writing secret-bearing values into
+#    woosoo-nexus/.env. The backup of any existing .env is still taken below, so
+#    this gate is the "review" half of "backup + review" from AGENTS.md.
+#    Interactive terminals get a one-line prompt; non-interactive runs (CI, scripts)
+#    must opt in via WOOSOO_DEV_CONFIRM=yes.
+if [[ "${WOOSOO_DEV_CONFIRM:-}" != "yes" ]]; then
+  if [[ -t 0 ]]; then
+    read -r -p "About to write dev secrets into $NEXUS_DIR/.env. Type yes to continue: " ans
+    if [[ "$ans" != "yes" ]]; then
+      echo "Aborted."
+      exit 1
+    fi
+  else
+    echo "ERROR: non-interactive run requires WOOSOO_DEV_CONFIRM=yes." >&2
+    echo "       The script is about to overwrite $NEXUS_DIR/.env with dev-mode secrets." >&2
+    echo "       Backup of any existing .env will still be saved as .env.bak.<timestamp>." >&2
+    exit 1
+  fi
+fi
 
 # ── Guards ────────────────────────────────────────────────────────────────────
 if [[ ! -d "$NEXUS_DIR" ]]; then
