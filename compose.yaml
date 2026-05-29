@@ -48,6 +48,7 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./docker/certs:/etc/nginx/certs:ro
       - ./woosoo-nexus:/var/www/html:ro
+      - nexus_build:/var/www/html/public/build:ro  # named volume shared with app; avoids p9 cache staleness
       - storage_data:/var/www/html/storage:ro
     depends_on:
       - app
@@ -89,6 +90,8 @@ services:
       REVERB_BROADCAST_HOST: reverb
     volumes:
       - ./woosoo-nexus:/var/www/html  # dev/staging: bind-mount; remove for immutable production image
+      - /var/www/html/node_modules    # anonymous: use image's Linux node_modules, never the host's
+      - nexus_build:/var/www/html/public/build  # named volume; entrypoint runs npm run build into it
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
       - storage_data:/var/www/html/storage
     depends_on:
@@ -337,6 +340,7 @@ volumes:
   mysql_data:
   redis_data:
   storage_data:
+  nexus_build:    # Vite build artifacts; written by app entrypoint, read by app + nginx
 
 networks:
   woosoo:
