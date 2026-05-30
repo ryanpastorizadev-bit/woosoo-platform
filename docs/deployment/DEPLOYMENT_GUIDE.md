@@ -124,7 +124,14 @@ the first failure. The `deploy` step:
    (commits + `woosoo-nexus.env`) — this is the input `rollback-client.sh` uses
 3. `docker compose build` (only services with changed inputs rebuild)
 4. `docker compose up -d --remove-orphans`
-5. Warms Laravel caches and runs migrations
+5. Warms Laravel caches (config, route, view)
+
+> **Migrations are NOT run automatically.** If your deploy includes a schema
+> change, run migrations manually after `deploy-all.sh` completes:
+> ```bash
+> docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+>   exec -T app php artisan migrate --force
+> ```
 
 Tablets auto-update within ~1 minute of completion (see `production-docker.md`
 § "Tablet PWA auto-update").
