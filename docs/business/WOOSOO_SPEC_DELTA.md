@@ -7,7 +7,7 @@ scope: business
 # Woosoo — Specification Delta & Project Cost Analysis
 
 **Origin specification:** `docs/business/WOOSOO_ORIGIN_SPECIFICATION.md` (May 20XX, archived)  
-**Current specification:** `docs/business/NEXUS_BUSINESS_REQUIREMENTS_DOCUMENT.md` (tech-artificer/woosoo-nexus PR #138) + `docs/business/WOOSOO_PLATFORM_BRD_SUPPLEMENT.md`  
+**Current specification:** `tech-artificer/woosoo-nexus` — `docs/business/NEXUS_BUSINESS_REQUIREMENTS_DOCUMENT.md` (draft PR #138, external repo) + `docs/business/WOOSOO_PLATFORM_BRD_SUPPLEMENT.md` (this repo)  
 **Prepared by:** Ryan H. Pastoriza  
 **Date:** 2026-05-27
 
