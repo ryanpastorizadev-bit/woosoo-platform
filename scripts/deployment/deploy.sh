@@ -144,14 +144,28 @@ WOOSOO_RESTART_DOCKER=false bash "$CONFIG_SCRIPT"
 echo "OK: Config applied — woosoo-nexus/.env is authoritative for this host"
 echo
 
-# ── Step 3: Build Docker images ───────────────────────────────────────────────
+# ── Step 3: Build Docker images + frontend assets ─────────────────────────────
 echo ">>> [3/5] Building Docker images ..."
 $COMPOSE_CMD build
 echo "OK: Images built"
+
+# Build Vite assets exactly once, here, because this deploy just pulled new code.
+# A one-off `run --rm app npm run build` writes the compiled bundle into the
+# bind-mounted woosoo-nexus/public/build on the host. The subsequent `up -d`
+# then starts `app` with WOOSOO_FORCE_VITE_BUILD=false (default), so the
+# entrypoint sees populated assets and SKIPS the build — and every later plain
+# container restart stays fast and build-free. (Forcing via `up` instead would
+# bake the flag into the container and make restarts rebuild too.)
+echo "  Building frontend assets (one-off) ..."
+WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build
+echo "OK: Frontend assets built"
 echo
 
 # ── Step 4: Start / restart services ─────────────────────────────────────────
 echo ">>> [4/5] Starting services ..."
+# One-time cleanup: the nexus_build named volume was removed from compose.yaml;
+# drop the now-orphaned Docker volume. Idempotent — ignore error if absent/in-use.
+docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true
 $COMPOSE_CMD up -d --remove-orphans
 echo "OK: Services started"
 echo
