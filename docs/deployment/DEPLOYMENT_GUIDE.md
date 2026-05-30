@@ -35,13 +35,12 @@ Path B (dev) → common operations → recovery → rollback → troubleshooting
 
 ## 2. Prerequisites (both paths)
 
-Both paths need three repos checked out side-by-side:
+Both paths need the two app repos cloned **inside** the platform repo root:
 
 ```
-parent/
-├── woosoo-platform/        # governance + orchestration (this repo)
-├── woosoo-nexus/           # Laravel API (sibling repo)
-└── tablet-ordering-pwa/    # Nuxt PWA (sibling repo)
+woosoo-platform/              # governance + orchestration (this repo)
+├── woosoo-nexus/             # Laravel API (nested, independent git repo)
+└── tablet-ordering-pwa/      # Nuxt PWA (nested, independent git repo)
 ```
 
 Both paths run `docker compose` **from the platform repo root**, never
@@ -56,10 +55,11 @@ Both paths require Docker Engine ≥ 24 with the compose v2 plugin.
 ### 3.1 First-time Pi setup (one-off)
 
 ```bash
-# 1. Clone the three repos
+# 1. Clone the repos (app repos go inside the platform directory)
 sudo mkdir -p /opt/woosoo && sudo chown $USER:$USER /opt/woosoo
 cd /opt/woosoo
 git clone https://github.com/ryanpastorizadev-bit/woosoo-platform.git
+cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
 
@@ -139,8 +139,8 @@ git pull origin main
 sudo bash scripts/deployment/deploy-all.sh
 ```
 
-That's it. `deploy-all.sh` handles the rest, including pulling the sibling
-app repos to their configured branches.
+That's it. `deploy-all.sh` handles the rest, including pulling the app repos
+(inside the platform directory) to their configured branches.
 
 ### 3.5 Pi: post-reboot check (no deploy)
 
@@ -155,12 +155,12 @@ sudo bash scripts/deployment/pi-reboot-health.sh
 ### 4.1 First-time dev setup
 
 ```bash
-# 1. Clone the three repos somewhere convenient
+# 1. Clone the repos (app repos go inside the platform directory)
 mkdir -p ~/projects && cd ~/projects
 git clone https://github.com/ryanpastorizadev-bit/woosoo-platform.git
+cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
-cd woosoo-platform
 
 # 2. Generate a dev-mode woosoo-nexus/.env (no system mutations)
 bash scripts/deployment/dev-docker-bootstrap.sh
@@ -201,8 +201,8 @@ Pattern: pull, then run only what changed.
 ```bash
 cd ~/projects/woosoo-platform
 git pull origin main
-cd ~/projects/woosoo-nexus && git pull && cd -
-cd ~/projects/tablet-ordering-pwa && git pull && cd -
+cd woosoo-nexus && git pull && cd ..
+cd tablet-ordering-pwa && git pull && cd ..
 
 # If composer / package / Dockerfile changed:
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml build
