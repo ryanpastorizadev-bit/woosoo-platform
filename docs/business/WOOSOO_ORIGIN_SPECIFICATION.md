@@ -3,7 +3,7 @@ status: archived
 original_date: 2024-05
 archived: 2026-05-27
 scope: origin-specification
-archived_reason: Historical specification document; the Kitchen Display System component described in Section 3 was subsequently replaced by the Woosoo Print Bridge (Flutter Android relay).
+archived_reason: Historical specification document; the Kitchen Display System component described in Section 3 was subsequently replaced by the Woosoo Print Bridge (Flutter Android relay) at the client's request.
 ---
 
 # Table Ordering App with Kitchen Display — Original Specification
@@ -16,7 +16,7 @@ archived_reason: Historical specification document; the Kitchen Display System c
 
 ## Editorial Note
 
-This is the original signed specification for the Woosoo KBBQ digital transformation project, dated May 20XX. It represents the initial requirements and scope agreement. Please note that **Section 3 (Kitchen Display System)** describes a legacy KDS component that was subsequently architected and replaced by the **Woosoo Print Bridge** — a production Flutter Android relay service built for restaurant-grade print job reliability and Reverb broadcast integration. The core functional objectives, payment terms, and stakeholder agreements remain accurately reflected herein.
+This is the original signed specification for the Woosoo KBBQ digital transformation project, dated May 20XX. It represents the initial requirements and scope agreement. Please note that **Section 3 (Kitchen Display System)** describes a legacy KDS component that was subsequently replaced by the **Woosoo Print Bridge** — a Flutter Android relay service built at the **client's request** to integrate Bluetooth printer hardware instead of a screen-based display. The core functional objectives, payment terms, and stakeholder agreements remain accurately reflected herein.
 
 ---
 

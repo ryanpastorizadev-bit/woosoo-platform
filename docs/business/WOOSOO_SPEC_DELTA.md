@@ -17,7 +17,7 @@ scope: business
 
 This document compares the original signed specification for the Woosoo KBBQ table ordering system against the current delivered and in-progress system. It records what was delivered as specified, what changed in architecture, what was added beyond original scope, and what is still pending.
 
-It also provides a project cost breakdown: the original contracted amount, the estimated cost of the current system as built, and the estimated cost of scope added beyond the original contract.
+It also provides a project cost breakdown: the original contracted amount, total actually billed, estimated fair market value of what was built, developer-absorbed scope, and pending change orders.
 
 ---
 
@@ -25,19 +25,21 @@ It also provides a project cost breakdown: the original contracted amount, the e
 
 | | Amount | Notes |
 |---|---|---|
-| **Legacy specification (signed contract)** | ₱350,000.00 | Original 3-man team quote, May 20XX |
-| **Current system (estimated cost as built)** | ₱875,000.00 | Estimated; see Section 5 for breakdown |
-| **Scope delta (additional work beyond contract)** | **₱525,000.00** | Features and architectural changes not in original scope |
+| **Original signed contract** | ₱350,000.00 | 3-man team quote, May 20XX |
+| **Additional billed — Pi configuration** | ₱25,000.00 | Raspberry Pi 5 setup and deployment configuration |
+| **Total actually billed to client** | **₱375,000.00** | Only amount invoiced beyond original contract |
+| Estimated fair market value of system as built | ₱875,000.00 | Reference only — not invoiced; see Section 5 |
+| Scope absorbed by developer at no charge | ~₱500,000.00 | Additional features delivered beyond billing |
 
-> **Note:** The current system cost is an estimate based on scope expansion. It is not a revised invoice — it reflects the complexity of what was built relative to the original contract baseline.
+> **Note:** All features added beyond the original contract (Print Bridge per client request, Docker orchestration, Reverb, RBAC, monitoring) were delivered at no additional cost to the client. The ₱875,000 figure reflects estimated fair market value, not the actual invoice.
 
 ---
 
 ## 2. What Changed at the Architecture Level
 
-### 2.1 Kitchen Display System → Woosoo Print Bridge
+### 2.1 Kitchen Display System → Woosoo Print Bridge (Client-Requested Change)
 
-The single largest architectural departure from the original specification.
+This was a **client-initiated scope change**, not a developer architectural decision. The client requested replacing the KDS with Bluetooth printer integration. The developer built the Woosoo Print Bridge relay specifically to fulfill that request — bridging the admin system and the Bluetooth printer hardware.
 
 | | Origin Specification | Current System |
 |---|---|---|
@@ -48,7 +50,7 @@ The single largest architectural departure from the original specification.
 | **Output** | Color-coded on-screen ticket display | Bluetooth print dispatch to kitchen/cashier thermal printers |
 | **Staff interaction** | Tag orders as "In Progress" / "Completed" | ACK lifecycle: reserve → print → ack (or failed) |
 | **Reliability model** | Not specified | Idempotent print job with reserve/ack/failed lifecycle; dead-letter recovery |
-| **Why it changed** | KDS screen requires hardware display per station | Print relay + Bluetooth printers serve multiple stations from one device; lower hardware cost |
+| **Why it changed** | — | **Client requested Bluetooth printer integration.** Print Bridge relay was built to bridge the admin system and Bluetooth printer per client direction. |
 
 ### 2.2 Cloud-Hosted → On-Premises (Raspberry Pi)
 
@@ -80,7 +82,7 @@ The single largest architectural departure from the original specification.
 | Tap-to-order, quantity selection | ✅ Specified | ✅ Delivered | Cart management |
 | Order summary, confirmation, live status | ✅ Specified | ✅ Delivered | Order confirmation; session state via Reverb |
 | Staff call buttons (service, water, billing, cleanup) | ✅ Specified | ⚠️ Partial | Service request system delivered; broadcast auth has security gaps requiring hardening |
-| Kitchen Display System (KDS) | ✅ Specified | 🔄 Replaced | Replaced by Woosoo Print Bridge (see Section 2.1) |
+| Kitchen Display System (KDS) | ✅ Specified | 🔄 Replaced | Replaced by Woosoo Print Bridge at **client's request** (see Section 2.1) |
 | Admin dashboard (menu & order management) | ✅ Specified | ✅ Delivered | Laravel admin UI via Inertia.js + Vue 3 |
 | 3rd Party POS integration | ✅ Specified | ✅ Delivered | Krypton POS driver; read-write via LAN IP `192.168.1.32` |
 | Remote access to sales and closing data | ✅ Specified | ⚠️ Local only | Admin dashboard is LAN-accessible; no remote cloud access currently |
@@ -98,21 +100,28 @@ The single largest architectural departure from the original specification.
 | Payment processing via tablet | ❌ Still out of scope |
 | Loyalty awards | ❌ Still out of scope |
 
-### 3.3 Added Beyond Original Scope
+### 3.3a Client-Requested Scope Changes (delivered, not separately billed)
 
-These features and systems were not in the original specification and represent additional delivered value.
+Changes made at the client's explicit direction that differ from the original specification.
 
-| Feature | Description | Approx. Additional Cost |
+| Feature | Client Request | Estimated Value |
 |---|---|---|
-| **Woosoo Print Bridge** | Flutter Android relay replacing KDS; WebSocket + polling intake, Bluetooth print dispatch, ACK lifecycle, retry logic | ₱150,000 |
+| **Woosoo Print Bridge** | Client requested Bluetooth printer integration in place of KDS; relay built to bridge admin system and printer hardware | ₱150,000 |
+
+### 3.3b Developer-Added Scope (delivered at no charge)
+
+These features were not in the original specification and were not client-requested — they were added by the development team to deliver a production-grade system. None were separately invoiced.
+
+| Feature | Description | Estimated Value |
+|---|---|---|
 | **Real-time WebSocket infrastructure** | Laravel Reverb server; broadcast channels for orders, sessions, service requests, print jobs | ₱75,000 |
 | **On-premises Docker orchestration** | 8-service Docker Compose stack (Nginx, PHP, queue worker, scheduler, Reverb, MySQL, Redis, Nuxt PWA); multi-port Nginx routing | ₱75,000 |
 | **Advanced admin UI** | Live order monitoring, print health dashboard, device health dashboard, session reset controls | ₱80,000 |
 | **Role-Based Access Control (RBAC)** | Spatie permissions; multi-role admin hierarchy | ₱75,000 |
-| **Multi-branch support** | Branch-scoped data and admin management | Included in RBAC item |
+| **Multi-branch support** | Branch-scoped data and admin management | Included in RBAC |
 | **Service request system** | Reverb-powered staff call channels per device | ₱45,000 |
 | **Enhanced POS integration** | Krypton driver hardening; POS-down handling; session close detection; outbox pattern | ₱25,000 |
-| **TOTAL** | | **₱525,000** |
+| **TOTAL (developer-added, uncompensated)** | | **~₱375,000** |
 
 ---
 
@@ -156,46 +165,82 @@ These items are gaps relative to the original specification or known issues in t
 
 ---
 
-### 5.2 Current System — ₱875,000.00 (Estimated)
+### 5.2 Current System — Estimated Fair Market Value ₱875,000 (Actual Billed: ₱375,000)
 
-| Work Item | Estimated Cost |
-|---|---|
-| Tablet ordering interface (Nuxt 3 PWA) | ₱120,000 |
-| Laravel API backend (hardened, production-grade) | ₱130,000 |
-| Admin dashboard (Inertia.js + Vue 3) | ₱80,000 |
-| Woosoo Print Bridge (Flutter Android relay) | ₱150,000 |
-| Real-time WebSocket infrastructure (Reverb) | ₱75,000 |
-| On-premises Docker Compose orchestration | ₱75,000 |
-| Advanced admin UI (monitoring, health dashboards) | ₱80,000 |
-| Role-Based Access Control (RBAC) | ₱75,000 |
-| Service request system | ₱45,000 |
-| Enhanced POS integration (Krypton hardening) | ₱25,000 |
-| QA, integration testing, deployment | ₱20,000 |
-| **Total (estimated)** | **₱875,000** |
+| Work Item | Estimated Fair Value | Actually Billed |
+|---|---|---|
+| Tablet ordering interface (Nuxt 3 PWA) | ₱120,000 | Included in contract |
+| Laravel API backend (hardened, production-grade) | ₱130,000 | Included in contract |
+| Admin dashboard (Inertia.js + Vue 3) | ₱80,000 | Included in contract |
+| Woosoo Print Bridge (client-requested) | ₱150,000 | Not separately billed |
+| Real-time WebSocket infrastructure (Reverb) | ₱75,000 | Not separately billed |
+| On-premises Docker Compose orchestration | ₱75,000 | Not separately billed |
+| Advanced admin UI (monitoring, health dashboards) | ₱80,000 | Not separately billed |
+| Role-Based Access Control (RBAC) | ₱75,000 | Not separately billed |
+| Service request system | ₱45,000 | Not separately billed |
+| Enhanced POS integration (Krypton hardening) | ₱25,000 | Not separately billed |
+| Raspberry Pi configuration and deployment | ₱25,000 | **₱25,000 billed** |
+| **Total** | **₱875,000** | **₱375,000** |
 
-> Estimates are based on Philippine market rates for a 3–4 developer team (Laravel, Flutter, Nuxt 3, DevOps). The current system scope is approximately **2.5× the original contract**.
+> The ₱875,000 is estimated fair market value based on Philippine market rates for a 3–4 developer team (Laravel, Flutter, Nuxt 3, DevOps). The client was invoiced ₱375,000 total. Approximately ₱500,000 in additional scope was absorbed by the development team at no charge.
 
 ---
 
-### 5.3 Scope Delta — ₱525,000.00 (Additional Beyond Original Contract)
+### 5.3 Scope Delta
+
+| | Amount |
+|---|---|
+| Original signed contract | ₱350,000 |
+| Additional billed (Pi configuration) | ₱25,000 |
+| **Total billed to client** | **₱375,000** |
+| Estimated fair market value of system as built | ₱875,000 |
+| **Scope absorbed by developer at no charge** | **~₱500,000** |
+
+The ~₱500,000 absorbed by the developer breaks down as:
+- Print Bridge (client-requested Bluetooth integration, replacing KDS): ₱150,000
+- Real-time WebSocket infrastructure (Reverb): ₱75,000
+- On-premises Docker orchestration: ₱75,000
+- Advanced admin UI (monitoring, health dashboards): ₱80,000
+- RBAC and multi-branch: ₱75,000
+- Service request system and enhanced POS hardening: ₱70,000
+
+> The Print Bridge is listed here because, while it was client-requested, it was not separately invoiced. It replaced the original KDS line item in the contract and was treated as a scope substitution with no additional charge.
+
+---
+
+## 6. Pending Change Orders
+
+Change orders are client-initiated requests that fall outside the original contract scope.
+
+### CO-001 — Kitchen Display System Re-addition
 
 | | |
 |---|---|
-| **Original signed contract** | ₱350,000 |
-| **Estimated cost of current system as built** | ₱875,000 |
-| **Delta (additional scope delivered beyond contract)** | **₱525,000** |
+| **Requested by** | Client (post-testing feedback from restaurant staff and customers) |
+| **Status** | Pending acceptance |
+| **Estimated cost** | ₱100,000 |
 
-The additional ₱525,000 represents:
-- Architectural pivot from KDS to a production-grade Flutter print relay (₱150,000)
-- Real-time infrastructure that did not exist in the original spec (₱75,000)
-- On-premises Docker orchestration vs. a simple cloud-hosted deployment (₱75,000)
-- Expanded admin capabilities beyond menu/order management (₱80,000)
-- RBAC and multi-branch (₱75,000)
-- Service request system and enhanced POS hardening (₱70,000)
+**Background:** The original contract included a KDS. At the client's request, this was replaced by the Woosoo Print Bridge (Bluetooth printing). After real-world testing with staff and customers, the client has determined that a live kitchen display is also needed alongside the existing Bluetooth printing system.
+
+This is the **second client-initiated scope change** on this item:
+1. Change #1 (absorbed): KDS → Print Bridge, client asked to replace screen display with Bluetooth printing
+2. Change #2 (this order): Add KDS back on top of the existing Print Bridge
+
+Since the Print Bridge is already in production and the Reverb WebSocket infrastructure is fully operational, the KDS is a frontend display layer only — the backend events already fire.
+
+**Scope:**
+
+| Component | Estimated Cost |
+|---|---|
+| KDS display UI — real-time order feed, color-coded by status (New / In Progress / Completed) | ₱40,000 |
+| Staff order status controls (mark In Progress / Completed) | ₱25,000 |
+| Multi-station routing (e.g., grill station vs. cashier view) | ₱20,000 |
+| On-site hardware setup and integration testing | ₱15,000 |
+| **Total** | **₱100,000** |
 
 ---
 
-## 6. Document Index
+## 7. Document Index
 
 | Document | Status | Purpose |
 |---|---|---|
