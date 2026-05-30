@@ -8,30 +8,25 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-30 — vite-build-conditional specialist:infra → verifier handover -->
+<!-- Last updated: 2026-05-30 — nex-case-002 Executioner APPROVED, cannot-reproduce + gating test -->
 
 ---
 
 ## Current Task
 
 ```yaml
-task_id:      infra-vite-build-conditional
+task_id:      nex-case-002-pulse-routes
 status:       done
 tier:         2
 app:          woosoo-nexus
-specialist:   infra
-branch:       agent/vite-build-conditional
-description:  Make the Vite asset build conditional so public/build is rebuilt only when
-              missing/empty or forced — not on every container start. Eliminates the ~63s
-              rebuild on crash/OOM auto-restart. In-container build retained (correct per-host
-              arch); host-build alternative rejected on cross-arch grounds.
-case_file:    docs/cases/infra-vite-build-conditional.md
-next_action:  Merge agent/vite-build-conditional to dev in both woosoo-nexus and
-              woosoo-platform. Pi operator captures entrypoint logs from first deploy.sh run
-              to close deferred Step 7 (Pi parity).
-last_agent:   claude-code — 2026-05-30 — Executioner APPROVED. Case COMPLETE. Restart
-              rebuild eliminated (90s → 10s); force flag verified; orphan volume cleaned;
-              pre-merge-check green.
+specialist:   ranpo-backend
+branch:       agent/nex-case-002-pulse-routes
+description:  Laravel Pulse routes broken — 2 errors from 2026-05-19. Investigated and could
+              not reproduce. Route correct, gate correct, permission seeded. Gating test added.
+case_file:    docs/cases/nex-case-002-pulse-routes.md
+next_action:  Pull next task from queue (NEX-CASE-005 or PLT-CASE-003).
+last_agent:   claude-code — 2026-05-30 — Executioner APPROVED. Cannot-reproduce; test added;
+              432 tests pass; pre-merge-check OK.
 ```
 
 ## Blocking Dependencies
@@ -43,22 +38,21 @@ none
 ## Last Agent
 
 ```
-role:         claude-code — Specialist (infra) + Verifier + Executioner chain complete
+role:         claude-code — Contrarian + Specialist (ranpo-backend) + Executioner chain complete
 date:         2026-05-30
-left_off:     Case COMPLETE, Executioner APPROVED. 3 edits ready to merge:
-              (1) woosoo-nexus/docker/docker-entrypoint.sh — conditional build
-              (2) compose.yaml — WOOSOO_FORCE_VITE_BUILD passthrough
-              (3) scripts/deployment/deploy.sh — pre-build + orphan-volume rm
-              Pi parity (Step 7) deferred to first Pi deploy of this branch.
-files_open:   docs/cases/infra-vite-build-conditional.md (Run State → COMPLETE)
+left_off:     Case COMPLETE. One new file: tests/Feature/Pulse/PulseRouteAuthTest.php.
+              Pending merge (infra-vite-build-conditional): agent/vite-build-conditional → dev
+              in both woosoo-nexus and woosoo-platform still needs to be merged by user.
+files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
               docs/cases/nex-case-010-immutable-image-production-migration.md (Tier 3, BLOCKED)
 ```
 
 ## On Completion of Next Task
 
 ```text
+→ NEX-CASE-005 (legacy print path, P2, queued)
+→ PLT-CASE-003 (cross-app orchestration, P3, all deps confirmed)
 → nex-case-010 (immutable-image production migration, Tier 3) once deliberately selected
-→ NEX-CASE-002 (Pulse routes, P2) or NEX-CASE-005 (legacy print path, P2)
 ```
 
 ---
