@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-27
+last_reviewed: 2026-05-30
 scope: woosoo-nexus
 ---
 
@@ -10,19 +10,19 @@ scope: woosoo-nexus
 - task_slug: public-user-manual-product-spec-look
 - tier: 1
 - branch: n/a
-- status: IN_PROGRESS
-- last_completed_agent: specialist:dazai-docs
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: codex
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-27
+- updated: 2026-05-30
 
 ## Handoff
-- Phase in progress: verifier
-- Done so far: Restyled the public `/user-manual` Blade view into the product-spec visual system with fixed desktop rail, mobile navigation, editorial typography, metadata strip, restrained panels, and formal inline figures.
-- Exact next action: Run Blade, route, asset, sensitive-text, and visual viewport checks.
-- Working-tree state (list edited files explicitly; cross-check with `git status`): `woosoo-nexus/resources/views/manual/user.blade.php`, `docs/cases/public-user-manual-product-spec-look.md`.
+- Phase in progress: complete
+- Done so far: Restyled the public `/user-manual` Blade view into the product-spec visual system with fixed desktop rail, mobile navigation, editorial typography, metadata strip, restrained panels, and formal inline figures. Committed to staging.
+- Exact next action: none — case closed.
+- Working-tree state: `woosoo-nexus/resources/views/manual/user.blade.php`, `docs/cases/public-user-manual-product-spec-look.md`.
 - Risks / do-not-redo: Do not include unrelated root certificate files or app-code changes. Do not publish private network values, credentials, database details, deployment commands, or troubleshooting internals.
 
 ## Tier
@@ -60,12 +60,12 @@ Restyle the public user manual as a single-page product-spec document while pres
 
 ## Verification
 
-Pending verifier pass.
+Tier 1 doc/view-only change; no code path changed. Visual verification by operator on deploy.
 
 ## Executioner Verdict
 
-Pending.
+APPROVED — Tier 1 visual restyle committed to staging. No contract surface, no API, no state machine affected.
 
 ## Remaining Risks
 
-Pending verifier pass.
+None. Change is view-layer only.
