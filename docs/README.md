@@ -75,6 +75,7 @@ These four documents are the authoritative system-state references. Restructured
 
 Docker orchestration authority is the **platform repo root** (3-repo sibling model).
 
+- [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
 - `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
 - `scripts/deployment/README.md` — per-script migration status

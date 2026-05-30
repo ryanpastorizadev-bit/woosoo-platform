@@ -30,6 +30,51 @@ set -a
 source "$CONFIG_FILE"
 set +a
 
+# Refuse to run on WSL or Docker Desktop hosts unless explicitly overridden.
+# This script installs dnsmasq, disables systemd-resolved, and applies a static
+# IP via nmcli — all of which damage a dev workstation and are meaningless
+# outside a real Pi/Linux server environment. Use dev-docker-bootstrap.sh instead.
+if [[ "${WOOSOO_ALLOW_NON_PI:-false}" != "true" ]]; then
+  _wsl_detected=false
+  if grep -qiE 'microsoft|WSL' /proc/version 2>/dev/null; then
+    _wsl_detected=true
+    _wsl_reason="WSL kernel detected in /proc/version"
+  elif [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+    _wsl_detected=true
+    _wsl_reason="WSL_DISTRO_NAME is set (${WSL_DISTRO_NAME})"
+  fi
+  # Catch Docker Desktop on macOS/Linux and other dev workstations without
+  # NetworkManager. If the configured server IP is not actually bound to any
+  # interface AND nmcli is absent, this host cannot satisfy the Pi assumptions
+  # (no way to apply the static IP, no LAN clients pointing at this dnsmasq).
+  _non_pi_detected=false
+  _non_pi_reason=""
+  if [[ "$_wsl_detected" != "true" && -n "${WOOSOO_SERVER_IP:-}" ]]; then
+    if ! command -v nmcli >/dev/null 2>&1 \
+       && ! ip -4 addr 2>/dev/null | grep -Fq " ${WOOSOO_SERVER_IP}/"; then
+      _non_pi_detected=true
+      _non_pi_reason="nmcli missing AND WOOSOO_SERVER_IP=${WOOSOO_SERVER_IP} not bound on any interface"
+    fi
+  fi
+
+  if [[ "$_wsl_detected" == "true" || "$_non_pi_detected" == "true" ]]; then
+    if [[ "$_wsl_detected" == "true" ]]; then
+      _abort_reason="$_wsl_reason"
+    else
+      _abort_reason="$_non_pi_reason"
+    fi
+    echo "ERROR: apply-woosoo-config.sh is a Pi provisioning script." >&2
+    echo "       Detected: ${_abort_reason}" >&2
+    echo "" >&2
+    echo "       On this host, use the dev bootstrap instead:" >&2
+    echo "         bash scripts/deployment/dev-docker-bootstrap.sh" >&2
+    echo "" >&2
+    echo "       To override (only if you know what you're doing):" >&2
+    echo "         WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/apply-woosoo-config.sh" >&2
+    exit 1
+  fi
+fi
+
 require_var() {
   local name="$1"
   if [[ -z "${!name:-}" ]]; then
