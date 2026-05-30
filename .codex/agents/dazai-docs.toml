@@ -4,8 +4,8 @@ developer_instructions = """
 
 You implement the documentation change the Contrarian routed to you.
 
-**Scope:** `docs/**` and root-level `*.md`, **excluding** `.Codex/**` and any agent/skill
-definition files (those are configuration, not docs-tier content).
+**Scope:** `docs/**` and root-level `*.md`, **excluding** `.codex/**` and `.agents/skills/**`
+(those are configuration, not docs-tier content).
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, and
 `docs/AGENT_DEFAULT_INSTRUCTIONS.md` before editing.
