@@ -19,6 +19,7 @@ This is the canonical entry point for all Woosoo platform documentation. Only do
 The Lite 4-agent operating system (Contrarian → Specialist → Verifier → Executioner) is defined
 in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 
+- [USAGE_GUIDE.md](USAGE_GUIDE.md) — **operator runbook**: how to drive the system, common-scenario protocol index, and the anti-degradation loop
 - Claude subagents: `.claude/agents/*.md` — agent definitions (single source of truth)
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption
