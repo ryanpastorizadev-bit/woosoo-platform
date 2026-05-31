@@ -10,7 +10,7 @@ scope: tablet-ordering-pwa
 - task_slug: tab-case-009-broadcast-silent-death-detector
 - tier: 2
 - branch: agent/tab-case-009-broadcast-silent-death-detector
-- status: BLOCKED
+- status: IN_PROGRESS
 - last_completed_agent: contrarian
 - next_agent: specialist:chuya-frontend
 - active_runner: claude-code
@@ -19,7 +19,7 @@ scope: tablet-ordering-pwa
 - updated: 2026-05-31
 
 ## Handoff
-- Phase in progress: triaged intake — awaiting specialist scheduling (not yet started)
+- Phase in progress: Contrarian complete; ready for specialist:chuya-frontend
 - Done so far: Contrarian triage complete (below). Verified against current code that the gap is real.
 - Exact next action: chuya-frontend implements a silent-death/staleness detector in
   `tablet-ordering-pwa/composables/useBroadcasts.ts`; add a fail-before/pass-after test
@@ -93,5 +93,4 @@ drops server broadcasts until a manual reload.
 ## Remaining Risks
 - Threshold tuning: too aggressive → unnecessary reconnect churn; too lax → slow recovery.
 - Must not regress the reconnection/backoff behaviour shipped in TAB-CASE-001/002.
-- Not yet added to `state/QUEUE.md` (that file is actively maintained elsewhere) — queue-owner
-  should add a Bucket row, app=tablet-ordering-pwa, tier=2, dep=none.
+- Queue row now added in `state/QUEUE.md`; keep dep=none and status=queued until work starts.

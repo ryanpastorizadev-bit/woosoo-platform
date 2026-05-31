@@ -34,6 +34,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P2 | NEX-CASE-009 | woosoo-nexus | Restore admin Menus Course/Group/Image filters | 2 | none | done |
 | P2 | NEX-CASE-002 | woosoo-nexus | Pulse routes broken | 2 | none | done |
 | P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — client_submission_id absent | 2 | none | queued |
+| P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | queued |
 | P2 | PLT-CASE-009 | woosoo-platform | Docker MySQL/Redis not resolving | infra | none | done |
 | P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app; deps confirmed) | 3 | DEP-001,DEP-002,DEP-003 | queued |
 
