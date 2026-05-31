@@ -8,7 +8,8 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-30 — Phase 0 reconciliation: GitHub Issues ↔ cases ↔ QUEUE reconciled; stabilization backlog set -->
+<!-- Last updated: 2026-05-31 — Backlog reorg: 3 buckets (A stabilization / B deploy-readiness / C deferred); -->
+<!-- gate model corrected to staging→main (nexus dev→staging already merged via #157); 4 missing live cases captured. -->
 
 ---
 
@@ -27,9 +28,10 @@ description:  Phase 0 reconciliation — cross-referenced 13 open GitHub Issues 
               Bucket A only; KDS epic + features deferred.
 case_file:    (plan) C:/Users/Pc1/.claude/plans/review-and-assess-check-cozy-lark.md
 next_action:  Begin Bucket A. Lead: NEX-CASE-011 (#140 duplicate printing) investigated JOINT with
-              NEX-CASE-005 (legacy non-idempotent print path) — likely shared root cause. Then run
-              NEX-CASE-007 deploy trigger on Pi after deploy. Then INFRA-CASE-003 (#136 Pi build).
-last_agent:   claude-code — 2026-05-30 — Phase 0 reconciliation written to QUEUE.md/DONE.md/WORK.md.
+              NEX-CASE-005 (legacy non-idempotent print path) — likely shared root cause. In parallel:
+              INFRA-CASE-003 (#136 Pi build) and TAB-CASE-009 (chuya-frontend). Bucket B (deploy) runs
+              alongside; NEX-CASE-007 code is already on dev+staging — only the Pi trigger remains.
+last_agent:   claude-code — 2026-05-31 — backlog reorg (3 buckets, gate model corrected) in QUEUE.md/WORK.md.
 ```
 
 ## Reconciliation Findings (2026-05-30)
@@ -69,14 +71,22 @@ files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
 ## On Completion of Next Task
 
 ```text
-STABILIZATION SEQUENCE (Bucket A — gates dev→staging→main merge):
-1. NEX-CASE-011 (#140 duplicate printing, Tier 3) + NEX-CASE-005 (legacy print path) — JOINT investigation
-2. Deploy NEX-CASE-007 runtime trigger: run `php artisan pos:setup-payment-trigger` on Pi after deploy
-3. INFRA-CASE-003 (#136 Pi build npm ci WiFi) — deploy-gate
-4. Realign dev/staging → promote dev→staging→main (gated on 1-3 green)
+GATE MODEL (2026-05-31): nexus dev→staging ALREADY merged (nexus PR #157). Bucket A now gates
+staging→main ONLY. See state/QUEUE.md for the authoritative three-bucket backlog.
 
-DEFERRED (Bucket C — do NOT pull until stabilization promoted):
-→ PLT-CASE-003, KDS epic (#137/#143-#148), telemetry #152, #184, #30, #19, nex-case-010
+BUCKET A — Stabilization (gates staging→main):
+1. NEX-CASE-011 (#140 duplicate printing, T3, P1) + NEX-CASE-005 (legacy print path, T2) — JOINT, pull first
+2. INFRA-CASE-003 (#136 Pi build npm ci WiFi, T2) — parallel
+3. TAB-CASE-009 (tablet WS silent-death, T2) — parallel; contrarian done, awaiting chuya-frontend
+4. All three APPROVED → promote staging→main
+
+BUCKET B — Deploy readiness (NON-gating ops; gates the actual Pi rollout):
+→ NEX-CASE-007 Pi step (`php artisan pos:setup-payment-trigger`; code already on dev+staging),
+  INFRA-CASE-002 (Stage-B Pi verify), INFRA-CASE-001 (Pi migration on hardware), PRN-REBUILD-APK
+
+BUCKET C — Deferred features (do NOT gate any promotion):
+→ PLT-CASE-003, KDS epic (#137/#143-#148), telemetry #152, #184, #30, #19, NEX-CASE-010,
+  NEX-CASE-012 (admin UI), tablet-screen-ui-ux-review
 ```
 
 ---
