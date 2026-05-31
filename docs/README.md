@@ -50,6 +50,12 @@ Authoritative cross-app contracts. Implementation must be verified against actua
 - [pos-db.contract.md](../contracts/pos-db.contract.md) — POS DB access safety
 - [auth-session.contract.md](../contracts/auth-session.contract.md) — Sanctum/device auth boundaries
 
+## Business Requirements Documents
+
+- [Woosoo Platform BRD Supplement](business/WOOSOO_PLATFORM_BRD_SUPPLEMENT.md) — Platform role as 4th system component (orchestration, contracts, AI agent OS, governance); complements the Nexus BRD
+- [Woosoo Origin Specification (Archived)](business/WOOSOO_ORIGIN_SPECIFICATION.md) — Original May 20XX signed specification for the Woosoo KBBQ table ordering system project; historical reference only (KDS component later replaced by Woosoo Print Bridge)
+- [Specification Delta & Cost Analysis](business/WOOSOO_SPEC_DELTA.md) — Feature-by-feature comparison of origin spec vs. current system; project cost breakdown (legacy ₱350k / current est. ₱875k / delta ₱525k)
+
 ## Canonical audit documents (2026-05-14)
 
 These four documents are the authoritative system-state references. Restructured against a unified template; read the relevant one for any non-trivial task.
@@ -75,6 +81,7 @@ These four documents are the authoritative system-state references. Restructured
 
 Docker orchestration authority is the **platform repo root** (3-repo sibling model).
 
+- [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
 - `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
 - `scripts/deployment/README.md` — per-script migration status

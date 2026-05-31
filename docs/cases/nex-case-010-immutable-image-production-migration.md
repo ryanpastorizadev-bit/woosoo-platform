@@ -1,0 +1,77 @@
+---
+status: under-review
+last_reviewed: 2026-05-30
+scope: woosoo-platform
+---
+
+# CASE: nex-case-010-immutable-image-production-migration
+
+Track (do NOT yet implement) the migration to immutable production images so served assets come
+from the image layer, not the host bind-mount.
+
+## Run State
+- task_slug: nex-case-010-immutable-image-production-migration
+- tier: 3
+- branch: agent/immutable-image-migration
+- status: BLOCKED
+- last_completed_agent: none
+- next_agent: contrarian
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-30
+
+## Handoff
+- Phase in progress: none. TRACKED, NOT STARTED.
+- Done so far: identified as the strategic root cause behind the every-start rebuild while
+  reviewing case `infra-vite-build-conditional`.
+- Exact next action: do NOT implement alongside the tactical fix. When picked up, start with a
+  deep Contrarian risk analysis (Tier 3) — this changes the production deploy model.
+- Working-tree state: none.
+- Risks / do-not-redo: must not be bundled with the tactical conditional-build fix; requires
+  its own branch, written risk analysis, and rollback rehearsal on the Pi.
+
+## Tier
+3
+
+## Branch
+agent/immutable-image-migration
+
+## Problem
+
+Strategic root cause behind the every-start rebuild: the `app` service bind-mounts
+`./woosoo-nexus:/var/www/html` (compose.yaml:94), shadowing the image's baked `public/build`
+with host filesystem state. The tactical fix (case `infra-vite-build-conditional`) makes the
+build conditional, but the durable answer is immutable production images on the Pi so served
+assets come from the image, not the host.
+
+## Contrarian Review
+(Pending — Tier 3 deep review required before any implementation.)
+
+## Investigation
+
+Documented intent already exists at compose.yaml:68-73 ("IMMUTABLE-IMAGE" mode). Scope sketch:
+remove the `./woosoo-nexus:/var/www/html` bind-mount from app/queue/scheduler/reverb, rely on
+the image layer plus the named `storage_data` volume, delete the entrypoint Vite build
+entirely, and switch the deploy flow to rebuild-the-image-on-pull instead of hot-deploy.
+
+## Root Cause
+Runtime bind-mount shadow of image-baked assets (the hot-deploy model) is fundamentally at odds
+with reproducible, image-pinned production deploys.
+
+## Proposed Fix
+(Pending Contrarian deep review + written risk analysis.)
+
+## Files Changed
+(Pending. Expected: compose.yaml, woosoo-nexus/docker/docker-entrypoint.sh,
+scripts/deployment/deploy.sh.)
+
+## Verification
+(Pending.)
+
+## Executioner Verdict
+(Pending.)
+
+## Remaining Risks
+Changes the production deploy model (loss of hot-deploy fast-patch capability); requires
+rollback rehearsal on the Pi before adoption.
