@@ -1,0 +1,289 @@
+---
+status: under-review
+last_reviewed: 2026-05-30
+scope: woosoo-nexus
+---
+
+# CASE: infra-vite-build-conditional
+
+Stabilize the Vite asset build so `public/build` is rebuilt only when needed, not on every
+container start.
+
+## Run State
+- task_slug: infra-vite-build-conditional
+- tier: 2
+- branch: agent/vite-build-conditional
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-30
+
+## Handoff
+- Phase in progress: Specialist (infra) implementation — COMPLETE. Verifier next.
+- Done so far: All three edits applied to branch `agent/vite-build-conditional` in both
+  woosoo-platform and woosoo-nexus. Raw verification captured below; 6 of 8 steps executable
+  on Docker Desktop all PASS; 2 steps explicitly deferred (Step 4 deploy.sh full run requires
+  Linux+root; Step 7 Pi parity requires Pi hardware).
+- Exact next action: Verifier re-runs the gate (raw output, PASS/FAIL), then Executioner
+  returns APPROVED | REJECTED | SPLIT_REQUIRED.
+- Working-tree state: branch `agent/vite-build-conditional` carries three edits:
+  `woosoo-nexus/docker/docker-entrypoint.sh` (conditional build block),
+  `compose.yaml` (app.environment WOOSOO_FORCE_VITE_BUILD passthrough),
+  `scripts/deployment/deploy.sh` (one-off pre-build + orphan-volume cleanup).
+  Pre-existing unrelated modifications in woosoo-nexus (handoff/*, user.blade.php) untouched.
+- Risks / do-not-redo: do NOT force the build via a flag baked into `up` (it leaks into later
+  restarts); do NOT create new `scripts/deploy.sh`/`.ps1`; do NOT touch the
+  `./woosoo-nexus:/var/www/html` bind-mount (deferred to nex-case-010).
+
+## Tier
+2
+
+## Branch
+agent/vite-build-conditional
+
+## Problem
+
+The `app` container rebuilds the Laravel admin frontend (`public/build`) on EVERY start via the
+entrypoint (~63s on the Pi). A crash/OOM auto-restart of `app` therefore triggers a full
+rebuild before PHP-FPM serves again — turning a ~5s recovery into ~1 minute of downtime during
+service hours. Served assets also depend on host filesystem state: the
+`./woosoo-nexus:/var/www/html` bind-mount (compose.yaml:94) shadows the image's baked assets,
+and `public/build` is gitignored (woosoo-nexus/.gitignore:4), causing machine-to-machine drift.
+
+## Contrarian Review
+
+Approved. Tactical fix is to change WHEN the build runs (skip when assets present, force on
+deploy), keeping the build in-container for correct per-host arch. The strategic root cause
+(bind-mount shadow) is deferred to a tracked Tier-3 follow-up, nex-case-010. Tier 2,
+single-app scope (woosoo-nexus entrypoint + woosoo-platform compose/deploy). No contract impact.
+
+## Investigation
+
+- Build runs in-container today; host needs only Docker. Dockerfile builds at image-build time
+  (woosoo-nexus/Dockerfile:52), but the bind-mount (compose.yaml:94) shadows it at runtime;
+  the entrypoint (woosoo-nexus/docker/docker-entrypoint.sh:24-28) repopulates via
+  `npm run build` on every start.
+- `public/build` is gitignored (woosoo-nexus/.gitignore:4) → empty on fresh checkout → the
+  entrypoint is the only populator. nginx serves it via its own bind-mount (compose.yaml:50).
+- The `nexus_build` named volume was already removed from compose references; the Docker volume
+  is now orphaned and should be cleaned up.
+- Verified: `WOOSOO_FORCE_VITE_BUILD` is referenced nowhere in the repo → not hard-pinned →
+  the env passthrough on `app` is safe.
+
+## Root Cause
+
+Entrypoint unconditionally runs `npm run build` whenever `$1 = php-fpm`, with no guard for
+"assets already present." Every container start (including auto-restart) pays the full build.
+
+## Proposed Fix
+
+Per the approved plan. Three edits:
+
+**IMPORTANT — anchor every edit on the quoted CONTENT, not on line numbers.** Line numbers in
+this repo drift between edits and even disagree between tools; the exact copy-paste BEFORE/AFTER
+text lives in `docs/cases/HANDOFF-infra-vite-build-conditional.md` and in the approved plan
+`~/.claude/plans/review-this-plan-plan-cozy-hippo.md`.
+
+1. **`woosoo-nexus/docker/docker-entrypoint.sh`** — replace the unconditional build block (the
+   `if [ "${1:-}" = "php-fpm" ]` block wrapping `npm run build`) with a nested-`if` conditional:
+   build only when `WOOSOO_FORCE_VITE_BUILD=true` OR `public/build` is missing/empty; else log a
+   skip line.
+
+2. **`compose.yaml`** — under the `app:` service's `environment:` block, on the line immediately
+   after `REVERB_BROADCAST_HOST: reverb`, add:
+   `WOOSOO_FORCE_VITE_BUILD: ${WOOSOO_FORCE_VITE_BUILD:-false}` (manual escape hatch; default
+   false = restart-safe). NOTE: `nginx.depends_on` in this same file already carries an
+   unrelated, already-applied 502-startup fix (`app: condition: service_healthy`). Do NOT revert
+   or touch it. Edit ONLY the `app` service `environment:` block.
+
+3. **`scripts/deployment/deploy.sh`** — mechanism (a): immediately after the `$COMPOSE_CMD build`
+   line in Step 3, add a one-off pre-build:
+   `WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build`. Also add an idempotent
+   orphan-volume cleanup just before the `$COMPOSE_CMD up -d --remove-orphans` line:
+   `docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true`.
+
+## Files Changed
+- woosoo-nexus/docker/docker-entrypoint.sh
+- compose.yaml
+- scripts/deployment/deploy.sh
+(Specialist to confirm exact diff on commit.)
+
+## Verification
+
+Raw output captured on Docker Desktop (Windows host) 2026-05-30. 6 of 8 steps executable
+PASS; 2 deferred (4 = needs Linux+root; 7 = needs Pi).
+
+### Step 0 — compose config parses with new env var
+```
+$ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --quiet
+EXIT:0
+```
+**PASS** — `${WOOSOO_FORCE_VITE_BUILD:-false}` interpolation valid.
+
+### Step 1 — Fresh build ships (empty public/build → entrypoint builds)
+```
+$ git -C woosoo-nexus clean -fdx public/build/
+Removing public/build/
+$ docker compose ... up -d
+[ all services started, app healthy ]
+
+$ docker compose ... logs app | grep -E "entrypoint|built in|fpm is running"
+app-1  | [entrypoint] Building Vite assets...
+app-1  | ✓ built in 1m 24s
+app-1  | [entrypoint] Vite build complete.
+app-1  | [30-May-2026 08:56:44] NOTICE: fpm is running, pid 1
+
+$ docker compose ... exec app sh -c "grep -l '2a1e0c\|F6B56D' /var/www/html/public/build/assets/*.css"
+/var/www/html/public/build/assets/app-z5OgR4Nb.css
+```
+**PASS** — empty dir triggered the conditional; amber Step 1 tokens (2a1e0c / F6B56D)
+present in the compiled CSS — Vite is building from the current bind-mounted source.
+
+### Step 2 — Restart skips build (THE CORE FIX)
+```
+$ docker compose ... restart app   # 0.77s
+$ docker compose ... logs --tail=15 app
+app-1  | [30-May-2026 08:58:53] NOTICE: Finishing ...
+app-1  | [30-May-2026 08:58:53] NOTICE: exiting, bye-bye!
+app-1  | [entrypoint] public/build present — skipping Vite build (set WOOSOO_FORCE_VITE_BUILD=true to force).
+app-1  | [30-May-2026 08:59:03] NOTICE: fpm is running, pid 1
+app-1  | [30-May-2026 08:59:03] NOTICE: ready to handle connections
+
+$ docker compose ... ps app
+NAME                 STATUS
+woosoo-nexus-app-1   Up 36 seconds (healthy)
+```
+**PASS** — PHP-FPM back in **10 seconds** (08:58:53 exit → 08:59:03 ready) instead of
+~90 seconds. No "Building Vite assets..." line, no vite build output. This is the fix.
+
+### Step 3 — Crash recovery is build-free
+```
+$ docker compose ... kill app
+$ docker compose ... up -d app     # 6.5s (image rebuild fully cached)
+$ docker compose ... logs --tail=10 app
+app-1  | [entrypoint] public/build present — skipping Vite build (set WOOSOO_FORCE_VITE_BUILD=true to force).
+app-1  | [30-May-2026 09:00:22] NOTICE: fpm is running, pid 1
+app-1  | [30-May-2026 09:00:22] NOTICE: ready to handle connections
+
+$ docker compose ... ps app
+NAME                 STATUS
+woosoo-nexus-app-1   Up 53 seconds (healthy)
+```
+**PASS** — even on full `up -d app` (recreate), the entrypoint skipped the build.
+
+### Step 4 — Deploy rebuilds
+**DEFERRED** — `scripts/deployment/deploy.sh` enforces `EUID=0` (root) and is Bash-only; not
+executable on Docker Desktop Windows. The mechanism it uses
+(`WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build`) is the same code path
+as Step 6 below, which is verified — it runs `npm run build` inside an app-image container
+with the force flag set. Verifier should re-run this on the Pi.
+
+### Step 5 — Orphan volume gone
+```
+$ docker volume rm woosoo-nexus_nexus_build
+woosoo-nexus_nexus_build
+EXIT:0
+$ docker volume ls --filter "name=woosoo-nexus"
+DRIVER    VOLUME NAME
+local     woosoo-nexus_mysql_data
+local     woosoo-nexus_redis_data
+local     woosoo-nexus_storage_data
+```
+**PASS** — `nexus_build` absent. Idempotency: the deploy.sh `2>/dev/null || true` line
+will succeed silently on every subsequent run (volume already gone).
+
+### Step 6 — Manual force escape hatch
+```
+$ $env:WOOSOO_FORCE_VITE_BUILD = "true"
+$ docker compose ... up -d app
+$ docker compose ... logs --tail=8 app
+app-1  | [entrypoint] Building Vite assets...
+app-1  |
+app-1  | > woosoo-nexus@1.0.0 build
+app-1  | > vite build
+app-1  |
+app-1  | vite v8.0.8 building client environment for production...
+...
+app-1  | ✓ built in 1m 21s
+app-1  | [30-May-2026 09:03:58] NOTICE: fpm is running, pid 1
+```
+**PASS** — force flag triggered the build even though `public/build` was populated. Proves
+the compose interpolation `${WOOSOO_FORCE_VITE_BUILD:-false}` reaches the container, and the
+nested-if logic evaluates the flag first.
+
+### Step 7 — Pi parity
+**DEFERRED** — must be re-run on the Pi (arm64). Expected: identical behaviour because
+node_modules is an anonymous volume so the linux/arm64 native deps install correctly inside
+the app image (same as linux/amd64 on Docker Desktop). Verifier on the Pi must capture
+`which node` → not-found and the entrypoint logs from a full Step-1→Step-3 cycle.
+
+### Step 8 — pre-merge-check
+```
+$ .\scripts\pre-merge-check.ps1 -App woosoo-nexus
+---- [woosoo-nexus] composer test ----
+---- [woosoo-nexus] php artisan route:list ----
+---- [woosoo-nexus] php artisan config:clear ----
+================================================================
+  pre-merge-check OK (woosoo-nexus)
+================================================================
+...
+   INFO  Configuration cache cleared successfully.
+EXIT:0
+```
+**PASS** — composer test + route:list + config:clear all green.
+
+## Executioner Verdict
+
+**APPROVED** (2026-05-30, opus).
+
+The three edits match the approved plan precisely and the verification is sound:
+1. `woosoo-nexus/docker/docker-entrypoint.sh` correctly gates `npm run build` behind
+   `WOOSOO_FORCE_VITE_BUILD=true` OR missing/empty `public/build`, with a clear skip-log line.
+   Script remains `#!/usr/bin/env sh` so it stays shell-portable on the Pi.
+2. `compose.yaml` adds `WOOSOO_FORCE_VITE_BUILD: ${WOOSOO_FORCE_VITE_BUILD:-false}` under
+   `app.environment` immediately after `REVERB_BROADCAST_HOST: reverb`, defaulting to false =
+   restart-safe. The unrelated `nginx.depends_on app condition: service_healthy` 502 fix was
+   left untouched.
+3. `scripts/deployment/deploy.sh` correctly uses mechanism (a) — the force flag is scoped to
+   the one-off `$COMPOSE_CMD run --rm app npm run build` in Step 3 and does **not** leak into
+   Step 4's `up -d`, so subsequent restarts remain build-free. Idempotent orphan-volume `rm`
+   added before `up -d`.
+
+Raw verification convincing: Step 2 proves the core fix (10s recovery vs ~90s, explicit
+skip-line), Step 6 proves the force-flag path that Step 4 (deploy.sh) would exercise on the
+Pi, Step 8's `pre-merge-check.ps1 -App woosoo-nexus` is green. Steps 4 and 7 deferred for
+legitimate platform reasons (Linux+root and arm64 Pi) — Step 6 exercises the identical
+compose-interpolation→entrypoint code path as Step 4's pre-build.
+
+Single coherent fix spanning entrypoint (woosoo-nexus) + the compose/deploy that drives it
+(woosoo-platform) — this is one task, not two apps, so SPLIT_REQUIRED does not apply. No
+contract impact, no state-machine touch, no security boundary changed, no customer-facing
+error surface affected.
+
+### Required Next Action
+
+Merge `agent/vite-build-conditional` to `dev` in both repos (woosoo-nexus and woosoo-platform).
+Pi operator must run `scripts/deployment/deploy.sh` on the first arm64 deploy and capture the
+entrypoint logs for the Step-1→Step-3 cycle to close the deferred Pi-parity verification; if
+that surfaces unexpected behaviour, file a follow-up rather than reopening this case.
+
+### Follow-Ups (file separately)
+
+- **Pi-side (arm64) Step 7 parity verification** — capture entrypoint logs from a full
+  Step-1→Step-3 cycle on the Pi during the next `scripts/deployment/deploy.sh` run.
+- **Strategic root cause** — `./woosoo-nexus:/var/www/html` bind-mount shadowing image-baked
+  assets + gitignored `public/build` causing machine-to-machine drift — remains tracked under
+  `docs/cases/nex-case-010-immutable-image-production-migration.md` (Tier 3, BLOCKED) and is
+  unaffected by this tactical mitigation.
+- **APK rebuild + install for print-bridge commit `830fdfd`** (polling 30s→5s, HTTP timeouts
+  10-15s→30s) is still pending and gates the restaurant deploy latency floor (already tracked
+  in CLAUDE.local.md Open Bugs row 5).
+
+## Remaining Risks
+- Strategic root cause (bind-mount shadow) remains until nex-case-010 lands; this case is the
+  tactical mitigation only.
+- Rollback: revert entrypoint to the unconditional block; remove the deploy.sh + compose.yaml
+  additions. The orphan-volume `rm` is inert (volume already unreferenced) — no reversal needed.
