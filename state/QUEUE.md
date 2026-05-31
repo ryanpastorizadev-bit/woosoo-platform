@@ -37,8 +37,6 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P1 | NEX-CASE-011 | woosoo-nexus | Duplicate order printing (BT + POS) — investigate & fix | 3 | none | queued | #140 |
-| P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — `client_submission_id` absent (investigate JOINT with #140) | 2 | none | queued | — |
 | P2 | INFRA-CASE-003 | woosoo-platform | Pi Docker build fails — `npm ci` drops WiFi (ECONNRESET/ETIMEDOUT) | 2 | none | queued | #136 |
 | P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | contrarian-done → chuya-frontend | — |
 
@@ -48,6 +46,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
+| P1 | NEX-CASE-011 (POS cfg) | woosoo-nexus / POS | **Root-caused 2026-05-31 → POS-side, no Nexus code change.** Duplicate = Krypton POS auto-prints from `create_ordered_menu` while Nexus BT path also prints. BT-only intended → **disable the 3rd-party POS printer (or set no-print) in Krypton/POS config on the Pi**. Gates the restaurant rollout, NOT the code merge | 3 | none | ops — POS config on Pi | #140 |
 | P1 | NEX-CASE-007 (deploy) | woosoo-nexus | Code merged to dev+staging. Run `php artisan pos:setup-payment-trigger` on the Pi POS env; confirm `pos:consume-payment-status-events` scheduler runs | 3 | none | code-landed; Pi step pending | #152 |
 | P2 | INFRA-CASE-002 | woosoo-platform | Deploy stability wrappers — Stage A on dev; **Stage B Pi runtime verification pending** | 2 | none | in_progress (verifier:Pi) | — |
 | P2 | INFRA-CASE-001 | woosoo-platform | Pi platform-root migration (compose/docker/scripts) — built on dev box, **untested on Pi hardware** | 3 | none | in_progress (specialist:infra) | — |
@@ -77,6 +76,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| NEX-CASE-005 | woosoo-nexus | 2026-05-31 | Closed **OBE** (not Executioner — cannot-reproduce class). Root-caused jointly with #011: the legacy "non-idempotent print event path" warning string no longer exists in code; print-event creation is idempotent (`idempotency_key` unique, reuse-on-match). Narrow residual (`Str::uuid()` fallback when tablet omits `client_submission_id`) is guarded by 409/refill-guard; not pursued. Removed from Bucket A |
 | NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS payment outbox; per-order SessionReset blast-radius removed; authenticated-device last_seen_at middleware. Executioner APPROVED. Merged to remote dev; `pos:setup-payment-trigger` deploy still pending |
 | NEX-CASE-002 | woosoo-nexus | 2026-05-30 | Pulse routes — cannot-reproduce; route/gate/permission correct; gating test PulseRouteAuthTest added; 432 tests pass; pre-merge-check OK. Executioner APPROVED |
 | NEX-CASE-008 | woosoo-nexus | 2026-05-2x | TransientToken 500 on /refresh + /logout (admin web session hits device endpoint). Marked done in queue; **DONE.md row pending verification backfill** |
