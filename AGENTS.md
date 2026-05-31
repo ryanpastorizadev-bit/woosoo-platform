@@ -221,6 +221,24 @@ forensic review. (This repo is not currently a git repo — treat this as docume
 The Contrarian lists candidate skills (it folds in skill discovery). The Specialist loads only
 those skills. Do not load the whole skill library.
 
+Scenario → skill (the Contrarian selects from these; the Specialist loads only what is listed):
+
+| When the task involves… | Load skill |
+| ----------------------- | ---------- |
+| Every task (the sequence + the final Agent Chain block) | `agent-sequence` |
+| Laravel routes/controllers/FormRequests/resources/jobs/transactions | `laravel-api-change` |
+| 419/CSRF, device tokens, Sanctum stateful domains, guard/provider mismatch | `sanctum-auth-debug` |
+| Nuxt tablet flow, screen transitions, PWA update behaviour | `nuxt-pwa-flow` |
+| Pinia store state, session/cart/device leakage | `pinia-state-audit` |
+| Printer heartbeat, station routing, duplicate-print prevention | `printer-relay-debug` |
+| Docker/Nginx/compose/health/deployment | `docker-deployment-debug` |
+| Any doc/spec/contract change | `documentation-truth-audit` |
+| Proving a change works — before claiming "done" (every code task) | `test-verification` |
+| Pre-completion hygiene sweep — before the Verifier (every code task) | `dead-code-cleanup` |
+
+`agent-sequence` is mandatory on every task; `test-verification` and `dead-code-cleanup` are
+effectively mandatory on every code task.
+
 ## Model Selection Policy
 
 Use the cheapest competent model.
