@@ -1,0 +1,96 @@
+---
+status: canonical
+last_reviewed: 2026-05-31
+scope: tablet-ordering-pwa
+---
+
+# CASE: tab-case-009-broadcast-silent-death-detector
+
+## Run State
+- task_slug: tab-case-009-broadcast-silent-death-detector
+- tier: 2
+- branch: agent/tab-case-009-broadcast-silent-death-detector
+- status: IN_PROGRESS
+- last_completed_agent: contrarian
+- next_agent: specialist:chuya-frontend
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-31
+
+## Handoff
+- Phase in progress: Contrarian complete; ready for specialist:chuya-frontend
+- Done so far: Contrarian triage complete (below). Verified against current code that the gap is real.
+- Exact next action: chuya-frontend implements a silent-death/staleness detector in
+  `tablet-ordering-pwa/composables/useBroadcasts.ts`; add a fail-before/pass-after test
+  (Regression Lock).
+- Working-tree state: none (this file only)
+- Risks / do-not-redo: do NOT duplicate the reconnection work already shipped in TAB-CASE-001/002;
+  this is the *connected-but-dead* detector, which is additive to reconnection.
+
+## Tier
+2
+
+## Branch
+agent/tab-case-009-broadcast-silent-death-detector
+
+## Problem
+The tablet's Echo/Reverb WebSocket can enter a "connected-but-dead" (zombie) state: the client
+believes it is connected, but no events are flowing, so `SessionReset` / order-terminal broadcasts
+are silently dropped. Observed symptom: after an admin force-end, affected tablets stay stuck
+on the in-session screen and require a **manual refresh** to recover. This is the tablet-side
+complement to NEX-CASE-007 (which fixed the backend per-order `SessionReset` blast radius): the
+backend now emits the right event, but a zombie socket on the tablet never receives it.
+
+Source: Phase-15 session summary (2026-05-21). Carried into the case system on 2026-05-31 after
+verification (below) confirmed the gap is still open.
+
+## Contrarian Review
+- **Tier:** 2 — single app (`tablet-ordering-pwa`), bounded change to one composable + a test. No
+  backend, contract, or order-state change. (Borderline Tier 3 because it concerns real-time
+  delivery reliability; kept Tier 2 because the fix is local and additive — escalate if the fix
+  turns out to require reconnection-strategy changes that overlap TAB-CASE-001/002.)
+- **Assigned specialist:** chuya-frontend. Scope: `tablet-ordering-pwa/**`.
+- **Candidate skills:** `agent-sequence`, `nuxt-pwa-flow`, `pinia-state-audit`, `test-verification`,
+  `dead-code-cleanup`.
+- **Not a duplicate:** TAB-CASE-001/002 reworked reconnection/backoff and types in
+  `useBroadcasts.ts`; neither added a liveness/heartbeat detector. TAB-CASE-007 added a
+  `table_changed` handler (a specific dropped-event fix), not liveness detection.
+- **Recommendation:** Proceed (when scheduled).
+
+## Investigation
+Verified 2026-05-31 against `tablet-ordering-pwa/composables/useBroadcasts.ts`: the file has
+reconnect timers (`window.setTimeout` at ~L174 reconnect, ~L341 reload) but **no** heartbeat,
+ping/pong, last-message-timestamp staleness check, or watchdog — i.e. nothing detects a socket
+that is nominally "connected" but receiving no traffic. A grep for
+`heartbeat|ping|pong|silent|stale|watchdog|lastMessage|deadConnection` returns no liveness logic.
+
+## Root Cause
+No connection-liveness detector exists. Reverb/Pusher "connected" state is trusted at face value;
+when the underlying transport silently dies (no close event), the app never reconnects and silently
+drops server broadcasts until a manual reload.
+
+## Proposed Fix
+(For the specialist — confirm against `contracts/tablet-api.contract.md` and current Echo wiring.)
+- Track a `lastEventAt` timestamp updated on every received event (and on Echo `pong`/connection
+  state changes if available).
+- Add a watchdog interval that, if no traffic within a threshold while "connected", forces a
+  reconnect (reuse the existing reconnect path; do not introduce a second strategy).
+- Ensure the post-reconnect path re-subscribes channels and re-hydrates authoritative state from
+  the backend (don't trust in-memory state).
+- **Regression Lock:** add a test that fails on the pre-fix code (zombie socket → no recovery) and
+  passes after (watchdog triggers reconnect / state re-hydration).
+
+## Files Changed
+<!-- filled by specialist -->
+
+## Verification
+<!-- filled by verifier -->
+
+## Executioner Verdict
+<!-- filled by executioner -->
+
+## Remaining Risks
+- Threshold tuning: too aggressive → unnecessary reconnect churn; too lax → slow recovery.
+- Must not regress the reconnection/backoff behaviour shipped in TAB-CASE-001/002.
+- Queue row now added in `state/QUEUE.md`; keep dep=none and status=queued until work starts.

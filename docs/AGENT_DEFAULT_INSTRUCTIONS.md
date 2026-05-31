@@ -265,6 +265,28 @@ The following rules were added after repeated agent failures caused by specific 
 
 ---
 
+## Regression Lock — A Fix Stays Fixed
+
+**Rule:** A fix is not complete until a test makes the defect unable to return silently. The same
+bug must never recur unnoticed.
+
+**Required for every code fix:**
+- Add or update a test that **fails on the pre-fix code and passes on the post-fix code** —
+  capture both results (fail-before, pass-after) as evidence in the case file.
+- If the defect is a contract/state invariant, add a **contract-lock test** asserting the
+  invariant (e.g. "`SessionReset` is not dispatched per-order"; "the order status enum exposes no
+  state outside `OrderStatus`").
+- If it genuinely cannot be automated, state why and record the exact manual reproduction plus
+  post-fix proof.
+
+**Forbidden:**
+- Closing a fix as "verified manually" when an automated guard was feasible.
+- Re-fixing a previously "fixed" defect without first adding the regression test that should have
+  caught it — **the missing test is itself the defect**.
+- Drive-by edits to unrelated behaviour while fixing; they are the usual source of new issues.
+
+---
+
 ## Destructive Git Operations Are Absolutely Forbidden
 
 **Rule:** The following git commands must never be run on tracked files without explicit written user approval in the same conversation turn:
@@ -375,6 +397,21 @@ git clean -f
 **Required when an agent receives a working tree with uncommitted changes:**
 - Classify each dirty file before touching anything.
 - Never discard unclassified changes.
+
+**Uncommitted-changes decision tree (run `git status` first — always):**
+1. **Belongs to the active case** → keep it; it is checkpointed to the case file. Continue.
+2. **Pre-existing and unrelated** to this task → do NOT bundle it. Stage only your own files by
+   explicit path (`git add <path> …`). Never `git add .` / `git add -A`. List the untouched
+   files in your report.
+3. **An artifact you created this task and no longer need** → remove it (`dead-code-cleanup`)
+   before the Verifier runs — but only files you created this task.
+4. **Stray and unsafe to keep but possibly needed** → `git stash push -m "<why>" -- <paths>`
+   (recoverable). Never `git stash drop|clear`, `git reset --hard`, or `git clean -fd`.
+5. **At every gate handoff** → commit and push the case file (checkpoint discipline) so a
+   machine switch loses at most one gate.
+
+**End-of-task gate:** `git diff --stat` must show only declared-scope files. Any dirty file
+outside the declared scope is an automatic Executioner rejection.
 
 ---
 

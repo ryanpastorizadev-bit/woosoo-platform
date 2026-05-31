@@ -1,0 +1,110 @@
+---
+status: canonical
+last_reviewed: 2026-05-31
+scope: woosoo-nexus
+---
+
+# CASE: nex-case-012-admin-ui-prototype-impl
+
+> **Deferred — Bucket C feature.** Does NOT gate the dev→staging→main stabilization merge.
+> Registered 2026-05-31 from the archived session log
+> (`docs/archive/agent-sessions-2026-05.md`, "Session Summary — Woosoo Nexus Design
+> Implementation", 2026-05-31) so the work is not lost when the log was retired. No code was
+> written in that session ("Not started"). Pull only after stabilization promotes.
+
+## Run State
+- task_slug: nex-case-012-admin-ui-prototype-impl
+- tier: 2
+- branch: agent/nex-case-012-admin-ui-prototype-impl
+- status: BLOCKED
+- last_completed_agent: none
+- next_agent: contrarian
+- active_runner: claude-code
+- interrupted: true
+- interrupt_reason: manual-handoff
+- updated: 2026-05-31 22:00
+
+## Handoff
+- Phase in progress: Registration only — not triaged, not started.
+- Done so far: Captured deliverables + design tokens from the archived design session.
+- Exact next action: When pulled (post-stabilization), run a full Contrarian triage. Confirm the
+  external design bundle (`Woosoo Admin.html` + `admin-*.jsx` + `MIGRATION.md`) is available —
+  it is a Claude Design export and is **not present in any repo**; the user holds it.
+- Working-tree state: none (this file only)
+- Risks / do-not-redo: specialist assignment is non-obvious — the admin UI is Vue 3 + Inertia
+  living **inside `woosoo-nexus/`** (ranpo-backend path), not the Nuxt tablet. Decide ownership
+  at triage. Deliverables 1 & 2 are prototype/demo HTML that live in the external bundle, not a
+  repo; only Deliverable 3 (Vue SFCs) targets the production codebase.
+
+## Tier
+2 (feature; UI). Re-confirm at triage.
+
+## Branch
+agent/nex-case-012-admin-ui-prototype-impl
+
+## Problem
+The user exported a design bundle from Claude Design (Woosoo Admin prototype) and asked to
+implement the **Tablet Categories** and **Packages** admin UI/UX into the `woosoo-nexus`
+production codebase (Laravel 12 + Vue 3 + Inertia + Tailwind v4 + shadcn-vue). The 2026-05-31
+session ended at the planning stage with **no code written**; all three deliverables were
+"Not started." This case carries that intent forward so it is tracked, not lost.
+
+## Scope — three deliverables (from the design session)
+| # | Deliverable | Where it lives | Status |
+|---|---|---|---|
+| 1 | Enhance existing HTML prototype with full interactivity (drag-reorder, Edit/New/Attach/Preview modals) | external bundle `admin-app.jsx` / `admin-screens.jsx` | Not started |
+| 2 | Standalone focused demo HTML (two-tab Packages \| Tablet Categories, portable) | external bundle `tablet-packages-demo.html` (new) | Not started |
+| 3 | Vue 3 SFCs for production | `woosoo-nexus` `Packages/Index.vue`, `TabletCategories/Index.vue` | Not started |
+
+Only Deliverable 3 touches a Woosoo repo. Deliverables 1 & 2 are prototype artifacts in the
+external design bundle.
+
+## Design tokens (from `Woosoo Admin.html`, for Deliverable 3 parity)
+| Token | Value |
+|---|---|
+| `--bg0` | `#0d0b09` (page bg) |
+| `--bg2` | `#1b1815` (card bg) |
+| `--accent` | `#F6B56D` (amber/persimmon) |
+| `--accm` | `#2a1e0c` (accent muted bg) |
+| `--green` | `#6ea868` |
+| `--red` | `#c94f40` |
+| `--font-d` | Raleway (display) |
+| `--font-s` | Kanit (body) |
+| `--font-m` | JetBrains Mono (numbers) |
+| `--r-xl` | `14px` (card radius) |
+
+Vue 3 conventions captured in the log: `<script setup lang="ts">`, `lucide-vue-next` icons,
+shadcn-vue (`Badge`/`Button`/`Dialog`/`Table`), local `ref`/`computed`/`reactive` state,
+emit-based API (parent handles HTTP), CSS custom properties (no Tailwind utilities). Full detail
+in the archived log's "Deliverable 3 — Vue 3 SFC Files" section.
+
+## Contrarian Review
+Light registration triage only (full triage deferred to scheduling):
+- Bucket C feature, non-gating. One app (`woosoo-nexus`) for the production deliverable.
+- Specialist ownership to be decided at triage (nexus-resident Vue/Inertia work).
+- Candidate skills at scheduling: `agent-sequence`, `laravel-api-change` (if the SFCs need
+  backing endpoints), `dead-code-cleanup`, `test-verification`.
+- Recommendation: Proceed only when pulled post-stabilization; confirm the design bundle is in
+  hand first.
+
+## Investigation
+(deferred)
+
+## Root Cause
+n/a (feature)
+
+## Proposed Fix
+(deferred — see Scope)
+
+## Files Changed
+(none yet)
+
+## Verification
+(deferred)
+
+## Executioner Verdict
+(pending)
+
+## Remaining Risks
+- The design bundle is external and not version-controlled; confirm availability before starting.
+- Specialist-path ambiguity (Vue-in-nexus) — resolve at triage.

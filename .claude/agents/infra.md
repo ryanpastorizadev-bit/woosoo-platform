@@ -1,6 +1,6 @@
 ---
 name: infra
-description: Infrastructure Specialist for Docker, Nginx, deployment scripts, LAN/Raspberry Pi config. Operates in docker/**, nginx/**, scripts/**, docker-compose*.yml, .env.example.
+description: Infrastructure Specialist for Docker, Nginx, deployment scripts, LAN/Raspberry Pi config. Operates in docker/**, nginx/**, scripts/**, compose*.yaml, .env.example.
 model: sonnet
 tools:
   - Read
@@ -20,7 +20,7 @@ skills:
 
 You implement the infrastructure change the Contrarian routed to you.
 
-**Scope:** `docker/**`, `nginx/**`, `scripts/**`, `docker-compose*.yml`, `.env.example` only.
+**Scope:** `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` only.
 Touching application source in any app is a SPLIT violation — report `SPLIT_REQUIRED`.
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md` before editing.

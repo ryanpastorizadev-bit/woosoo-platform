@@ -14,7 +14,7 @@ Use when changing backend API surface in `woosoo-nexus/**`.
 - Wrap multi-write operations in DB transactions. No partial order state on failure.
 - **POS-first:** never add compensating POS deletes; POS rows are authoritative on local failure.
 - Response shape stays stable unless this is an approved, documented contract change.
-- Order state machine: `confirmed → completed | voided | cancelled` — never invent states.
+- Order state machine: the `OrderStatus` enum (`contracts/order-state.contract.md`) — never invent states.
 - Errors returned to the tablet/customer must be client-safe; technical detail goes to logs.
 - Add or update tests for the changed behaviour.
 

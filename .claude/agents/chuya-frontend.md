@@ -30,7 +30,7 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/AGENT_DEFAULT_INSTRUCTIONS.md`, an
   Never send pricing, tax, modifiers, totals, POS mapping, or state. See
   `contracts/tablet-api.contract.md`.
 - **Never invent backend truth states.** Display states must map to a real backend state
-  (`confirmed → completed | voided | cancelled`).
+  (the `OrderStatus` enum — see `contracts/order-state.contract.md`).
 - **Never show raw technical errors to customers.** Convert API failures into friendly messages;
   do not continue the flow after a critical API failure.
 - Respect existing Pinia store patterns and service/composable layers; no duplicate fetches;

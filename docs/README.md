@@ -12,23 +12,18 @@ This is the canonical entry point for all Woosoo platform documentation. Only do
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform
 - [CLAUDE.md](../CLAUDE.md) — Claude Code–specific instructions
-- [.github/copilot-instructions.md](../.github/copilot-instructions.md) — GitHub Copilot guardrails
 - [AI_CONTEXT.md](AI_CONTEXT.md) — Business and architecture context
 
 ## Agent operating system (Lite, 4-agent)
 
 The Lite 4-agent operating system (Contrarian → Specialist → Verifier → Executioner) is defined
-in [AGENTS.md](../AGENTS.md). It is vendor-neutral and consumed by Claude Code, OpenAI Codex
-CLI, and GitHub Copilot.
+in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 
+- [USAGE_GUIDE.md](USAGE_GUIDE.md) — **operator runbook**: how to drive the system, common-scenario protocol index, and the anti-degradation loop
 - Claude subagents: `.claude/agents/*.md` — agent definitions (single source of truth)
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
-- Codex per-app entrypoints (thin pointers to each app's `.agents.md`):
-  [woosoo-nexus/AGENTS.md](../woosoo-nexus/AGENTS.md),
-  [tablet-ordering-pwa/AGENTS.md](../tablet-ordering-pwa/AGENTS.md),
-  [woosoo-print-bridge/AGENTS.md](../woosoo-print-bridge/AGENTS.md)
-- [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **cross-runner resume & handoff** (rate-limit /
-  interruption recovery; case file is the durable state)
+- [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption
+  recovery; case file is the durable state)
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
 - [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
@@ -44,7 +39,7 @@ CLI, and GitHub Copilot.
 
 Authoritative cross-app contracts. Implementation must be verified against actual code.
 
-- [order-state.contract.md](../contracts/order-state.contract.md) — `confirmed → completed | voided | cancelled`
+- [order-state.contract.md](../contracts/order-state.contract.md) — `OrderStatus` enum + transitions (mirrors `woosoo-nexus/app/Enums/OrderStatus.php`)
 - [tablet-api.contract.md](../contracts/tablet-api.contract.md) — intent-only tablet payload
 - [printer-relay.contract.md](../contracts/printer-relay.contract.md) — heartbeat & print idempotency
 - [pos-db.contract.md](../contracts/pos-db.contract.md) — POS DB access safety
@@ -108,7 +103,7 @@ Documents in `docs/archive/` and per-app `docs/archive/` directories are histori
 - `scripts/pre-merge-check.sh` — Bash pre-merge validation
 - `scripts/pre-merge-check.ps1` — PowerShell wrapper for Windows
 - `scripts/case-status.sh` / `scripts/case-status.ps1` — print/update the `## Run State` block
-  in `docs/cases/<slug>.md` (cross-runner resume helper; see RESUME_PROTOCOL.md)
+  in `docs/cases/<slug>.md` (resume helper; see RESUME_PROTOCOL.md)
 
 ## Frontmatter convention
 

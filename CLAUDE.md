@@ -48,5 +48,5 @@ Reminders:
 - The tablet sends intent; the backend owns truth.
 - One app per task.
 - No technical errors to customers.
-- Order state: `confirmed → completed | voided | cancelled`.
+- Order state: `OrderStatus` enum; terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`.
 - Only docs with `status: canonical` are source of truth.
