@@ -35,6 +35,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — `client_submission_id` absent (investigate JOINT with #140) | 2 | none | queued | — |
 | P1 | NEX-CASE-007 | woosoo-nexus | POS payment outbox / SessionReset blast-radius + `last_seen_at` middleware | 3 | none | complete-landed | #152 (backend) |
 | P2 | INFRA-CASE-003 | woosoo-platform | Pi Docker build fails — `npm ci` drops WiFi (ECONNRESET/ETIMEDOUT) | 2 | none | queued | #136 |
+| P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | queued | — |
 
 ### Bucket C — Deferred (post-stabilization release; do NOT gate the merge)
 
