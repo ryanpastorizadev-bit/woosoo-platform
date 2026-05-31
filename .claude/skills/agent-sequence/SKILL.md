@@ -34,8 +34,8 @@ the Verifier re-runs clean.
 
 ## Resume & checkpointing (mandatory — see `docs/RESUME_PROTOCOL.md`)
 
-The chain must survive an interrupted runner (rate limit, context limit, handoff to Codex or
-Copilot). The durable, runner-agnostic state lives in `docs/cases/<task-slug>.md`.
+The chain must survive an interruption (rate limit, context limit, manual handoff between
+sessions). The durable state lives in `docs/cases/<task-slug>.md`.
 
 - **Before starting any task:** check `docs/cases/<task-slug>.md`. If `status: IN_PROGRESS` or
   `BLOCKED`, do not restart — read its `## Run State` + `## Handoff`, adopt the `next_agent`
@@ -44,7 +44,7 @@ Copilot). The durable, runner-agnostic state lives in `docs/cases/<task-slug>.md
   block to the case file *before* handing off. The chain only advances after this checkpoint.
 - **If you are being cut off:** write a `## Handoff` note, set `status: BLOCKED`,
   `interrupted: true`, `interrupt_reason: <reason>`.
-- Trust the case file over chat memory. A resuming runner needs only the case file.
+- Trust the case file over chat memory. A resuming session needs only the case file.
 
 ## Mandatory final output
 
@@ -70,7 +70,7 @@ APPROVED / REJECTED / SPLIT_REQUIRED
 ```
 
 This same information must also be checkpointed into `docs/cases/<task-slug>.md` (the `## Run
-State` block + matching phase sections) so any runner can resume. On `APPROVED`, set the case
-file `status: COMPLETE`.
+State` block + matching phase sections) so a later session can resume. On `APPROVED`, set the
+case file `status: COMPLETE`.
 
 `No error does not mean working. Working means verified.`

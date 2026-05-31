@@ -8,7 +8,8 @@ description: Ensure docs match real code — commands exist, features exist, sta
 ## Checklist
 - Every command shown in docs actually exists and runs.
 - Every feature/endpoint/state described actually exists in code. Verify before writing.
-- Order state machine reads `confirmed → completed | voided | cancelled` everywhere.
+- Order state machine matches the `OrderStatus` enum / `contracts/order-state.contract.md`
+  everywhere — no doc invents states or contradicts the enum.
 - Outdated docs are consolidated or marked `status: archived` — never left as conflicting
   duplicates of canonical content.
 - No "implemented / done / complete" claim without verifiable proof.

@@ -28,7 +28,7 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/AGENT_DEFAULT_INSTRUCTIONS.md`, an
 ## Hard rules
 - **Backend owns truth.** Pricing, tax, modifiers, totals, POS mapping, and state are computed
   here — never accepted from the tablet.
-- **Order state machine:** `confirmed → completed | voided | cancelled`. Do not invent states.
+- **Order state machine:** the `OrderStatus` enum; terminal = `completed | cancelled | voided | archived`. Do not invent states.
   See `contracts/order-state.contract.md`.
 - **POS-first:** never add compensating POS deletes; if a local transaction fails, POS rows are
   authoritative. Writes must be transactional; no partial order state on failure.

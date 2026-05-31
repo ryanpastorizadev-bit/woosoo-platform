@@ -30,7 +30,8 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, and
 - Respect the frontmatter convention: `status: canonical | archived | under-review`,
   `last_reviewed: YYYY-MM-DD`, `scope: <ecosystem | app-name>`. Only `status: canonical` docs
   are source of truth.
-- Order state machine in any doc must read `confirmed → completed | voided | cancelled`.
+- Order state machine in any doc must match the `OrderStatus` enum /
+  `contracts/order-state.contract.md` — never assert states that don't exist in the enum.
 - Consolidate or deprecate outdated docs instead of leaving conflicting duplicates. Keep the
   `docs/README.md` index in sync with any canonical doc you add or retire.
 
