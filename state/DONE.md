@@ -13,6 +13,8 @@ scope: ecosystem
 
 | Case ID | App | Completed | Verification Evidence | Executioner Verdict | Related Dep | Notes |
 |---|---|---|---|---|---|---|
+| NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS-local order/session outbox implemented; per-order SessionReset blast-radius removed; authenticated-device last_seen_at refresh middleware added (case file Run State: COMPLETE, Executioner APPROVED, runner codex) | APPROVED | none | Merged to remote dev; deploy still requires `php artisan pos:setup-payment-trigger` on the Pi/POS-connected environment. Backend half of GH #152. |
+| NEX-CASE-002 | woosoo-nexus | 2026-05-30 | Pulse routes cannot-reproduce; PulseRouteAuthTest gating test added; 432 tests pass; pre-merge-check OK | APPROVED | none | Cannot-reproduce + contract-lock test |
 | PLT-CASE-002 | woosoo-platform | 2026-05-17 | Stale-phrase scan no matches; 9 hooks exist; Verifier before Executioner confirmed | APPROVED | none | Canonical hook surface completed |
 | PLT-CASE-001 | woosoo-platform | 2026-05-17 | Forbidden-phrase scan no matches; reversed chain-order scan no matches; 9 hooks True; zero app code in commits 5ea33b8/ba92667/11111e9; boot order case-before-cache | APPROVED | none | Orchestration system implementation closed (Verifier PASS, resumed by claude-code) |
 | PLT-CASE-004 | woosoo-platform | 2026-05-17 | Documentation-truth scans pass; no live "not a git repo"/"runs on main"/"102 passed" assertion in 8 in-scope files; zero app code; .windsurf excluded; one out-of-scope same-class defect flagged not edited | APPROVED | none | Review remediation — git-repo/branch/print-bridge/README/nex-case-001/.windsurf truth fixes |

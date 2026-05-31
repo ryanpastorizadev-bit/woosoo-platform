@@ -24,18 +24,29 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 ## Active Queue
 
-| Priority | Case ID | App | Description | Tier | Dep | Status |
-|---|---|---|---|---|---|---|
-| P2 | TAB-CASE-001 | tablet-ordering-pwa | Order & session determinism | 2 | none | done |
-| P2 | TAB-CASE-002 | tablet-ordering-pwa | Validated review follow-ups (dedup/reconnect/types/a11y) | 2 | none | done |
-| P1 | NEX-CASE-003 | woosoo-nexus | Missing stored procedure — order retrieval broken (prod POS DB) | 3 | none | done |
-| P1 | NEX-CASE-004 | woosoo-nexus | Device login returns HTTP 500 | 3 | none | done |
-| P1 | NEX-CASE-008 | woosoo-nexus | TransientToken 500 on /refresh + /logout when admin web session hits endpoint | 3 | none | done |
-| P2 | NEX-CASE-009 | woosoo-nexus | Restore admin Menus Course/Group/Image filters | 2 | none | done |
-| P2 | NEX-CASE-002 | woosoo-nexus | Pulse routes broken | 2 | none | done |
-| P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — client_submission_id absent | 2 | none | queued |
-| P2 | PLT-CASE-009 | woosoo-platform | Docker MySQL/Redis not resolving | infra | none | done |
-| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (post-single-app; deps confirmed) | 3 | DEP-001,DEP-002,DEP-003 | queued |
+<!-- Reconciled 2026-05-30 against GitHub Issues (13 open: nexus 10, tablet 1, print-bridge 1, platform 1) -->
+<!-- + docs/cases/* + DONE.md. Merge gate = Bucket A ONLY. Bucket C must NOT gate dev→staging→main.       -->
+
+### Bucket A — Stabilization (GATES the dev → staging → main merge)
+
+| Priority | Case ID | App | Description | Tier | Dep | Status | GH |
+|---|---|---|---|---|---|---|---|
+| P1 | NEX-CASE-011 | woosoo-nexus | Duplicate order printing (BT + POS) — investigate & fix | 3 | none | queued | #140 |
+| P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — `client_submission_id` absent (investigate JOINT with #140) | 2 | none | queued | — |
+| P1 | NEX-CASE-007 | woosoo-nexus | POS payment outbox / SessionReset blast-radius + `last_seen_at` middleware | 3 | none | complete-landed | #152 (backend) |
+| P2 | INFRA-CASE-003 | woosoo-platform | Pi Docker build fails — `npm ci` drops WiFi (ECONNRESET/ETIMEDOUT) | 2 | none | queued | #136 |
+
+### Bucket C — Deferred (post-stabilization release; do NOT gate the merge)
+
+| Priority | Case ID | App | Description | Tier | Dep | Status | GH |
+|---|---|---|---|---|---|---|---|
+| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (deps confirmed) | 3 | DEP-001,DEP-002,DEP-003 | deferred | — |
+| P3 | KDS-EPIC | woosoo-nexus | Kitchen Display System v1.0 (PR-0A…PR-7) | 3 | none | deferred | #137,#143,#144,#145,#146,#147,#148 |
+| P3 | — | woosoo-nexus | Device telemetry feature (battery/online detail) | 2 | none | deferred | #152 |
+| P3 | — | tablet-ordering-pwa | POS→tablet discount sync & active-order hydration | 2 | none | deferred | #184 |
+| P4 | — | woosoo-print-bridge | Exclude side items from print; larger receipt text | 2 | none | deferred | #30 |
+| P3 | — | woosoo-platform | Pi Control Panel — local ops/deploy dashboard | 2 | none | deferred | #19 |
+| P3 | NEX-CASE-010 | woosoo-nexus | Immutable-image production migration | 3 | none | blocked | — |
 
 ---
 
@@ -43,6 +54,10 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS payment outbox; per-order SessionReset blast-radius removed; authenticated-device last_seen_at middleware. Executioner APPROVED. Merged to remote dev; `pos:setup-payment-trigger` deploy still pending |
+| NEX-CASE-002 | woosoo-nexus | 2026-05-30 | Pulse routes — cannot-reproduce; route/gate/permission correct; gating test PulseRouteAuthTest added; 432 tests pass; pre-merge-check OK. Executioner APPROVED |
+| NEX-CASE-008 | woosoo-nexus | 2026-05-2x | TransientToken 500 on /refresh + /logout (admin web session hits device endpoint). Marked done in queue; **DONE.md row pending verification backfill** |
+| NEX-CASE-009 | woosoo-nexus | 2026-05-2x | Restore admin Menus Course/Group/Image filters. Marked done in queue; **DONE.md row pending verification backfill** |
 | NEX-CASE-004 | woosoo-nexus | 2026-05-20 | 6 tests (25 assertions) pass; safeLoadDeviceTable() catches Throwable; 200+null table when POS down. Executioner APPROVED |
 | NEX-CASE-006 | woosoo-nexus | 2026-05-20 | HealthBroadcastingTest + VerifyIntegrityCommandTest; /api/health broadcasting check; PR #120 merged to staging. APPROVED (retrospective) |
 | TAB-CASE-004 | tablet-ordering-pwa | 2026-05-18 | build-info.json prerender fix; PR #158 merged to staging. Executioner APPROVED |
