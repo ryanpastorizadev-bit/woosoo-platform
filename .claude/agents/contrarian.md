@@ -45,7 +45,7 @@ any non-trivial request.
 | Frontend/Nuxt/PWA/UI/Pinia/tablet flow            | chuya-frontend       | `tablet-ordering-pwa/**`                                                     |
 | Printer relay/hardware/heartbeat/station printing | relay-ops            | `woosoo-print-bridge/**`                                                     |
 | Docs/specs/handover/instructions                  | dazai-docs           | `docs/**`, `*.md` (excluding agent/skill defs)                               |
-| Docker/Nginx/env/deployment/LAN/Raspberry Pi      | infra                | `docker/**`, `nginx/**`, `scripts/**`, `docker-compose*.yml`, `.env.example` |
+| Docker/Nginx/env/deployment/LAN/Raspberry Pi      | infra                | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 If the task requires more than one app, recommend a split — do not let the Specialist proceed.
 
