@@ -62,7 +62,7 @@ Initial Run State:
 - status: IN_PROGRESS
 - last_completed_agent: contrarian
 - next_agent: specialist:<name>
-- active_runner: <claude-code | codex | copilot>
+- active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
 - updated: YYYY-MM-DD

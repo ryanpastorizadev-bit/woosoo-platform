@@ -63,8 +63,8 @@ If cross-app work is confirmed: return `SPLIT_REQUIRED`. Do not modify app code.
 | Backend / API / Auth / POS / Reverb / order state | ranpo-backend | `woosoo-nexus/**` |
 | Frontend / Nuxt / PWA / UI / Pinia / tablet flow | chuya-frontend | `tablet-ordering-pwa/**` |
 | Printer relay / hardware / heartbeat / station printing | relay-ops | `woosoo-print-bridge/**` |
-| Docs / specs / handover / orchestration | dazai-docs | `docs/**`, `*.md` |
-| Docker / Nginx / env / deployment / LAN / Pi | infra | `docker/**`, `scripts/**` |
+| Docs / specs / handover / orchestration | dazai-docs | `docs/**`, `*.md` (excl. agent/skill defs) |
+| Docker / Nginx / env / deployment / LAN / Pi | infra | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 ---
 

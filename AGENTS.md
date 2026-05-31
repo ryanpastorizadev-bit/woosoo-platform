@@ -59,7 +59,7 @@ If no phrase matches: load `hooks/work.md` as default.
 ## Immutable Rules
 
 - **Backend owns truth.** Tablet may only send `{ guest_count, package_id, items: [ { menu_id, quantity } ] }`. It must never send pricing, tax, modifiers, totals, POS mapping, or state.
-- **Order state machine:** `confirmed → completed | voided | cancelled`. Do not invent new backend states.
+- **Order state machine:** the `OrderStatus` enum (`pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`); terminal states are `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`. Do not invent new backend states.
 - **Customer-facing UI must never show raw technical errors.** Use friendly messages. Stack traces, SQL errors, and exception dumps belong in logs only.
 - **Sibling-repo boundary:** one app per branch/commit unless integration-scoped. Cross-app changes require contract updates first.
 - **Config integrity:** production POS uses static IP `192.168.1.32`. Detect mismatches; never write secrets to `.env` without backup and review.
@@ -135,28 +135,22 @@ See `docs/AGENT_DEFAULT_INSTRUCTIONS.md` for the full ruleset governing agent be
 Everything above remains the immutable contract layer. The rules below add **how** work is
 executed: a single chatbox behaves like a multi-agent workflow without manual agent switching.
 
-## Runners
+## Execution model
 
-This operating system is vendor-neutral and lives in this file (the source of truth):
+This operating system runs on **Claude Code** and lives in this file (the source of truth).
+Claude Code executes it via `.claude/agents/*` (subagents) and `.claude/skills/*` (skills).
+Agent definitions live only in `.claude/agents/`. Per-app rules live in each app's `.agents.md`.
 
-- **Claude Code** executes it via `.claude/agents/*` (subagents) and `.claude/skills/*` (skills).
-- **OpenAI Codex CLI** reads this `AGENTS.md` natively (root + the per-app `AGENTS.md` in each
-  app directory). It follows the same sequence narratively in a single chatbox.
-- **GitHub Copilot** continues to follow `.github/copilot-instructions.md` (root + per-app).
+A single chatbox adopts each role in turn (Contrarian → Specialist → Verifier → Executioner) by
+reading `.claude/agents/<role>.md` as its instruction set for that phase.
 
-Agent definitions live only in `.claude/agents/`. Per-app rules live in each app's `.agents.md`
-(the per-app `AGENTS.md` files are thin pointers for Codex — do not duplicate rules into them).
+## Resume & Handoff (mandatory)
 
-Any runner can adopt any role: Codex/Copilot read `.claude/agents/<role>.md` as their
-instruction set for that phase and behave as that role in a single chatbox.
-
-## Cross-Runner Resume & Handoff (mandatory)
-
-The chain must survive a runner being interrupted (rate limit, context limit, crash, manual
-handoff). State is **not** kept only in the chatbox — it is durably checkpointed to the per-task
+The chain must survive an interruption (rate limit, context limit, crash, manual handoff between
+sessions). State is **not** kept only in the chatbox — it is durably checkpointed to the per-task
 case file `docs/cases/<task-slug>.md`. Full protocol: `docs/RESUME_PROTOCOL.md`.
 
-**Before ANY task, every runner (Claude Code, Codex, Copilot) MUST:**
+**Before ANY task you MUST:**
 
 1. Derive the stable task slug and check `docs/cases/<task-slug>.md`.
 2. If it exists with `status: IN_PROGRESS` or `BLOCKED`: **do not restart, do not re-run
@@ -207,7 +201,7 @@ uses the strongest model (opus).
 | Frontend/Nuxt/PWA/UI/Pinia/tablet flow | chuya-frontend | `tablet-ordering-pwa/**` |
 | Printer relay/hardware/heartbeat/station printing | relay-ops | `woosoo-print-bridge/**` |
 | Docs/specs/handover/instructions | dazai-docs | `docs/**`, `*.md` (excl. agent/skill defs) |
-| Docker/Nginx/env/deployment/LAN/Raspberry Pi | infra | `docker/**`, `nginx/**`, `scripts/**`, `docker-compose*.yml`, `.env.example` |
+| Docker/Nginx/env/deployment/LAN/Raspberry Pi | infra | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 ## Workspace Split Rule
 
@@ -226,6 +220,24 @@ forensic review. (This repo is not currently a git repo — treat this as docume
 
 The Contrarian lists candidate skills (it folds in skill discovery). The Specialist loads only
 those skills. Do not load the whole skill library.
+
+Scenario → skill (the Contrarian selects from these; the Specialist loads only what is listed):
+
+| When the task involves… | Load skill |
+| ----------------------- | ---------- |
+| Every task (the sequence + the final Agent Chain block) | `agent-sequence` |
+| Laravel routes/controllers/FormRequests/resources/jobs/transactions | `laravel-api-change` |
+| 419/CSRF, device tokens, Sanctum stateful domains, guard/provider mismatch | `sanctum-auth-debug` |
+| Nuxt tablet flow, screen transitions, PWA update behaviour | `nuxt-pwa-flow` |
+| Pinia store state, session/cart/device leakage | `pinia-state-audit` |
+| Printer heartbeat, station routing, duplicate-print prevention | `printer-relay-debug` |
+| Docker/Nginx/compose/health/deployment | `docker-deployment-debug` |
+| Any doc/spec/contract change | `documentation-truth-audit` |
+| Proving a change works — before claiming "done" (every code task) | `test-verification` |
+| Pre-completion hygiene sweep — before the Verifier (every code task) | `dead-code-cleanup` |
+
+`agent-sequence` is mandatory on every task; `test-verification` and `dead-code-cleanup` are
+effectively mandatory on every code task.
 
 ## Model Selection Policy
 
