@@ -61,6 +61,7 @@ Every task flows through a **4-agent chain** (Contrarian → Specialist → Veri
 
 Allowed commands only:
 ```
+scripts/pre-merge-check.sh --app <name>   # (or scripts/pre-merge-check.ps1 -App <name>)
 php artisan test [--filter=*]
 php artisan route:list
 npm run test / build / lint / typecheck
@@ -68,6 +69,11 @@ docker compose ps / logs
 curl -k https://localhost/api/health
 git status / diff / log --oneline
 ```
+
+> **For any app code change the platform-root `scripts/pre-merge-check.sh --app <name>` (PowerShell:
+> `scripts/pre-merge-check.ps1 -App <name>`) is the MANDATORY validation gate** (AGENTS.md →
+> Validation). It wraps the per-app commands above plus steps not covered by this list; the
+> individual commands are for targeted diagnosis, not a substitute for the wrapper.
 
 **Evidence standard (non-negotiable):**
 - Quote raw test output verbatim, e.g. `Tests: 33 failed, 372 passed` — no paraphrasing
