@@ -38,15 +38,6 @@ only the BT thermal printer prints. This gates the restaurant rollout, NOT the N
 - Risks / do-not-redo: do NOT disable the Nexus BT `print_events` path — BT is the INTENDED printer.
   Do NOT skip the POS order mirror (`CreateOrderedMenu`) — the POS needs the order for billing.
 
-## Handoff
-- Phase in progress: triage only — registered from GH #140 during Phase 0 reconciliation
-- Done so far: case stub created; classified Tier 3 (printer duplicate prevention is high-risk per AGENTS.md)
-- Exact next action: Contrarian — run JOINT with NEX-CASE-005. Determine whether duplication is
-  (a) duplicate EVENTS (idempotency: missing `client_submission_id` → repeated print-event /
-  `ordered_menu` inserts) or (b) dual ROUTING (both BT and POS print routes enabled by config).
-- Working-tree state: none yet (no code touched)
-- Risks / do-not-redo: do not "fix" by disabling a route blindly — confirm intended print mode first
-
 ## Tier
 3
 
