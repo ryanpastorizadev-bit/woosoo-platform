@@ -29,6 +29,9 @@ connection mid-download (ECONNRESET / ETIMEDOUT). Blocks restaurant deploy.
 - Exact next action: Contrarian/infra — decide approach: (a) make `npm ci` resilient (retry +
   longer network-timeout / fetch-retries in Docker build) or (b) build images off-Pi and ship
   the prebuilt image to the Pi (ties to NEX-CASE-010 immutable-image direction).
+  ⚠️ **Coordinate with NEX-CASE-010 before choosing (b)** — off-Pi prebuilt images overlap that
+  case's immutable-image migration; (b) without coordination risks two divergent solutions.
+  Approach (a) is independent and can ship without NEX-010.
 - Working-tree state: none yet
 - Risks / do-not-redo: eth0 is restricted restaurant LAN with no outbound internet; only wlan0
   (PLDT WiFi) has egress — do not assume eth0 connectivity during build.

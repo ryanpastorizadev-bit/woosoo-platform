@@ -62,8 +62,8 @@ none
 role:         claude-code — Contrarian + Specialist (ranpo-backend) + Executioner chain complete
 date:         2026-05-30
 left_off:     Case COMPLETE. One new file: tests/Feature/Pulse/PulseRouteAuthTest.php.
-              Pending merge (infra-vite-build-conditional): agent/vite-build-conditional → dev
-              in both woosoo-nexus and woosoo-platform still needs to be merged by user.
+              agent/vite-build-conditional merged to dev in both repos (nexus PR #153; platform
+              also merged). Stale note removed 2026-05-31.
 files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
               docs/cases/nex-case-010-immutable-image-production-migration.md (Tier 3, BLOCKED)
 ```
