@@ -57,6 +57,9 @@ If the task requires more than one app, recommend a split — do not let the Spe
 ### Tier
 1 / 2 / 3
 
+### Success Criterion
+Task is done when <specific, verifiable check> passes.
+
 ### Assumptions Challenged
 - ...
 
