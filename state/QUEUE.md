@@ -37,7 +37,6 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P2 | INFRA-CASE-003 | woosoo-platform | Pi Docker build fails — `npm ci` drops WiFi (ECONNRESET/ETIMEDOUT) | 2 | none | queued | #136 |
 | P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | contrarian-done → chuya-frontend | — |
 
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
@@ -66,6 +65,11 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P3 | NEX-CASE-012 | woosoo-nexus | Woosoo Admin UI prototype impl (Tablet Categories + Packages → Vue 3 SFCs) | 2 | none | deferred | — |
 | P4 | tablet-screen-ui-ux-review | tablet-ordering-pwa | UI/UX polish — dup table-name, floating support affordance, weak disabled states | 2 | none | blocked (chuya-frontend) | — |
 
+> **Initiative — Canonical POS order id + live POS→device order-detail sync** (plan approved 2026-06-01; contract: `contracts/websocket-events.contract.md`). Two coupled cases. The id-consistency half is a real correctness bug (wrong-channel subscription → missed terminal events, same class as TAB-CASE-009) — **promote to Bucket A if it should gate staging→main.**
+
+| P2 | NEX-CASE-013 | woosoo-nexus | **Ph1** broadcast layer (OrderBroadcaster + BroadcastEvent registry + shared event constants + canonical `order_id`; migrate 4 dispatch sites). **Ph2** POS-detail trigger/outbox/consumer → `order.details.updated`. KDS consumes `admin.orders` | 3 | none | queued → ranpo-backend | — |
+| P2 | TAB-CASE-010 | tablet-ordering-pwa | Use canonical `order_id` everywhere + consume `order.details.updated` (live order refresh); fix `preparing`→`in_progress` | 3 | DEP-004 | blocked (dep DEP-004) | — |
+
 > **Low-priority archival follow-ups** (from `docs/archive/agent-sessions-2026-05.md`; non-gating; no case file):
 > - **woosoo-nexus** — `HealthController::check()` duplicates the inline `checkBroadcastingIntegrity()` in `routes/api.php`. It is **NOT** a safe-delete orphan: `MonitoringController.php:41` calls it. Treat only as a future consolidation candidate, with that caller in scope. (Corrects the archived log's "delete route-unbound orphan" claim.)
 > - **tablet-ordering-pwa** — Plan D (customer-safe error handling) is **landed** on `dev`: `classifyError()` is wired through every `stores/Order.ts` catch branch. Residual: `components/feedback/ConnectionBlockingOverlay.vue` (Plan D.3) is missing — a UX-completeness item, not a raw-error leak. Add the overlay if/when the connection-blocking UX is prioritized.
@@ -76,6 +80,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| INFRA-CASE-003 | tablet-ordering-pwa + woosoo-nexus | 2026-06-01 | `.npmrc` (fetch-retries=5, fetch-timeout=600s) + tablet Dockerfile COPY fix. docker build exit 0; npm config verified inside image. Executioner APPROVED. Pi wlan0 test is Bucket B deploy-gate. |
 | NEX-CASE-005 | woosoo-nexus | 2026-05-31 | Closed **OBE** (not Executioner — cannot-reproduce class). Root-caused jointly with #011: the legacy "non-idempotent print event path" warning string no longer exists in code; print-event creation is idempotent (`idempotency_key` unique, reuse-on-match). Narrow residual (`Str::uuid()` fallback when tablet omits `client_submission_id`) is guarded by 409/refill-guard; not pursued. Removed from Bucket A |
 | NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS payment outbox; per-order SessionReset blast-radius removed; authenticated-device last_seen_at middleware. Executioner APPROVED. Merged to remote dev; `pos:setup-payment-trigger` deploy still pending |
 | NEX-CASE-002 | woosoo-nexus | 2026-05-30 | Pulse routes — cannot-reproduce; route/gate/permission correct; gating test PulseRouteAuthTest added; 432 tests pass; pre-merge-check OK. Executioner APPROVED |
