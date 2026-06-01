@@ -70,8 +70,8 @@ Before committing, the agent must verify:
 
 1. The intended feature or fix works through the real user/application flow.
 2. All modified files are intentional and necessary.
-3. No temporary, orphaned, duplicate, irrelevant, or dead files remain.
-4. No dead code, unused imports, debug logs, console dumps, temporary comments, or placeholder logic remain.
+3. No temporary, orphaned, duplicate, irrelevant, or dead files **created or orphaned by this task** remain (unrelated pre-existing dead code is documented in the handoff per the cleanup-scope rule above, not blocking).
+4. No dead code, unused imports, debug logs, console dumps, temporary comments, or placeholder logic **introduced or orphaned by this task** remain.
 5. Relevant tests pass.
 6. Relevant build, lint, type-check, and formatting checks pass where available.
 7. API contracts, request/response shapes, state transitions, and error handling are correct.
@@ -95,7 +95,7 @@ A task is complete only when:
 - all known risks have been checked
 - all warnings or suspicious signals have been addressed
 - tests and relevant checks pass
-- unnecessary files and code have been removed
+- files and code that this task created or orphaned have been removed (unrelated pre-existing dead code is noted as follow-up, not deleted)
 - the codebase remains lean, organized, and production-ready
 - the final result can be trusted without relying on assumptions
 
@@ -114,8 +114,8 @@ The agent must not mark a task as done if any of the following are present:
 - skipped validation
 - partial implementation
 - mock success without real workflow testing
-- temporary files left behind
-- duplicate or dead code
+- temporary files left behind by this task
+- duplicate or dead code introduced or orphaned by this task (unrelated pre-existing dead code documented as follow-up is not a failure signal)
 - unclear error handling
 - silent failure paths
 - unexplained logs or strange outputs
