@@ -37,10 +37,6 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P1 | NEX-CASE-011 | woosoo-nexus | Duplicate order printing (BT + POS) — investigate & fix | 3 | none | queued | #140 |
-| P2 | NEX-CASE-005 | woosoo-nexus | Legacy non-idempotent print path — `client_submission_id` absent (investigate JOINT with #140) | 2 | none | queued | — |
-| P2 | INFRA-CASE-003 | woosoo-platform | Pi Docker build fails — `npm ci` drops WiFi (ECONNRESET/ETIMEDOUT) | 2 | none | queued | #136 |
-| P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | contrarian-done → chuya-frontend | — |
 
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
 
@@ -48,6 +44,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
+| P1 | NEX-CASE-011 (POS cfg) | woosoo-nexus / POS | **Root-caused 2026-05-31 → POS-side, no Nexus code change.** Duplicate = Krypton POS auto-prints from `create_ordered_menu` while Nexus BT path also prints. BT-only intended → **disable the 3rd-party POS printer (or set no-print) in Krypton/POS config on the Pi**. Gates the restaurant rollout, NOT the code merge | 3 | none | ops — POS config on Pi | #140 |
 | P1 | NEX-CASE-007 (deploy) | woosoo-nexus | Code merged to dev+staging. Run `php artisan pos:setup-payment-trigger` on the Pi POS env; confirm `pos:consume-payment-status-events` scheduler runs | 3 | none | code-landed; Pi step pending | #152 |
 | P2 | INFRA-CASE-002 | woosoo-platform | Deploy stability wrappers — Stage A on dev; **Stage B Pi runtime verification pending** | 2 | none | in_progress (verifier:Pi) | — |
 | P2 | INFRA-CASE-001 | woosoo-platform | Pi platform-root migration (compose/docker/scripts) — built on dev box, **untested on Pi hardware** | 3 | none | in_progress (specialist:infra) | — |
@@ -57,7 +54,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration (deps confirmed) | 3 | DEP-001,DEP-002,DEP-003 | deferred | — |
+| P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration — **deferred by priority, not dep-blocked** (DEP-001/002/003 all `confirmed`) | 3 | none (deps confirmed) | deferred | — |
 | P3 | KDS-EPIC | woosoo-nexus | Kitchen Display System v1.0 (PR-0A…PR-7) | 3 | none | deferred | #137,#143,#144,#145,#146,#147,#148 |
 | P3 | — | woosoo-nexus | Device telemetry feature (battery/online detail) | 2 | none | deferred | #152 |
 | P3 | — | tablet-ordering-pwa | POS→tablet discount sync & active-order hydration | 2 | none | deferred | #184 |
@@ -66,6 +63,11 @@ If all queued rows are blocked: report to user, list what must be resolved.
 | P3 | NEX-CASE-010 | woosoo-nexus | Immutable-image production migration | 3 | none | blocked | — |
 | P3 | NEX-CASE-012 | woosoo-nexus | Woosoo Admin UI prototype impl (Tablet Categories + Packages → Vue 3 SFCs) | 2 | none | deferred | — |
 | P4 | tablet-screen-ui-ux-review | tablet-ordering-pwa | UI/UX polish — dup table-name, floating support affordance, weak disabled states | 2 | none | blocked (chuya-frontend) | — |
+
+> **Initiative — Canonical POS order id + live POS→device order-detail sync** (plan approved 2026-06-01; contract: `contracts/websocket-events.contract.md`). Two coupled cases. The id-consistency half is a real correctness bug (wrong-channel subscription → missed terminal events, same class as TAB-CASE-009) — **promote to Bucket A if it should gate staging→main.**
+
+| P2 | NEX-CASE-013 | woosoo-nexus | **Ph1** broadcast layer (OrderBroadcaster + BroadcastEvent registry + shared event constants + canonical `order_id`; migrate 4 dispatch sites). **Ph2** POS-detail trigger/outbox/consumer → `order.details.updated`. KDS consumes `admin.orders` | 3 | none | queued → ranpo-backend | — |
+| P2 | TAB-CASE-010 | tablet-ordering-pwa | Use canonical `order_id` everywhere + consume `order.details.updated` (live order refresh); fix `preparing`→`in_progress` | 3 | DEP-004 | blocked (dep DEP-004) | — |
 
 > **Low-priority archival follow-ups** (from `docs/archive/agent-sessions-2026-05.md`; non-gating; no case file):
 > - **woosoo-nexus** — `HealthController::check()` duplicates the inline `checkBroadcastingIntegrity()` in `routes/api.php`. It is **NOT** a safe-delete orphan: `MonitoringController.php:41` calls it. Treat only as a future consolidation candidate, with that caller in scope. (Corrects the archived log's "delete route-unbound orphan" claim.)
@@ -77,6 +79,9 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| TAB-CASE-009 | tablet-ordering-pwa | 2026-06-01 | Silent-death watchdog in useBroadcasts.ts: 30s tick, 180s threshold, touchLastEvent() on all 7 handlers. 73 files / 408 tests pass, typecheck+lint clean. Executioner APPROVED. |
+| INFRA-CASE-003 | tablet-ordering-pwa + woosoo-nexus | 2026-06-01 | `.npmrc` (fetch-retries=5, fetch-timeout=600s) + tablet Dockerfile COPY fix. docker build exit 0; npm config verified inside image. Executioner APPROVED. Pi wlan0 test is Bucket B deploy-gate. |
+| NEX-CASE-005 | woosoo-nexus | 2026-05-31 | Closed **OBE** (not Executioner — cannot-reproduce class). Root-caused jointly with #011: the legacy "non-idempotent print event path" warning string no longer exists in code; print-event creation is idempotent (`idempotency_key` unique, reuse-on-match). Narrow residual (`Str::uuid()` fallback when tablet omits `client_submission_id`) is guarded by 409/refill-guard; not pursued. Removed from Bucket A |
 | NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS payment outbox; per-order SessionReset blast-radius removed; authenticated-device last_seen_at middleware. Executioner APPROVED. Merged to remote dev; `pos:setup-payment-trigger` deploy still pending |
 | NEX-CASE-002 | woosoo-nexus | 2026-05-30 | Pulse routes — cannot-reproduce; route/gate/permission correct; gating test PulseRouteAuthTest added; 432 tests pass; pre-merge-check OK. Executioner APPROVED |
 | NEX-CASE-008 | woosoo-nexus | 2026-05-2x | TransientToken 500 on /refresh + /logout (admin web session hits device endpoint). Marked done in queue; **DONE.md row pending verification backfill** |

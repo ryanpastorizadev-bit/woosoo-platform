@@ -62,8 +62,8 @@ none
 role:         claude-code — Contrarian + Specialist (ranpo-backend) + Executioner chain complete
 date:         2026-05-30
 left_off:     Case COMPLETE. One new file: tests/Feature/Pulse/PulseRouteAuthTest.php.
-              Pending merge (infra-vite-build-conditional): agent/vite-build-conditional → dev
-              in both woosoo-nexus and woosoo-platform still needs to be merged by user.
+              agent/vite-build-conditional merged to dev in both repos (nexus PR #153; platform
+              also merged). Stale note removed 2026-05-31.
 files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
               docs/cases/nex-case-010-immutable-image-production-migration.md (Tier 3, BLOCKED)
 ```
@@ -75,13 +75,14 @@ GATE MODEL (2026-05-31): nexus dev→staging ALREADY merged (nexus PR #157). Buc
 staging→main ONLY. See state/QUEUE.md for the authoritative three-bucket backlog.
 
 BUCKET A — Stabilization (gates staging→main):
-1. NEX-CASE-011 (#140 duplicate printing, T3, P1) + NEX-CASE-005 (legacy print path, T2) — JOINT, pull first
-2. INFRA-CASE-003 (#136 Pi build npm ci WiFi, T2) — parallel
-3. TAB-CASE-009 (tablet WS silent-death, T2) — parallel; contrarian done, awaiting chuya-frontend
-4. All three APPROVED → promote staging→main
+1. INFRA-CASE-003 (#136 Pi build npm ci WiFi, T2)
+2. TAB-CASE-009 (tablet WS silent-death, T2) — contrarian done, awaiting chuya-frontend
+3. Both APPROVED → promote staging→main
+   (NEX-CASE-011 root-caused 2026-05-31 → POS-side, moved A→B; NEX-CASE-005 closed OBE.)
 
 BUCKET B — Deploy readiness (NON-gating ops; gates the actual Pi rollout):
-→ NEX-CASE-007 Pi step (`php artisan pos:setup-payment-trigger`; code already on dev+staging),
+→ NEX-CASE-011 POS config (disable 3rd-party POS printer on Pi — BT-only; NO Nexus code change),
+  NEX-CASE-007 Pi step (`php artisan pos:setup-payment-trigger`; code already on dev+staging),
   INFRA-CASE-002 (Stage-B Pi verify), INFRA-CASE-001 (Pi migration on hardware), PRN-REBUILD-APK
 
 BUCKET C — Deferred features (do NOT gate any promotion):

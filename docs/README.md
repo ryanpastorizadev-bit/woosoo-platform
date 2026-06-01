@@ -20,6 +20,7 @@ The Lite 4-agent operating system (Contrarian → Specialist → Verifier → Ex
 in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 
 - [USAGE_GUIDE.md](USAGE_GUIDE.md) — **operator runbook**: how to drive the system, common-scenario protocol index, and the anti-degradation loop
+- [AGENT_USAGE_GUIDE.md](AGENT_USAGE_GUIDE.md) — **technical reference**: 4-agent chain detail, skill routing, evidence standards, and hook trigger map
 - Claude subagents: `.claude/agents/*.md` — agent definitions (single source of truth)
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption

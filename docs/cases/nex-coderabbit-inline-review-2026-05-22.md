@@ -11,8 +11,8 @@ scope: woosoo-nexus
 - tier: 2
 - branch: staging
 - status: COMPLETE
-- last_completed_agent: specialist:ranpo-backend
-- next_agent: verifier
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
