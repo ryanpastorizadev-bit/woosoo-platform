@@ -34,6 +34,7 @@ scope: ecosystem
 | DEP-001 | woosoo-nexus | woosoo-platform | NEX-CASE-001 security hardening complete (branch scoping, broadcast auth, GET→POST) | confirmed | 396 tests pass; Executioner APPROVED 2026-05-18; routes verified POST | PLT-CASE-003 | 2026-05-18 | — |
 | DEP-002 | woosoo-print-bridge | woosoo-platform | PRN-CASE-001 print determinism complete (6 reliability fixes) | confirmed | 104 tests pass; flutter analyze clean; Executioner APPROVED 2026-05-18 | PLT-CASE-003 | 2026-05-18 | — |
 | DEP-003 | tablet-ordering-pwa | woosoo-platform | TAB-CASE-001 order/session determinism complete | confirmed | 382 tests pass; vue-tsc clean; build complete; Executioner APPROVED 2026-05-19 | PLT-CASE-003 | 2026-05-19 | All 4 fixes on staging branch; PLT-CASE-003 now fully unblocked |
+| DEP-004 | woosoo-nexus | tablet-ordering-pwa | NEX-CASE-013 ships `order.details.updated` broadcast on `orders.{order_id}` (POS-detail live sync) per `contracts/websocket-events.contract.md` | pending | — | TAB-CASE-010 | — | tab-case-010 (tablet consumer) stays blocked until this is `confirmed` with a passing nexus feature test |
 
 ---
 

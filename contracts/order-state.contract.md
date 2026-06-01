@@ -43,6 +43,19 @@ ARCHIVED     → (terminal — no transitions)
 Every non-terminal state can transition to `VOIDED`. The four terminal states
 (`COMPLETED`, `CANCELLED`, `VOIDED`, `ARCHIVED`) do not transition further.
 
+## Order identifier (canonical)
+
+**`krypton_woosoo.orders.id` (the POS order id) is the single global order reference.** The POS is
+the source of truth for identity, so every POS-sourced id is canonical — `orders.id`, `menus.id`,
+`sessions.id`, and any id on a related POS table (e.g. `order_checks`).
+
+- In the Nexus DB, the mirror column is **`device_orders.order_id`** (nullable **string**) =
+  `krypton_woosoo.orders.id`. The local PK `device_orders.id` is an internal surrogate only.
+- **All broadcast channels, payloads, and consumers key on `order_id`** — the order channel is
+  always `orders.{order_id}`. No consumer (tablet, admin, print-bridge) may use the local
+  `device_orders.id` as the order reference. See `contracts/websocket-events.contract.md`.
+- Payloads may include the local `id` for debugging, but `order_id` is the authoritative key.
+
 ## What the tablet sees
 
 - The tablet flow is anchored by `CONFIRMED` (in-session) and the terminal signals it reacts to:
