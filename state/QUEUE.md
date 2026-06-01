@@ -37,7 +37,6 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P2 | TAB-CASE-009 | tablet-ordering-pwa | Tablet WS silent-death detector — useBroadcasts.ts zombie/stale-connection fix | 2 | none | contrarian-done → chuya-frontend | — |
 
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
 
@@ -80,6 +79,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
+| TAB-CASE-009 | tablet-ordering-pwa | 2026-06-01 | Silent-death watchdog in useBroadcasts.ts: 30s tick, 180s threshold, touchLastEvent() on all 7 handlers. 73 files / 408 tests pass, typecheck+lint clean. Executioner APPROVED. |
 | INFRA-CASE-003 | tablet-ordering-pwa + woosoo-nexus | 2026-06-01 | `.npmrc` (fetch-retries=5, fetch-timeout=600s) + tablet Dockerfile COPY fix. docker build exit 0; npm config verified inside image. Executioner APPROVED. Pi wlan0 test is Bucket B deploy-gate. |
 | NEX-CASE-005 | woosoo-nexus | 2026-05-31 | Closed **OBE** (not Executioner — cannot-reproduce class). Root-caused jointly with #011: the legacy "non-idempotent print event path" warning string no longer exists in code; print-event creation is idempotent (`idempotency_key` unique, reuse-on-match). Narrow residual (`Str::uuid()` fallback when tablet omits `client_submission_id`) is guarded by 409/refill-guard; not pursued. Removed from Bucket A |
 | NEX-CASE-007 | woosoo-nexus | 2026-05-21 | POS payment outbox; per-order SessionReset blast-radius removed; authenticated-device last_seen_at middleware. Executioner APPROVED. Merged to remote dev; `pos:setup-payment-trigger` deploy still pending |

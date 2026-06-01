@@ -10,9 +10,9 @@ scope: tablet-ordering-pwa
 - task_slug: tab-case-009-broadcast-silent-death-detector
 - tier: 2
 - branch: agent/tab-case-009-broadcast-silent-death-detector
-- status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:chuya-frontend
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -82,13 +82,24 @@ drops server broadcasts until a manual reload.
   passes after (watchdog triggers reconnect / state re-hydration).
 
 ## Files Changed
-<!-- filled by specialist -->
+- `tablet-ordering-pwa/composables/useBroadcasts.ts` — watchdog added; touchLastEvent() wired to all 7 event handlers + cancelReconnection()
+- `tablet-ordering-pwa/tests/broadcasts.silent-death-watchdog.spec.ts` — new (4 regression-lock tests)
+Commit: `189062b`, branch `agent/tab-case-009-broadcast-silent-death-detector`
 
 ## Verification
-<!-- filled by verifier -->
+- `npm run typecheck` → exit 0 (no errors)
+- `npm run lint` on changed files → 0 errors, 0 warnings
+- `npm run test -- --run` → 73/73 files, 408 passed, 1 pre-existing todo
+- Watchdog test output: `[🔍 Watchdog] 180s silence on "connected" socket — forcing disconnect` logged on zombie test ✅
+- All 4 regression-lock cases pass: zombie triggers disconnect, active stream suppresses it, not-connected skips, cleanup clears interval
 
 ## Executioner Verdict
-<!-- filled by executioner -->
+APPROVED — 2026-06-01. Tier 2 chain complete. Additive, one-app, bounded. All four regression
+tests pass; typecheck/lint clean; 408 tests green. Watchdog reuses existing reconnect path.
+
+Follow-ups (non-blocking):
+- Collect production logs to validate 180s/30s thresholds; expose via runtime config if needed.
+- Future typing pass to remove `(window as any)` from the pusher connection lookup.
 
 ## Remaining Risks
 - Threshold tuning: too aggressive → unnecessary reconnect churn; too lax → slow recovery.
