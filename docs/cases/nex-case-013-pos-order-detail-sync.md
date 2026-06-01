@@ -24,8 +24,8 @@ when the POS edits an order (guest_count, totals, items, `order_checks`) under
 
 ## Handoff
 - Phase in progress: Contrarian + design complete (plan approved 2026-06-01). Ready for ranpo-backend.
-- Done so far: identifier inconsistency root-caused; reuse path (NEX-CASE-007 trigger/outbox/consumer
-  + `OrderBroadcastPayload`) identified; event shape decided.
+- Done so far: identifier inconsistency analyzed and design complete (no code applied — design only);
+  reuse path (NEX-CASE-007 trigger/outbox/consumer + `OrderBroadcastPayload`) identified; event shape decided.
 - Exact next action: implement Parts below on `agent/nex-case-013-…`. **First confirm the POS columns**
   that hold guest_count and per-check totals (`orders` vs `order_checks`) — drives the trigger.
 - Working-tree state: none yet (design only).
