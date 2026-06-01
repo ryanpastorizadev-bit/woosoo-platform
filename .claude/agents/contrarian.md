@@ -60,6 +60,9 @@ If the task requires more than one app, recommend a split — do not let the Spe
 ### Assumptions Challenged
 - ...
 
+### Alternate Interpretations
+- <If multiple readings of the request exist, name them. State which one is being pursued and why. If only one reading is possible, write "None".>
+
 ### Risks
 - ...
 

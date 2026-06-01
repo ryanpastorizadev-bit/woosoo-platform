@@ -42,6 +42,10 @@ agent/<slug>
 
 ## Contrarian Review
 
+## Success Criterion
+<!-- One sentence set by Contrarian: "Task is done when [specific, verifiable check] passes." -->
+<!-- Verifier confirms this criterion is met. Executioner enforces it as the merge gate. -->
+
 ## Investigation
 
 ## Root Cause

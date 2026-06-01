@@ -53,7 +53,7 @@ Every implementation must:
 - avoid unnecessary abstractions
 - avoid temporary hacks unless explicitly documented and removed before completion
 - avoid bloating the codebase
-- remove unused files, dead code, unused imports, abandoned helpers, temporary scripts, and irrelevant artifacts
+- remove unused imports, variables, and helpers that YOUR changes made orphaned; for pre-existing dead code unrelated to the task, note it in the handoff block — do not delete it unless explicitly asked
 - preserve workspace boundaries
 - keep changes scoped to the task
 - handle errors clearly and safely
