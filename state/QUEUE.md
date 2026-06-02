@@ -33,11 +33,11 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 ### Bucket A — Stabilization (GATES the staging → main merge)
 
-<!-- TAB-CASE-010 is now the sole gate (2026-06-01). DEP-004 confirmed → unblocked. -->
+<!-- ✅ EMPTY as of 2026-06-02 — every stabilization gate is APPROVED + merged to dev:
+     NEX-CASE-013 (+ PR #160 POS-detail-refresh fix), TAB-CASE-010, TAB-CASE-009, INFRA-CASE-003.
+     The staging→main promotion is UNBLOCKED. -->
 
-| Priority | Case ID | App | Description | Tier | Dep | Status | GH |
-|---|---|---|---|---|---|---|---|
-| P2 | TAB-CASE-010 | tablet-ordering-pwa | Use canonical `order_id` everywhere + consume `order.details.updated` (live order refresh); fix `preparing`→`in_progress` | 3 | DEP-004 | **queued → chuya-frontend** (dep confirmed 2026-06-01) | — |
+_(empty — all stabilization gates cleared; promote `dev → staging → main`)_
 
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
 
@@ -75,7 +75,8 @@ If all queued rows are blocked: report to user, list what must be resolved.
 
 | Case ID | App | Completed | Evidence |
 |---|---|---|---|
-| NEX-CASE-013 | woosoo-nexus | 2026-06-01 | OrderStatusUpdated + orders.{order_id} channel fix; OrderBroadcaster + BroadcastEvent enum; POS detail triggers + woosoo_order_detail_outbox; pos:consume-order-detail-events; OrderDetailsUpdated. 438/438 tests. Executioner APPROVED. DEP-004 confirmed. |
+| TAB-CASE-010 | tablet-ordering-pwa | 2026-06-02 | Canonical `order_id` (setOrderId uses order_id; channel+guard on order_id) + `order.details.updated` handler → `applyDetailsUpdate` (guest_count/total, no recompute) + `preparing`→`in_progress` + doc-comment repoint. typecheck clean; pre-merge-check OK. Executioner APPROVED. Merged to dev (tablet PR #196). |
+| NEX-CASE-013 | woosoo-nexus | 2026-06-01 | OrderStatusUpdated + orders.{order_id} channel fix; OrderBroadcaster + BroadcastEvent enum; POS detail triggers + woosoo_order_detail_outbox; pos:consume-order-detail-events; OrderDetailsUpdated. 438/438 tests. Executioner APPROVED. DEP-004 confirmed. **Follow-up PR #160: refreshDetailFromPos re-reads POS values before broadcast (P1 review fix) — 438/1537 green.** |
 | TAB-CASE-009 | tablet-ordering-pwa | 2026-06-01 | Silent-death watchdog in useBroadcasts.ts: 30s tick, 180s threshold, touchLastEvent() on all 7 handlers. 73 files / 408 tests pass, typecheck+lint clean. Executioner APPROVED. |
 | INFRA-CASE-003 | tablet-ordering-pwa + woosoo-nexus | 2026-06-01 | `.npmrc` (fetch-retries=5, fetch-timeout=600s) + tablet Dockerfile COPY fix. docker build exit 0; npm config verified inside image. Executioner APPROVED. Pi wlan0 test is Bucket B deploy-gate. |
 | NEX-CASE-005 | woosoo-nexus | 2026-05-31 | Closed **OBE** (not Executioner — cannot-reproduce class). Root-caused jointly with #011: the legacy "non-idempotent print event path" warning string no longer exists in code; print-event creation is idempotent (`idempotency_key` unique, reuse-on-match). Narrow residual (`Str::uuid()` fallback when tablet omits `client_submission_id`) is guarded by 409/refill-guard; not pursued. Removed from Bucket A |

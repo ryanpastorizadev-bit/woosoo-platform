@@ -16,16 +16,19 @@ scope: ecosystem
 ## Current Task
 
 ```yaml
-task_id:      tab-case-010
-status:       queued
+task_id:      promote-staging-main
+status:       in_progress
 tier:         3
-app:          tablet-ordering-pwa
-specialist:   chuya-frontend
-branch:       agent/tab-case-010 (to be created)
-description:  Use canonical order_id everywhere + consume order.details.updated (live order refresh); fix preparing→in_progress
-case_file:    docs/cases/tab-case-010.md (to be created from _TEMPLATE)
-next_action:  Contrarian first — review tablet order_id usage, useBroadcasts.ts consumption of order.details.updated, preparing→in_progress mapping
-last_agent:   executioner — 2026-06-01 — NEX-CASE-013 APPROVED; DEP-004 confirmed; TAB-CASE-010 unblocked
+app:          ecosystem (governance / release)
+specialist:   claude-code (orchestration)
+branch:       dev → staging → main
+description:  Bucket A CLEAR — NEX-CASE-013 (+PR #160 detail-refresh), TAB-CASE-010, TAB-CASE-009,
+              INFRA-CASE-003 all APPROVED + merged to dev. Promote dev→staging→main across all repos.
+case_file:    (release) state/QUEUE.md is the authoritative backlog; no per-task case file
+next_action:  Promote dev→staging per repo (nexus/tablet/print-bridge/platform), verify CI green,
+              then staging→main. NOTE: staging is 20–31 ahead of main — large production release.
+              Bucket B Pi ops (disable POS printer, pos:setup-payment-trigger, Stage-B verify, APK) in parallel.
+last_agent:   claude-code — 2026-06-02 — reconciled state (Bucket A empty, deduped tab-case-010); driving promotion.
 ```
 
 ## Reconciliation Findings (2026-05-30)
