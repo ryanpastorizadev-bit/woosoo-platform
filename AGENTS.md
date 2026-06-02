@@ -281,3 +281,20 @@ APPROVED          # may carry a Follow-Ups: block listing issues to file separat
 REJECTED
 SPLIT_REQUIRED
 ```
+
+## Review Summary (end of every task)
+
+Every task output must end with:
+
+- **Files changed** (with paths)
+- **Contract impact** (yes/no, which contract)
+- **Validation result** (output of `scripts/pre-merge-check.sh` or reason it could not run)
+- **Rollback plan** (one sentence)
+
+## Reminders
+
+- The tablet sends intent; the backend owns truth.
+- One app per task.
+- No technical errors to customers.
+- Order state: `OrderStatus` enum; terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`.
+- Only docs with `status: canonical` are source of truth.

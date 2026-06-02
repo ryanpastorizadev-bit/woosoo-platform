@@ -6,16 +6,7 @@ scope: ecosystem
 
 # Resume & Handoff Protocol
 
-**Problem this solves:** the Lite 4-agent operating system runs in a single chatbox. The chain
-state (tier, branch, which agent ran, evidence, what's left) normally lives only in that
-conversation. If a runner is interrupted mid-task — **rate limit**, context limit, crash, or a
-deliberate handoff — that state is lost and the next runner would restart from zero or skip
-gates.
-
-**Solution:** the per-task case file `docs/cases/<task-slug>.md` is the **single durable source
-of truth**. Every agent phase checkpoints to it; any later Claude Code session resumes from it.
-
-This protocol is **mandatory** and overrides the instinct to "start over".
+The per-task case file `docs/cases/<task-slug>.md` is the single durable source of truth. Every agent phase checkpoints to it. This protocol is **mandatory** — always resume from the case file, never restart from zero.
 
 ---
 
@@ -80,17 +71,7 @@ The chain advances only after the checkpoint is written. If a runner dies betwee
 last checkpoint is durable and the next runner resumes cleanly. No checkpoint = the phase did
 not happen.
 
-**Helper (optional, keeps the header consistent across runners):**
-
-```sh
-bash scripts/case-status.sh init <slug>                       # create from _TEMPLATE.md
-bash scripts/case-status.sh get  <slug>                       # print the Run State block
-bash scripts/case-status.sh set  <slug> status=BLOCKED next_agent=verifier
-```
-
-PowerShell equivalent: `pwsh scripts/case-status.ps1 <get|set|init> <slug> ...` (behaviour-
-identical). `set` auto-stamps `updated`. The helper is a convenience — editing the case file
-directly is equally valid; the case document, not the script, is the source of truth.
+**Helper (optional):** `bash scripts/case-status.sh <init|get|set> <slug> [key=value ...]` — PowerShell: `pwsh scripts/case-status.ps1`. Editing the case file directly is equally valid; the file is authoritative.
 
 ## 5. Interruption / rate-limit handling
 

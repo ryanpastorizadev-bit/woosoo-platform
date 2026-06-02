@@ -16,22 +16,16 @@ scope: ecosystem
 ## Current Task
 
 ```yaml
-task_id:      stabilization-reconciliation
-status:       in_progress
-tier:         2
-app:          ecosystem (governance)
-specialist:   dazai-docs
-branch:       dev
-description:  Phase 0 reconciliation — cross-referenced 13 open GitHub Issues (nexus 10, tablet 1,
-              print-bridge 1, platform 1) against docs/cases + QUEUE.md + DONE.md. Produced single
-              authoritative backlog (Bucket A stabilization / Bucket C deferred). Merge gate =
-              Bucket A only; KDS epic + features deferred.
-case_file:    (plan) C:/Users/Pc1/.claude/plans/review-and-assess-check-cozy-lark.md
-next_action:  Begin Bucket A. Lead: NEX-CASE-011 (#140 duplicate printing) investigated JOINT with
-              NEX-CASE-005 (legacy non-idempotent print path) — likely shared root cause. In parallel:
-              INFRA-CASE-003 (#136 Pi build) and TAB-CASE-009 (chuya-frontend). Bucket B (deploy) runs
-              alongside; NEX-CASE-007 code is already on dev+staging — only the Pi trigger remains.
-last_agent:   claude-code — 2026-05-31 — backlog reorg (3 buckets, gate model corrected) in QUEUE.md/WORK.md.
+task_id:      tab-case-010
+status:       queued
+tier:         3
+app:          tablet-ordering-pwa
+specialist:   chuya-frontend
+branch:       agent/tab-case-010 (to be created)
+description:  Use canonical order_id everywhere + consume order.details.updated (live order refresh); fix preparing→in_progress
+case_file:    docs/cases/tab-case-010.md (to be created from _TEMPLATE)
+next_action:  Contrarian first — review tablet order_id usage, useBroadcasts.ts consumption of order.details.updated, preparing→in_progress mapping
+last_agent:   executioner — 2026-06-01 — NEX-CASE-013 APPROVED; DEP-004 confirmed; TAB-CASE-010 unblocked
 ```
 
 ## Reconciliation Findings (2026-05-30)
@@ -59,13 +53,11 @@ none
 ## Last Agent
 
 ```
-role:         claude-code — Contrarian + Specialist (ranpo-backend) + Executioner chain complete
-date:         2026-05-30
-left_off:     Case COMPLETE. One new file: tests/Feature/Pulse/PulseRouteAuthTest.php.
-              agent/vite-build-conditional merged to dev in both repos (nexus PR #153; platform
-              also merged). Stale note removed 2026-05-31.
-files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
-              docs/cases/nex-case-010-immutable-image-production-migration.md (Tier 3, BLOCKED)
+role:         executioner — 2026-06-01 — NEX-CASE-013 APPROVED
+left_off:     NEX-CASE-013 full chain complete (438 tests, 6 regression guards). DEP-004 confirmed.
+              TAB-CASE-010 unblocked. State files (DONE/DEPS/QUEUE/WORK) all updated.
+              NEX-CASE-013 branch uncommitted — PR to be raised against staging.
+files_open:   docs/cases/nex-case-013-pos-order-detail-sync.md (status: COMPLETE)
 ```
 
 ## On Completion of Next Task
@@ -75,10 +67,11 @@ GATE MODEL (2026-05-31): nexus dev→staging ALREADY merged (nexus PR #157). Buc
 staging→main ONLY. See state/QUEUE.md for the authoritative three-bucket backlog.
 
 BUCKET A — Stabilization (gates staging→main):
-1. INFRA-CASE-003 (#136 Pi build npm ci WiFi, T2)
-2. TAB-CASE-009 (tablet WS silent-death, T2) — contrarian done, awaiting chuya-frontend
-3. Both APPROVED → promote staging→main
-   (NEX-CASE-011 root-caused 2026-05-31 → POS-side, moved A→B; NEX-CASE-005 closed OBE.)
+1. ✅ INFRA-CASE-003 — APPROVED 2026-06-01
+2. ✅ TAB-CASE-009 — APPROVED 2026-06-01
+3. ✅ NEX-CASE-013 — APPROVED 2026-06-01 (branch uncommitted; PR to be raised)
+4. TAB-CASE-010 (tablet consumer, T3) — **queued → chuya-frontend** (DEP-004 confirmed)
+→ staging→main promotion waits for TAB-CASE-010 APPROVED
 
 BUCKET B — Deploy readiness (NON-gating ops; gates the actual Pi rollout):
 → NEX-CASE-011 POS config (disable 3rd-party POS printer on Pi — BT-only; NO Nexus code change),
@@ -91,20 +84,3 @@ BUCKET C — Deferred features (do NOT gate any promotion):
 ```
 
 ---
-<!--
-STATUS VALUES:
-  queued              Ready, not started
-  in_progress         Work underway
-  blocked             Waiting on a dependency (see state/DEPS.md)
-  needs_verification  Implementation done, not yet verified
-  verified            Tested and confirmed
-  done                Handover complete — pull next task
-
-TIER VALUES: 1 (Trivial) | 2 (Standard) | 3 (High-risk)
-
-SPECIALIST VALUES: ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra
-
-CASE FILE PATH: docs/cases/<task-slug>.md
-  Recommended task slug prefix: nex-case | tab-case | prn-case | plt-case
-  The case file remains the authoritative durable resume point.
--->

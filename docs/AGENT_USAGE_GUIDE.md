@@ -299,8 +299,7 @@ yes / no — <which contract if yes>
 ## Critical Files Reference
 
 ```
-AGENTS.md                           — immutable rules, hook map, 4-agent OS (source of truth)
-CLAUDE.md                           — boot sequence for Claude Code
+AGENTS.md                           — immutable rules, hook map, 4-agent OS + boot sequence (Claude Code entrypoint)
 docs/AI_CONTEXT.md                  — architecture, apps, contracts (load on demand)
 docs/AGENT_DEFAULT_INSTRUCTIONS.md  — evidence standards, 15 extended quality rules
 docs/RESUME_PROTOCOL.md             — durable checkpointing protocol

@@ -10,8 +10,7 @@ This is the canonical entry point for all Woosoo platform documentation. Only do
 
 ## Boot Layer
 
-- [AGENTS.md](../AGENTS.md) — AI operating rules for the platform
-- [CLAUDE.md](../CLAUDE.md) — Claude Code–specific instructions
+- [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
 - [AI_CONTEXT.md](AI_CONTEXT.md) — Business and architecture context
 
 ## Agent operating system (Lite, 4-agent)

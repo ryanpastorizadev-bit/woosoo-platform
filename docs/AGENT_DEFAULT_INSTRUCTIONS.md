@@ -23,23 +23,7 @@ A "working feature" means the feature has been fully validated in the actual exp
 
 ## Before Starting Any Task
 
-Before making changes, the agent must:
-
-1. Understand the actual requirement.
-2. Inspect the relevant files, structure, dependencies, and existing patterns.
-3. Search for existing skills, reusable patterns, documentation, and prior implementations.
-4. Identify the simplest correct path.
-5. Confirm the expected behavior and success criteria.
-6. Check for related risks, including:
-   - race conditions
-   - async leaks
-   - state mismatch
-   - contract/API mismatch
-   - authentication or authorization boundary issues
-   - configuration drift
-   - stale, duplicate, orphaned, or dead files
-   - fragile assumptions
-   - incomplete test coverage
+Follow AGENTS.md → "Mandatory Workflow" (Investigate step) and the Audit Checklist risk list. Do not begin implementation until requirements, risks, and the simplest correct path are confirmed.
 
 ---
 

@@ -26,6 +26,8 @@ System truth is split:
 
 ## Core Architecture Rules
 
+> Immutable enforcement rules (one-app scope, order state machine, no raw errors to customers): see AGENTS.md → "Immutable Rules".
+
 - Backend is source of truth for pricing, modifiers, package rules, POS mapping, order state.
 - Tablet sends **intent only**: `{ guest_count, package_id, items: [ { menu_id, quantity } ] }`.
 - Order states: the `OrderStatus` enum (`pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`); terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`. Do not invent states beyond the enum.

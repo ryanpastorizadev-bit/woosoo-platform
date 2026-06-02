@@ -299,12 +299,6 @@ function startServer() {
   watcher.on('error', (err) => console.error('fs.watch error:', err.message));
 
   function shutdown(reason) {
-    // Force-close tracked WebSocket sockets so server.close() doesn't hang
-    for (const socket of [...clients]) {
-      try { socket.destroy(); } catch (e) {}
-    }
-    clients.clear();
-
     console.log(JSON.stringify({ type: 'server-stopped', reason }));
     const infoFile = path.join(STATE_DIR, 'server-info');
     if (fs.existsSync(infoFile)) fs.unlinkSync(infoFile);
