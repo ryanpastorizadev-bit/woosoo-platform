@@ -57,8 +57,14 @@ If the task requires more than one app, recommend a split — do not let the Spe
 ### Tier
 1 / 2 / 3
 
+### Success Criterion
+Task is done when <specific, verifiable check> passes.
+
 ### Assumptions Challenged
 - ...
+
+### Alternate Interpretations
+- <If multiple readings of the request exist, name them. State which one is being pursued and why. If only one reading is possible, write "None".>
 
 ### Risks
 - ...
