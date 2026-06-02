@@ -14,21 +14,39 @@ new totals, item edits).
 - task_slug: tab-case-010-canonical-order-id-and-detail-sync
 - tier: 3
 - branch: agent/tab-case-010-canonical-order-id-and-detail-sync
-- status: BLOCKED
-- last_completed_agent: contrarian
-- next_agent: specialist:chuya-frontend
+- status: IN_PROGRESS
+- last_completed_agent: specialist:chuya-frontend
+- next_agent: verifier
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-01
+- updated: 2026-06-02
+
+## Specialist Investigation
+
+### Files Changed
+- `tablet-ordering-pwa/composables/useBroadcasts.ts` — 5 changes:
+  1. Line 17: doc comment repointed from `docs/websocket-events.md` to `contracts/websocket-events.contract.md`
+  2. Line 73: `OrderUpdatedEvent.order.status` type union — replaced `"preparing"` with `"in_progress"`
+  3. After `OrderCancelledEvent` (new lines 120-129): added `OrderDetailsUpdatedEvent` interface
+  4. `handleOrderCreated` (line 261, 272): fixed both `event.order.id` uses to `event.order.order_id`
+  5. `handleOrderUpdated` statusMessages (line 283): key `preparing` → `in_progress`
+  6. After `handleOrderCancelled`: added `handleOrderDetailsUpdated` handler
+  7. `subscribeToOrderChannel`: registered `.order.details.updated` listener alongside existing ones
+- `tablet-ordering-pwa/stores/Order.ts` — 2 changes:
+  1. Added `applyDetailsUpdate` action after `updateOrderStatus` — updates `state.guestCount` and `state.serverTotal` from POS event; does NOT recompute pricing
+  2. Exposed `applyDetailsUpdate` in store return object
+
+### Key decisions
+- `stores/Order.ts` has no `currentOrder.order` nested structure (the task instruction's pseudocode was schematic). The actual state fields are flat: `guestCount` and `serverTotal`. `subtotal`/`tax`/`discount` are not tracked in state (no components consume them from store); only the displayable fields are updated.
+- `extractOrderId` in `utils/orderHelpers.ts` was NOT modified per explicit constraint in the task brief.
+- `stores/Session.ts` was NOT modified — `setOrderId` already accepts `number | null`.
 
 ## Handoff
-- Phase in progress: Contrarian + design complete (plan approved 2026-06-01). BLOCKED on nex-case-013.
-- Done so far: identifier inconsistency confirmed in `useBroadcasts.ts` / `orderHelpers.ts`.
-- Exact next action: when nex-case-013's DEP is `confirmed` in `state/DEPS.md`, implement the Fix below.
-- Working-tree state: none yet (design only).
-- Risks / do-not-redo: blocked until the nexus `order.details.updated` event exists. Hard rule: the
-  tablet renders POS-authoritative details; it must NEVER recompute pricing/tax/totals.
+- Phase in progress: Specialist complete. All 5 changes implemented and verified structurally.
+- Working-tree state: committed on branch `agent/tab-case-010-canonical-order-id-and-detail-sync`
+- `tsc --noEmit --skipLibCheck` exits clean (no errors).
+- Next: Verifier runs `npx nuxi typecheck`, lint, and test suite.
 
 ## Tier
 3 — real-time order correctness; consumes a new cross-app event.
