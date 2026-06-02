@@ -64,6 +64,10 @@ report that as a limitation — do not run it.
 ### Functional Proof
 - ...
 
+### Success Criterion Check
+- State the criterion from `## Success Criterion` in the case file.
+- State whether the change meets it and why.
+
 ### Warnings / Suspicious Output
 - ...
 

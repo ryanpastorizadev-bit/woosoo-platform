@@ -43,6 +43,11 @@ ARCHIVED     → (terminal — no transitions)
 Every non-terminal state can transition to `VOIDED`. The four terminal states
 (`COMPLETED`, `CANCELLED`, `VOIDED`, `ARCHIVED`) do not transition further.
 
+> **`ARCHIVED` is out-of-band.** It has no incoming row in `canTransitionTo()` — it is **not**
+> reachable through the live order lifecycle. It is an administrative/retention state applied by a
+> batch/admin housekeeping path (archiving old terminal orders), not by the in-session state
+> machine. This is intentional; do not add a runtime transition into `ARCHIVED`.
+
 ## Order identifier (canonical)
 
 **`krypton_woosoo.orders.id` (the POS order id) is the single global order reference.** The POS is

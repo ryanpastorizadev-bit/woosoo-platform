@@ -88,7 +88,10 @@ None (investigation read-only).
   `print_events` row. `.\scripts\pre-merge-check.ps1 -App woosoo-nexus` exit 0.
 
 ## Executioner Verdict
-<!-- pending decision gate -->
+N/A — **closed OBE** (cannot-reproduce class) by user decision 2026-05-31. This is not an
+Executioner-gated completion: no code changed, the reported symptom no longer exists, and dedupe is
+already in place. Recorded in `state/QUEUE.md` Completed as OBE, not in `state/DONE.md` (which is
+Executioner-APPROVED only).
 
 ## Remaining Risks
 - Requiring a stable `client_submission_id` touches the tablet→backend contract; if pursued, the

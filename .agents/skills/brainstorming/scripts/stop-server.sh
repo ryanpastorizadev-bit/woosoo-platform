@@ -19,17 +19,6 @@ PID_FILE="${STATE_DIR}/server.pid"
 if [[ -f "$PID_FILE" ]]; then
   pid=$(cat "$PID_FILE")
 
-  # Validate PID is a positive integer and the process exists
-  if ! [[ "$pid" =~ ^[0-9]+$ ]] || [[ "$pid" -le 0 ]]; then
-    echo '{"status": "failed", "error": "invalid PID in pid file"}'
-    exit 1
-  fi
-  if ! kill -0 "$pid" 2>/dev/null; then
-    rm -f "$PID_FILE"
-    echo '{"status": "not_running"}'
-    exit 0
-  fi
-
   # Try to stop gracefully, fallback to force if still alive
   kill "$pid" 2>/dev/null || true
 
@@ -56,10 +45,9 @@ if [[ -f "$PID_FILE" ]]; then
 
   rm -f "$PID_FILE" "${STATE_DIR}/server.log"
 
-  # Only delete ephemeral /tmp directories; canonicalize first to block symlink bypass
-  CANON_SESSION_DIR=$(realpath "$SESSION_DIR" 2>/dev/null || echo "")
-  if [[ -n "$CANON_SESSION_DIR" && "$CANON_SESSION_DIR" == /tmp/* ]]; then
-    rm -rf "$CANON_SESSION_DIR"
+  # Only delete ephemeral /tmp directories
+  if [[ "$SESSION_DIR" == /tmp/* ]]; then
+    rm -rf "$SESSION_DIR"
   fi
 
   echo '{"status": "stopped"}'

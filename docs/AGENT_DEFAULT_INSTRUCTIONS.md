@@ -23,23 +23,7 @@ A "working feature" means the feature has been fully validated in the actual exp
 
 ## Before Starting Any Task
 
-Before making changes, the agent must:
-
-1. Understand the actual requirement.
-2. Inspect the relevant files, structure, dependencies, and existing patterns.
-3. Search for existing skills, reusable patterns, documentation, and prior implementations.
-4. Identify the simplest correct path.
-5. Confirm the expected behavior and success criteria.
-6. Check for related risks, including:
-   - race conditions
-   - async leaks
-   - state mismatch
-   - contract/API mismatch
-   - authentication or authorization boundary issues
-   - configuration drift
-   - stale, duplicate, orphaned, or dead files
-   - fragile assumptions
-   - incomplete test coverage
+Follow AGENTS.md → "Mandatory Workflow" (Investigate step) and the Audit Checklist risk list. Do not begin implementation until requirements, risks, and the simplest correct path are confirmed.
 
 ---
 
@@ -53,7 +37,7 @@ Every implementation must:
 - avoid unnecessary abstractions
 - avoid temporary hacks unless explicitly documented and removed before completion
 - avoid bloating the codebase
-- remove unused files, dead code, unused imports, abandoned helpers, temporary scripts, and irrelevant artifacts
+- remove unused imports, variables, and helpers that YOUR changes made orphaned; for pre-existing dead code unrelated to the task, note it in the handoff block — do not delete it unless explicitly asked
 - preserve workspace boundaries
 - keep changes scoped to the task
 - handle errors clearly and safely
@@ -70,8 +54,8 @@ Before committing, the agent must verify:
 
 1. The intended feature or fix works through the real user/application flow.
 2. All modified files are intentional and necessary.
-3. No temporary, orphaned, duplicate, irrelevant, or dead files remain.
-4. No dead code, unused imports, debug logs, console dumps, temporary comments, or placeholder logic remain.
+3. No temporary, orphaned, duplicate, irrelevant, or dead files **created or orphaned by this task** remain (unrelated pre-existing dead code is documented in the handoff per the cleanup-scope rule above, not blocking).
+4. No dead code, unused imports, debug logs, console dumps, temporary comments, or placeholder logic **introduced or orphaned by this task** remain.
 5. Relevant tests pass.
 6. Relevant build, lint, type-check, and formatting checks pass where available.
 7. API contracts, request/response shapes, state transitions, and error handling are correct.
@@ -95,7 +79,7 @@ A task is complete only when:
 - all known risks have been checked
 - all warnings or suspicious signals have been addressed
 - tests and relevant checks pass
-- unnecessary files and code have been removed
+- files and code that this task created or orphaned have been removed (unrelated pre-existing dead code is noted as follow-up, not deleted)
 - the codebase remains lean, organized, and production-ready
 - the final result can be trusted without relying on assumptions
 
@@ -114,8 +98,8 @@ The agent must not mark a task as done if any of the following are present:
 - skipped validation
 - partial implementation
 - mock success without real workflow testing
-- temporary files left behind
-- duplicate or dead code
+- temporary files left behind by this task
+- duplicate or dead code introduced or orphaned by this task (unrelated pre-existing dead code documented as follow-up is not a failure signal)
 - unclear error handling
 - silent failure paths
 - unexplained logs or strange outputs
