@@ -42,6 +42,10 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
 
 <!-- These don't gate the merge but DO gate the actual Pi/restaurant deployment. Run after the relevant code lands. -->
+<!-- ▶ Ordered execution sequence: docs/deployment/RELEASE_RUNBOOK_order-id-pos-sync.md (deploy → triggers → POS printer → APK → smoke test). -->
+<!-- Code is on `main` (2026-06-02); these are Pi-side ops requiring hardware access. -->
+<!-- Pi deploy DECISION: NEX-CASE-013 extended pos:setup-payment-trigger — re-run it on the Pi installs the new order-detail trigger too. -->
+<!-- NEX-CASE-001/002: now folded into Step 1 (deploy-all.sh) verification on the Pi.                                                       -->
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
