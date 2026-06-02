@@ -26,9 +26,11 @@ System truth is split:
 
 ## Core Architecture Rules
 
+> Immutable enforcement rules (one-app scope, order state machine, no raw errors to customers): see AGENTS.md → "Immutable Rules".
+
 - Backend is source of truth for pricing, modifiers, package rules, POS mapping, order state.
 - Tablet sends **intent only**: `{ guest_count, package_id, items: [ { menu_id, quantity } ] }`.
-- Order states: `confirmed → completed | voided | cancelled`. No additional states.
+- Order states: the `OrderStatus` enum (`pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`); terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`. Do not invent states beyond the enum.
 - All packages include unlimited sides and meats within their modifier set. Three packages: Classic Feast, Noble Selection, Royal Banquet.
 - Printing: station-based, sides → cashier. Print jobs must be idempotent at the reserve/ack level.
 - POS integration uses a static LAN IP: `192.168.1.32`.

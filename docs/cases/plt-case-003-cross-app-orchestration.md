@@ -23,7 +23,7 @@ Cross-app orchestration and observability work to be executed after single-app f
 ## Handoff
 - Phase in progress: none — no agents have run
 - Done so far: case scaffolded; Contrarian not yet started; `DEP-001`, `DEP-002`, and `DEP-003` are all confirmed in `state/DEPS.md`.
-- Exact next action: Contrarian may start when this queued case is selected.
+- Exact next action: Contrarian may start when this case is selected. NOTE: **not dependency-blocked** — DEP-001/002/003 are all `confirmed`. It is **deferred by priority** (QUEUE Bucket C, post-stabilization), not waiting on any provider.
 - Working-tree state: clean
 - Risks / do-not-redo: keep Tier 3 cross-app scope; re-check `state/DEPS.md` before implementation in case a dependency has changed.
 

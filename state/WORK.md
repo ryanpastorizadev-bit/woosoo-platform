@@ -8,25 +8,43 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-30 — nex-case-002 Executioner APPROVED, cannot-reproduce + gating test -->
+<!-- Last updated: 2026-05-31 — Backlog reorg: 3 buckets (A stabilization / B deploy-readiness / C deferred); -->
+<!-- gate model corrected to staging→main (nexus dev→staging already merged via #157); 4 missing live cases captured. -->
 
 ---
 
 ## Current Task
 
 ```yaml
-task_id:      nex-case-002-pulse-routes
-status:       done
-tier:         2
-app:          woosoo-nexus
-specialist:   ranpo-backend
-branch:       agent/nex-case-002-pulse-routes
-description:  Laravel Pulse routes broken — 2 errors from 2026-05-19. Investigated and could
-              not reproduce. Route correct, gate correct, permission seeded. Gating test added.
-case_file:    docs/cases/nex-case-002-pulse-routes.md
-next_action:  Pull next task from queue (NEX-CASE-005 or PLT-CASE-003).
-last_agent:   claude-code — 2026-05-30 — Executioner APPROVED. Cannot-reproduce; test added;
-              432 tests pass; pre-merge-check OK.
+task_id:      promote-staging-main
+status:       in_progress
+tier:         3
+app:          ecosystem (governance / release)
+specialist:   claude-code (orchestration)
+branch:       dev → staging → main
+description:  Bucket A CLEAR — NEX-CASE-013 (+PR #160 detail-refresh), TAB-CASE-010, TAB-CASE-009,
+              INFRA-CASE-003 all APPROVED + merged to dev. Promote dev→staging→main across all repos.
+case_file:    (release) state/QUEUE.md is the authoritative backlog; no per-task case file
+next_action:  Promote dev→staging per repo (nexus/tablet/print-bridge/platform), verify CI green,
+              then staging→main. NOTE: staging is 20–31 ahead of main — large production release.
+              Bucket B Pi ops (disable POS printer, pos:setup-payment-trigger, Stage-B verify, APK) in parallel.
+last_agent:   claude-code — 2026-06-02 — reconciled state (Bucket A empty, deduped tab-case-010); driving promotion.
+```
+
+## Reconciliation Findings (2026-05-30)
+
+```text
+DRIFT FOUND between agent-OS tracking and GitHub Issues:
+- nex-case-007 (POS outbox/SessionReset) was COMPLETE+APPROVED but absent from QUEUE/DONE → recorded.
+  Status: complete-landed on remote dev — still needs `php artisan pos:setup-payment-trigger` deploy.
+- GH bug issues #140 (duplicate printing) and #136 (Pi build) had NO case files → registered in queue
+  as NEX-CASE-011 and INFRA-CASE-003 (case stub files still to be created from _TEMPLATE).
+- KDS epic (#137,#143-#148), telemetry #152, discount-sync #184, print-bridge #30, Pi panel #19
+  are FEATURES → Bucket C, explicitly deferred (must NOT gate the dev→staging→main merge).
+- DONE.md is under-recorded: NEX-CASE-001/008/009, TAB-CASE-001..004, PRN-CASE-001/002 are APPROVED
+  but missing canonical rows → flagged for a verification backfill (not fabricated here).
+- Branch divergence: nexus dev +1 / staging +6 (minor); main far behind. Realign before promote.
+- Repo orgs: nexus/tablet/print-bridge = tech-artificer; platform = ryanpastorizadev-bit.
 ```
 
 ## Blocking Dependencies
@@ -38,38 +56,34 @@ none
 ## Last Agent
 
 ```
-role:         claude-code — Contrarian + Specialist (ranpo-backend) + Executioner chain complete
-date:         2026-05-30
-left_off:     Case COMPLETE. One new file: tests/Feature/Pulse/PulseRouteAuthTest.php.
-              Pending merge (infra-vite-build-conditional): agent/vite-build-conditional → dev
-              in both woosoo-nexus and woosoo-platform still needs to be merged by user.
-files_open:   docs/cases/nex-case-002-pulse-routes.md (Run State → COMPLETE)
-              docs/cases/nex-case-010-immutable-image-production-migration.md (Tier 3, BLOCKED)
+role:         executioner — 2026-06-01 — NEX-CASE-013 APPROVED
+left_off:     NEX-CASE-013 full chain complete (438 tests, 6 regression guards). DEP-004 confirmed.
+              TAB-CASE-010 unblocked. State files (DONE/DEPS/QUEUE/WORK) all updated.
+              NEX-CASE-013 branch uncommitted — PR to be raised against staging.
+files_open:   docs/cases/nex-case-013-pos-order-detail-sync.md (status: COMPLETE)
 ```
 
 ## On Completion of Next Task
 
 ```text
-→ NEX-CASE-005 (legacy print path, P2, queued)
-→ PLT-CASE-003 (cross-app orchestration, P3, all deps confirmed)
-→ nex-case-010 (immutable-image production migration, Tier 3) once deliberately selected
+GATE MODEL (2026-05-31): nexus dev→staging ALREADY merged (nexus PR #157). Bucket A now gates
+staging→main ONLY. See state/QUEUE.md for the authoritative three-bucket backlog.
+
+BUCKET A — Stabilization (gates staging→main):
+1. ✅ INFRA-CASE-003 — APPROVED 2026-06-01
+2. ✅ TAB-CASE-009 — APPROVED 2026-06-01
+3. ✅ NEX-CASE-013 — APPROVED 2026-06-01 (branch uncommitted; PR to be raised)
+4. TAB-CASE-010 (tablet consumer, T3) — **queued → chuya-frontend** (DEP-004 confirmed)
+→ staging→main promotion waits for TAB-CASE-010 APPROVED
+
+BUCKET B — Deploy readiness (NON-gating ops; gates the actual Pi rollout):
+→ NEX-CASE-011 POS config (disable 3rd-party POS printer on Pi — BT-only; NO Nexus code change),
+  NEX-CASE-007 Pi step (`php artisan pos:setup-payment-trigger`; code already on dev+staging),
+  INFRA-CASE-002 (Stage-B Pi verify), INFRA-CASE-001 (Pi migration on hardware), PRN-REBUILD-APK
+
+BUCKET C — Deferred features (do NOT gate any promotion):
+→ PLT-CASE-003, KDS epic (#137/#143-#148), telemetry #152, #184, #30, #19, NEX-CASE-010,
+  NEX-CASE-012 (admin UI), tablet-screen-ui-ux-review
 ```
 
 ---
-<!--
-STATUS VALUES:
-  queued              Ready, not started
-  in_progress         Work underway
-  blocked             Waiting on a dependency (see state/DEPS.md)
-  needs_verification  Implementation done, not yet verified
-  verified            Tested and confirmed
-  done                Handover complete — pull next task
-
-TIER VALUES: 1 (Trivial) | 2 (Standard) | 3 (High-risk)
-
-SPECIALIST VALUES: ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra
-
-CASE FILE PATH: docs/cases/<task-slug>.md
-  Recommended task slug prefix: nex-case | tab-case | prn-case | plt-case
-  The case file remains the authoritative durable resume point.
--->

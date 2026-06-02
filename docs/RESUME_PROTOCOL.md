@@ -4,19 +4,9 @@ last_reviewed: 2026-05-17
 scope: ecosystem
 ---
 
-# Cross-Runner Resume & Handoff Protocol
+# Resume & Handoff Protocol
 
-**Problem this solves:** the Lite 4-agent operating system runs in a single chatbox. The chain
-state (tier, branch, which agent ran, evidence, what's left) normally lives only in that
-conversation. If a runner is interrupted mid-task — **rate limit**, context limit, crash, or a
-deliberate handoff — that state is lost and the next runner would restart from zero or skip
-gates.
-
-**Solution:** the per-task case file `docs/cases/<task-slug>.md` is the **single durable,
-runner-agnostic source of truth**. Every agent checkpoints to it. Any runner (Claude Code,
-OpenAI Codex CLI, GitHub Copilot) resumes from it.
-
-This protocol is **mandatory for all three runners** and overrides the instinct to "start over".
+The per-task case file `docs/cases/<task-slug>.md` is the single durable source of truth. Every agent phase checkpoints to it. This protocol is **mandatory** — always resume from the case file, never restart from zero.
 
 ---
 
@@ -42,7 +32,7 @@ header. Agents **rewrite it in full** when they finish their phase:
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
-- active_runner: claude-code | codex | copilot
+- active_runner: claude-code
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
 - updated: <YYYY-MM-DD HH:MM, or date if time unknown>
@@ -51,7 +41,7 @@ header. Agents **rewrite it in full** when they finish their phase:
 `status: BLOCKED` means a phase started but could not finish (e.g. interrupted). `next_agent`
 always points at the phase that must run next.
 
-## 3. Mandatory pre-task check (every runner, every task)
+## 3. Mandatory pre-task check (every task)
 
 Before doing **anything** else on any task:
 
@@ -81,17 +71,7 @@ The chain advances only after the checkpoint is written. If a runner dies betwee
 last checkpoint is durable and the next runner resumes cleanly. No checkpoint = the phase did
 not happen.
 
-**Helper (optional, keeps the header consistent across runners):**
-
-```sh
-bash scripts/case-status.sh init <slug>                       # create from _TEMPLATE.md
-bash scripts/case-status.sh get  <slug>                       # print the Run State block
-bash scripts/case-status.sh set  <slug> status=BLOCKED next_agent=verifier
-```
-
-PowerShell equivalent: `pwsh scripts/case-status.ps1 <get|set|init> <slug> ...` (behaviour-
-identical). `set` auto-stamps `updated`. The helper is a convenience — editing the case file
-directly is equally valid; the case document, not the script, is the source of truth.
+**Helper (optional):** `bash scripts/case-status.sh <init|get|set> <slug> [key=value ...]` — PowerShell: `pwsh scripts/case-status.ps1`. Editing the case file directly is equally valid; the file is authoritative.
 
 ## 5. Interruption / rate-limit handling
 
@@ -112,22 +92,16 @@ it can produce any further output, write a `## Handoff` note to the case file an
 If the runner cannot emit anything (hard cutoff), the previous checkpoint + `next_agent` is the
 recovery point. This is why checkpointing per phase — not just at the end — is mandatory.
 
-## 6. Runner role mapping (the chain is identical across runners)
+## 6. Role mapping
 
-The agent **definitions** live only in `.claude/agents/*.md`. The chain is the same regardless
-of who executes it:
-
-| Runner | How it adopts a role |
-| ------ | -------------------- |
-| Claude Code | Invokes the matching subagent in `.claude/agents/<role>.md`. |
-| OpenAI Codex CLI | Single chatbox. Reads `.claude/agents/<role>.md` as its instruction set for that phase and behaves as that role. Honors root + per-app `AGENTS.md`. |
-| GitHub Copilot | Single chatbox. Reads `.claude/agents/<role>.md` as its instruction set for that phase. Honors `.github/copilot-instructions.md` + `AGENTS.md`. |
+The agent **definitions** live only in `.claude/agents/*.md`. A single Claude Code session adopts
+each role in turn by invoking the matching subagent in `.claude/agents/<role>.md`.
 
 Role names used in `next_agent`: `contrarian`, `specialist:ranpo-backend`,
 `specialist:chuya-frontend`, `specialist:relay-ops`, `specialist:dazai-docs`,
 `specialist:infra`, `verifier`, `executioner`.
 
-A resuming runner does not need the original runner's chat history — the case file is
+A resuming session does not need the original session's chat history — the case file is
 sufficient and authoritative. Trust the case file over memory.
 
 ## 7. Hard rules carried across the handoff

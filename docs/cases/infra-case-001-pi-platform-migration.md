@@ -22,7 +22,7 @@ scope: ecosystem
 - Phase in progress:
 - Done so far: Contrarian complete. Specialist fixes applied to woosoo-health.sh and woosoo-backup.sh (stale cd path). Ready for Pi-side execution.
 - Exact next action: User runs Phase 0 pre-flight on Pi, then proceeds through plan phases.
-- Working-tree state: scripts/deployment/woosoo-health.sh, scripts/deployment/woosoo-backup.sh modified (cd WOOSOO_NEXUS_PATH → WOOSOO_PLATFORM_PATH).
+- Working-tree state: COMMITTED to dev (f7d2707 — woosoo-health.sh + woosoo-backup.sh migrated cd WOOSOO_NEXUS_PATH → WOOSOO_PLATFORM_PATH; `WOOSOO_PLATFORM_PATH` present in both). Tree clean — no uncommitted edits to recover. Only Pi-side execution remains.
 - Risks / do-not-redo: Do NOT run docker compose down --volumes. WOOSOO_APPLY_STATIC_IP must be false (SSH only).
 
 ## Tier

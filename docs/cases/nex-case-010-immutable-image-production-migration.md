@@ -14,12 +14,13 @@ from the image layer, not the host bind-mount.
 - tier: 3
 - branch: agent/immutable-image-migration
 - status: BLOCKED
+- blocked_reason: deferred by priority until post-stabilization (NOT dependency-blocked). Must not be bundled with the tactical conditional-build fix; needs its own Tier 3 risk analysis + Pi rollback rehearsal.
 - last_completed_agent: none
 - next_agent: contrarian
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-05-30
+- updated: 2026-05-31
 
 ## Handoff
 - Phase in progress: none. TRACKED, NOT STARTED.

@@ -1,0 +1,133 @@
+---
+status: canonical
+last_reviewed: 2026-06-01
+scope: tablet-ordering-pwa
+---
+
+# CASE: tab-case-010-canonical-order-id-and-detail-sync
+
+Make the tablet use the canonical POS `order_id` consistently, and consume the new
+`order.details.updated` event so the displayed order reflects live POS changes (added guest,
+new totals, item edits).
+
+## Run State
+- task_slug: tab-case-010-canonical-order-id-and-detail-sync
+- tier: 3
+- branch: agent/tab-case-010-canonical-order-id-and-detail-sync
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-02
+
+## Contrarian Review
+- **Tier:** 3 — touches real-time channel subscription and Pinia state.
+- **Specialist:** chuya-frontend. Scope: `tablet-ordering-pwa/**`.
+- **Candidate skills:** `agent-sequence`, `nuxt-pwa-flow`, `pinia-state-audit`, `test-verification`, `dead-code-cleanup`.
+- **Cross-app dependency:** DEP-004 confirmed — NEX-CASE-013 APPROVED + PR #160 merged 2026-06-02.
+- **Not a duplicate:** TAB-CASE-001/002 reworked reconnection; TAB-CASE-009 added the watchdog. This is the first handler for `order.details.updated` and the first id-canonicalization fix.
+- **Scope confirmed:** 4 targeted changes across 2 files. `extractOrderId` already correct — no change.
+- **Investigation confirmed 2026-06-01:**
+  - `useBroadcasts.ts:261` — `sessionStore.setOrderId(event.order.id)` uses local PK.
+  - `useBroadcasts.ts:544` — `subscribeToOrderChannel()` has no `order.details.updated` listener.
+  - `useBroadcasts.ts:271` — notification map: `"preparing": "..."` should be `"in_progress"`.
+  - `stores/Order.ts` — `updateOrderStatus()` updates status only; no detail-merge action.
+  - `utils/orderHelpers.ts` — `extractOrderId` already prioritizes `order_id` correctly. No change needed.
+- **Recommendation:** Proceed.
+
+## Specialist Investigation
+
+### Files Changed
+- `tablet-ordering-pwa/composables/useBroadcasts.ts` — 5 changes:
+  1. Line 17: doc comment repointed from `docs/websocket-events.md` to `contracts/websocket-events.contract.md`
+  2. Line 73: `OrderUpdatedEvent.order.status` type union — replaced `"preparing"` with `"in_progress"`
+  3. After `OrderCancelledEvent` (new lines 120-129): added `OrderDetailsUpdatedEvent` interface
+  4. `handleOrderCreated` (line 261, 272): fixed both `event.order.id` uses to `event.order.order_id`
+  5. `handleOrderUpdated` statusMessages (line 283): key `preparing` → `in_progress`
+  6. After `handleOrderCancelled`: added `handleOrderDetailsUpdated` handler
+  7. `subscribeToOrderChannel`: registered `.order.details.updated` listener alongside existing ones
+- `tablet-ordering-pwa/stores/Order.ts` — 2 changes:
+  1. Added `applyDetailsUpdate` action after `updateOrderStatus` — updates `state.guestCount` and `state.serverTotal` from POS event; does NOT recompute pricing
+  2. Exposed `applyDetailsUpdate` in store return object
+
+### Key decisions
+- `stores/Order.ts` has no `currentOrder.order` nested structure (the task instruction's pseudocode was schematic). The actual state fields are flat: `guestCount` and `serverTotal`. `subtotal`/`tax`/`discount` are not tracked in state (no components consume them from store); only the displayable fields are updated.
+- `extractOrderId` in `utils/orderHelpers.ts` was NOT modified per explicit constraint in the task brief.
+- `stores/Session.ts` was NOT modified — `setOrderId` already accepts `number | null`.
+
+## Handoff
+- Phase in progress: Specialist complete. All 5 changes implemented and verified structurally.
+- Working-tree state: committed on branch `agent/tab-case-010-canonical-order-id-and-detail-sync`
+- `tsc --noEmit --skipLibCheck` exits clean (no errors).
+- Next: Verifier runs `npx nuxi typecheck`, lint, and test suite.
+
+## Tier
+3 — real-time order correctness; consumes a new cross-app event.
+
+## Branch
+agent/tab-case-010-canonical-order-id-and-detail-sync
+
+## Problem
+1. **Identifier inconsistency:** `handleOrderCreated` stores the **local** id
+   (`sessionStore.setOrderId(event.order.id)`), and `extractOrderId` (`utils/orderHelpers.ts`)
+   falls back to `id`. Channels are `orders.{order_id}` (POS). When they differ, the tablet
+   subscribes to the wrong channel and misses terminal/detail events → stuck session.
+2. **No live detail refresh:** when the POS changes the order, the tablet's displayed
+   guest_count/totals/items go stale.
+
+## Proposed Fix (decisions confirmed in approved plan)
+1. **Canonicalize on `order_id`:**
+   - `handleOrderCreated` → `sessionStore.setOrderId(event.order.order_id)` (not `.id`).
+   - `extractOrderId` → resolve `order_id` only (drop the `… ?? response.order?.id ?? response.id`
+     local-id fallbacks for the canonical reference).
+   - Ensure `orderStore.serverOrderId`, the channel auto-subscription, and the match guard
+     (`String(currentOrderId) === String(eventOrderId)`) are all the POS `order_id`.
+2. **New handler:** subscribe `orders.{order_id}` `.order.details.updated` in `useBroadcasts.ts`
+   (alongside the existing `.order.completed/.voided/.cancelled`) → update the order store's
+   displayed details from `event.order` (guest_count, subtotal/tax/discount/total, items). Render
+   only; **no pricing recompute**.
+3. **Companion fix (same file):** the kitchen toast keys on `"preparing"` but the backend enum value
+   is `in_progress` (`useBroadcasts.ts:73` type + `:229` `statusMessages`). Align to `in_progress`.
+4. Repoint the `useBroadcasts.ts:17` doc comment from `docs/websocket-events.md` to
+   `contracts/websocket-events.contract.md`.
+
+## Critical Files
+- `composables/useBroadcasts.ts` (id usage, new handler, preparing→in_progress, doc-comment repoint)
+- `utils/orderHelpers.ts` (`extractOrderId` canonicalization)
+- `stores/Order.ts` (`serverOrderId`, set-from-response), `stores/Session.ts` (`setOrderId`/`getOrderId`)
+
+## Verification
+- Unit test: receiving `.order.details.updated` updates store guest_count/total and the UI re-renders
+  the POS values (no client recompute).
+- Regression Lock: channel subscription + match guard use `order_id`; a terminal event whose
+  `order_id` ≠ local `id` still triggers session end (the bug this fixes).
+- `preparing`→`in_progress` toast fires on a kitchen-progress update.
+- `.\scripts\pre-merge-check.ps1 -App tablet-ordering-pwa` exit 0 (typecheck/lint/test/build).
+
+## Dependency
+**Blocked on nex-case-013** (`order.details.updated` event). Proceed only when the DEP is `confirmed`
+in `state/DEPS.md`.
+
+## Verifier
+- **Branch confirmed:** `agent/tab-case-010-canonical-order-id-and-detail-sync`
+- **TypeScript:** `tsc --noEmit --skipLibCheck` — no output (clean, zero errors)
+- **Pre-merge check:** `scripts/pre-merge-check.ps1 -App tablet-ordering-pwa` → `pre-merge-check OK (tablet-ordering-pwa)` exit 0
+- **7 changes confirmed by grep:**
+  1. Line 17 — `contracts/websocket-events.contract.md` reference
+  2. Line 73 — `"in_progress"` in `OrderUpdatedEvent.order.status` union
+  3. Lines 120-129 — `OrderDetailsUpdatedEvent` interface
+  4. Line 261 — `event.order.order_id` in debug log
+  5. Line 272 — `sessionStore.setOrderId(event.order.order_id)`
+  6. Lines 366-374 — `handleOrderDetailsUpdated` handler with `currentOrderId` match guard
+  7. Lines 547-549 — `.order.details.updated` listener registered on order channel
+- **Verdict:** PASS
+
+## Executioner Verdict
+APPROVED 2026-06-02
+
+## Remaining Risks
+- Switching `setOrderId` to `order_id` must be safe across the create→terminal lifecycle — verify
+  `order.created` always carries a populated `order_id` (coordinate with nex-case-013, since
+  `device_orders.order_id` is set from the POS mirror and is nullable until then).

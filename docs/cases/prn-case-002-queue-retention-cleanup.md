@@ -9,6 +9,18 @@ created: 2026-05-18
 
 # PRN-CASE-002 — Queue Retention / Cleanup Policy
 
+## Run State
+- task_slug: prn-case-002-queue-retention-cleanup
+- tier: 2
+- branch: staging/orchestration-hooks
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-05-18
+
 ## Investigation
 
 - `lib/services/queue_store.dart`: No purge logic existed. `store.clear()` nukes the whole store.
@@ -33,11 +45,3 @@ created: 2026-05-18
 
 - `flutter test`: `00:10 +108: All tests passed!` (108 tests, 0 failures, +6 new)
 - `flutter analyze`: `No issues found! (ran in 93.0s)`
-
-## Run State
-
-```yaml
-next_agent: done
-status: COMPLETE
-interrupted: false
-```

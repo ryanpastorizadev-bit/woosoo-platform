@@ -19,7 +19,7 @@ before handing off; any runner (Claude Code / Codex / Copilot) resumes from here
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
-- active_runner: claude-code | codex | copilot
+- active_runner: claude-code
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
 - updated: <YYYY-MM-DD HH:MM>
@@ -41,6 +41,10 @@ agent/<slug>
 ## Problem
 
 ## Contrarian Review
+
+## Success Criterion
+<!-- One sentence set by Contrarian: "Task is done when [specific, verifiable check] passes." -->
+<!-- Verifier confirms this criterion is met. Executioner enforces it as the merge gate. -->
 
 ## Investigation
 

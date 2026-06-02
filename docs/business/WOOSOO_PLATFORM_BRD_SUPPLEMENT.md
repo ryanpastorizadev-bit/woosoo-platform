@@ -22,9 +22,9 @@ The woosoo-platform repository provides three essential layers:
 
 2. **Cross-App Contracts & API Governance** — Five canonical contract files that define the enforced integration boundaries between Nexus, Tablet PWA, and Print Bridge. These contracts are the source of truth for any code change affecting inter-app surfaces.
 
-3. **AI Agent Operating System** — A vendor-neutral, 4-agent workflow (Contrarian → Specialist → Verifier → Executioner) that serves as the governance engine for all changes across all three apps. Consumed by Claude Code (this platform's default AI agent), OpenAI Codex CLI, and GitHub Copilot.
+3. **AI Agent Operating System** — A 4-agent workflow (Contrarian → Specialist → Verifier → Executioner) that serves as the governance engine for all changes across all three apps, run on Claude Code.
 
-4. **Documentation Authority & Developer Governance** — The canonical documentation index, per-task case file system for cross-runner resume/handoff, and automated pre-merge validation gates that ensure all code changes maintain system safety and contract compliance.
+4. **Documentation Authority & Developer Governance** — The canonical documentation index, per-task case file system for resume/handoff across sessions, and automated pre-merge validation gates that ensure all code changes maintain system safety and contract compliance.
 
 ---
 
@@ -122,7 +122,7 @@ Defines and enforces five canonical contract files that specify the legal integr
 
 | Contract | Surface | Enforced in | Canonical Truth |
 |----------|---------|-------------|-----------------|
-| **order-state.contract.md** | Order lifecycle state machine | Code review (all three apps) | States: `confirmed → completed \| voided \| cancelled`. No additional states. |
+| **order-state.contract.md** | Order lifecycle state machine | Code review (all three apps) | The `OrderStatus` enum (`pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`); terminal = `completed \| cancelled \| voided \| archived`. Mirrors `woosoo-nexus/app/Enums/OrderStatus.php`. |
 | **tablet-api.contract.md** | Tablet intent payload (POST /api/devices/create-order) | Nexus API, Tablet PWA form submission | Tablet sends **intent only**: `{ guest_count, package_id, items: [{ menu_id, quantity }] }`. Nexus computes pricing, modifiers, POS mapping. |
 | **printer-relay.contract.md** | Print event idempotency (reserve/ack/failed) | Print Bridge intake, Nexus broadcast | Print jobs must be idempotent at reserve/ack lifecycle. Bridge ACKs only once per job. |
 | **pos-db.contract.md** | POS database access safety | Nexus routes, POS sync command | Only designated endpoints write to POS DB (via Krypton driver). Static LAN IP: 192.168.1.32. |
@@ -139,7 +139,7 @@ The three app repos are independently versioned and deployed. A contract violati
 ### 3.3 AI Agent Operating System
 
 **What it does:**
-Provides a vendor-neutral 4-agent workflow that governs all code changes across all three apps and the platform itself. The workflow is designed to survive interruption (rate limits, context limits, runner crash) and resume from a durable checkpoint (per-task case file).
+Provides a 4-agent workflow (run on Claude Code) that governs all code changes across all three apps and the platform itself. The workflow is designed to survive interruption (rate limits, context limits, crash) and resume from a durable checkpoint (per-task case file).
 
 **The 4-agent sequence:**
 
@@ -168,10 +168,8 @@ Provides a vendor-neutral 4-agent workflow that governs all code changes across 
 | **2 — Standard** | Bug fix in one app, new endpoint, UI component, doc rewrite | Contrarian → Specialist → Verifier → Executioner | Default |
 | **3 — High-risk** | Auth, POS DB writes, order state machine, payment lifecycle, race conditions, queue/retry, production deploy | Contrarian (deep, written risk analysis) → Specialist → Verifier → Executioner | Executioner uses opus |
 
-**Runners (vendors):**
-- **Claude Code** (default for this platform) — executes via `.claude/agents/*` (agent definitions) and `.claude/skills/*` (task playbooks)
-- **OpenAI Codex CLI** — reads `AGENTS.md` natively and follows the same sequence in a single chatbox
-- **GitHub Copilot** — continues to follow `.github/copilot-instructions.md`
+**Runner:**
+- **Claude Code** — executes via `.claude/agents/*` (agent definitions) and `.claude/skills/*` (task playbooks)
 
 **Where it lives:**
 - `AGENTS.md` — immutable operating rules and hook system (source of truth)
@@ -184,7 +182,7 @@ In a 3-repo distributed system, a single workflow ensures that:
 - No change to one app breaks contracts with another app
 - Risky changes (auth, POS, order state) get deep scrutiny before merge
 - Work interrupted by rate limits can resume from the exact same point (durable case files)
-- The same process works for any AI vendor or human implementing the change
+- The same process works for any Claude Code session or human implementing the change
 
 ---
 
@@ -192,7 +190,7 @@ In a 3-repo distributed system, a single workflow ensures that:
 
 **What it does:**
 - Acts as the canonical documentation index for all three apps
-- Maintains per-task case files (durable resume state for cross-runner handoff)
+- Maintains per-task case files (durable resume state for handoff across sessions)
 - Implements pre-merge validation gates that must pass before any code change is merged
 - Tracks orchestration state in machine-readable files
 
@@ -402,10 +400,10 @@ These scripts wrap per-app validation commands and fail the merge gate if any te
 - **Docker Compose orchestration** — 8 services (Nginx, app, queue, scheduler, Reverb, MySQL, Redis, Tablet PWA), multi-port routing (80/443/4443)
 - **Nginx reverse proxy** — TLS termination, multi-host routing, CA certificate bootstrap endpoint, security headers
 - **Cross-app contract governance** — 5 canonical contract files (order-state, tablet-api, printer-relay, pos-db, auth-session), enforced in code review
-- **Lite 4-agent AI operating system** — Contrarian → Specialist → Verifier → Executioner; vendor-neutral (Claude Code, Codex CLI, Copilot); 5 specialist roles (ranpo-backend, chuya-frontend, relay-ops, dazai-docs, infra)
+- **Lite 4-agent AI operating system** — Contrarian → Specialist → Verifier → Executioner; runs on Claude Code; 5 specialist roles (ranpo-backend, chuya-frontend, relay-ops, dazai-docs, infra)
 - **9 workflow hooks** — work, status, intake, triage, execute, verify, review, unlock, handover
 - **Pre-merge validation gates** — `scripts/pre-merge-check.sh --app <name>` wraps per-app test/lint/build; blocks merge if any step fails
-- **Per-task case file system** — durable resume state (`docs/cases/<task-slug>.md`); survives cross-runner interruption
+- **Per-task case file system** — durable resume state (`docs/cases/<task-slug>.md`); survives interruption across sessions
 - **Canonical documentation index** — `docs/README.md` with status frontmatter (canonical/archived/under-review); 4 audit docs (2026-05-14); per-app per-app `.agents.md`
 - **Machine-readable orchestration state** — `state/WORK.md` (active case), `state/QUEUE.md` (task queue), `state/DEPS.md` (dependencies), `state/DONE.md` (completion log)
 - **Deployment scripts** — `deploy.sh` (pulls app repos, builds, starts); `apply-woosoo-config.sh` (env template population); migration status documented in `scripts/deployment/README.md`
@@ -438,7 +436,7 @@ The Woosoo Nexus Business Requirements Document (tech-artificer/woosoo-nexus PR 
 - Adds woosoo-platform as the **4th architectural component** (governance + orchestration)
 - Defines the **Docker Compose stack** that runs all 8 services (Nexus doc focuses on the app, this doc focuses on the deployment)
 - Documents the **cross-app contracts** that enforce API boundaries
-- Specifies the **AI agent operating system** (Lite 4-agent, vendor-neutral)
+- Specifies the **AI agent operating system** (Lite 4-agent, Claude Code)
 - Describes the **pre-merge validation gates** that gate all changes across the system
 
 Together, the Nexus BRD + this supplement provide the complete technical scope of Woosoo.

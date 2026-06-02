@@ -22,7 +22,7 @@ scope: ecosystem
 - Phase in progress: handing off from specialist to verifier (Pi-side, operator-driven)
 - Done so far: all 5 plan changes shipped to working tree; Stage A dev verification PASS (bash -n on 8 scripts, `docker compose config` parses cleanly with all 8 services present)
 - Exact next action: operator runs Stage B on the Pi — `sudo bash scripts/deployment/deploy-all.sh`, smoke test, then rollback drill
-- Working-tree state: see `git status` — case file + scripts/deployment/* + docs/deployment/examples/woosoo.env.example modifications
+- Working-tree state: COMMITTED to dev (37a52cb — deploy stability pass: wrapper, rollback parity, snapshot; deploy.sh defaults to `dev`). Tree clean — no uncommitted edits to recover. Only Pi-side Stage B remains. (NOTE: the branch field above describing a `main` working-tree workaround is historical — the work landed on `dev`.)
 - Risks / do-not-redo: do not re-run rollback migration (already done); do not touch `compose.yaml`; do not delete legacy nexus-internal orchestration until Stage B closes
 
 ## Tier
