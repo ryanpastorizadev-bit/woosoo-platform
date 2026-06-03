@@ -26,8 +26,12 @@ below in order. Pi: static IP `192.168.1.31`, root `/opt/woosoo/woosoo-platform`
 
 ## Step 1 — Core deploy (pulls `main`, builds, health-checks)
 ```bash
-sudo bash scripts/deployment/deploy-all.sh
+# deploy.sh defaults NEXUS_BRANCH and TABLET_BRANCH to `dev` — must override for a main release
+export WOOSOO_DEPLOY_BRANCH=main
+echo "Deploy branch: $WOOSOO_DEPLOY_BRANCH"   # verify before proceeding
+sudo -E bash scripts/deployment/deploy-all.sh
 ```
+`-E` passes the exported variable into the sudo environment.
 Runs doctor → backup → deploy (pull repos, apply config, build + `up`, warm cache) → health.
 **Verify:** the wrapper exits `0` and `woosoo-health.sh` reports the stack healthy.
 **Rollback if it fails:** `sudo bash scripts/deployment/rollback-client.sh <backup-dir>` (the wrapper prints the exact snapshot path on failure).
