@@ -92,10 +92,10 @@ Dispatched when the POS edits an existing order's details under `krypton_woosoo.
 
 ## Target architecture (broadcast layer — adopt via NEX-CASE-013)
 
-> **Status: INFRASTRUCTURE IMPLEMENTED, migration in progress (NEX-CASE-013, 2026-06-01).**
-> `OrderBroadcaster.php` and `BroadcastEvent.php` exist in `app/Broadcasting/`. The 5 existing
+> **Status: IN PROGRESS — infrastructure exists, dispatch-site migration pending.**
+> `OrderBroadcaster.php` and `BroadcastEvent.php` exist in `app/Broadcasting/`. The 5 legacy
 > dispatch sites (`ConsumePosPaymentStatusEvents`, `ForceEndSession`, `MonitoringController`,
-> `OrderController`, etc.) have not yet been migrated to route through `OrderBroadcaster` — that is
+> `OrderController`, etc.) have **NOT** been migrated to route through `OrderBroadcaster` — that is
 > a tracked non-blocking follow-up from NEX-CASE-013. Until migration is complete, the "single
 > boundary" below describes the **target**, not the current enforced state. Shared consumer
 > constants (`events.ts` / `events.dart`) also remain a future hardening item.
