@@ -55,6 +55,15 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 | P2 | INFRA-CASE-001 | woosoo-platform | Pi platform-root migration (compose/docker/scripts) — built on dev box, **untested on Pi hardware** | 3 | none | in_progress (specialist:infra) | — |
 | P3 | PRN-REBUILD-APK | woosoo-print-bridge | Rebuild Flutter release APK from current repo + SCP/install on Pi tablet | 3 | none | in_progress (verifier) | — |
 
+### Bucket B-follow — Post-promotion correctness (non-gating but should land soon)
+
+<!-- Captured 2026-06-03 from dev-branch audit. Not blocking promotion; should be tracked before Bucket C work begins. -->
+
+| Priority | Case ID | App | Description | Tier | Dep | Status | GH |
+|---|---|---|---|---|---|---|---|
+| P2 | TAB-CASE-011 | tablet-ordering-pwa | Active-order recovery filter (`stores/Order.ts` ~line 807) only includes `pending,confirmed,ready` — missing `in_progress` and `served` which Nexus includes as non-terminal (`DeviceOrder.php` active scope). Fix: include all backend non-terminal states + add recovery test | 2 | none | queued | — |
+| P2 | NEX-CASE-015 | woosoo-nexus | `StoreDeviceOrderRequest` accepts client-sent `totals`, `prices`, `discounts`, `ordered_menu_id`, and modifier fields. Tablet sends intent-only payload; backend should ignore or reject these fields for the tablet route to enforce POS-authoritative pricing | 2 | none | queued | — |
+
 ### Bucket C — Deferred (post-stabilization features; do NOT gate any promotion)
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |

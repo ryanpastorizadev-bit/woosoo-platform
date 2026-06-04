@@ -146,6 +146,7 @@ APPROVED
 
 ## Remaining Risks
 
+- **Nexus docs not yet on Nexus dev.** The `woosoo-nexus/docs/software-development/` files were created locally on branch `agent/nexus-ui-handoff-visual-implementation` and are not yet committed to Nexus `dev`. The platform root docs index links to them but the GitHub URL will be broken until those files are merged. This must be tracked as a follow-up push to the Nexus repo.
 - DOCX structural checks passed, but visual page-render QA remains blocked until LibreOffice/`soffice` is installed.
 - Changelog summaries are verified at commit-subject level; deeper audit-grade release notes should inspect individual diffs with `git show`.
 - Existing unrelated `.codex/config.toml` is untracked in the platform root and was not touched.
