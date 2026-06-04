@@ -92,13 +92,17 @@ Dispatched when the POS edits an existing order's details under `krypton_woosoo.
 
 ## Target architecture (broadcast layer — adopt via NEX-CASE-013)
 
-> **Status: IMPLEMENTED (NEX-CASE-013, 2026-06-01).** `OrderBroadcaster.php` and `BroadcastEvent.php`
-> exist in `app/Broadcasting/`. Shared consumer constants (`events.ts` / `events.dart`) remain a
-> future hardening item — consumer names are currently inline strings.
+> **Status: INFRASTRUCTURE IMPLEMENTED, migration in progress (NEX-CASE-013, 2026-06-01).**
+> `OrderBroadcaster.php` and `BroadcastEvent.php` exist in `app/Broadcasting/`. The 5 existing
+> dispatch sites (`ConsumePosPaymentStatusEvents`, `ForceEndSession`, `MonitoringController`,
+> `OrderController`, etc.) have not yet been migrated to route through `OrderBroadcaster` — that is
+> a tracked non-blocking follow-up from NEX-CASE-013. Until migration is complete, the "single
+> boundary" below describes the **target**, not the current enforced state. Shared consumer
+> constants (`events.ts` / `events.dart`) also remain a future hardening item.
 
-To keep events accurate and easy to change as consumers grow (Kitchen Display System next), all
-order broadcasts route through **one boundary** instead of being dispatched ad hoc from multiple
-sites.
+To keep events accurate and easy to change as consumers grow (Kitchen Display System next), the
+**target** is that all order broadcasts route through **one boundary** instead of being dispatched
+from multiple sites.
 
 1. **Single broadcaster** — `app/Broadcasting/OrderBroadcaster.php` with intent methods
    (`created`, `statusChanged`, `detailsUpdated`, `finalized`, `printRequested`). It is the ONLY
