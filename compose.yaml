@@ -113,6 +113,8 @@ services:
       start_period: 90s
     mem_limit: 768m
     mem_reservation: 384m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -138,6 +140,8 @@ services:
         condition: service_healthy
     mem_limit: 512m
     mem_reservation: 256m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -162,6 +166,8 @@ services:
     mem_limit: 512m
     mem_reservation: 256m
     memswap_limit: 768m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -193,6 +199,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
