@@ -30,6 +30,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 <!-- Bucket C (features) must NOT gate any promotion. Three live cases were missing pre-refresh: INFRA-001/002, -->
 <!-- prn-rebuild-apk, tablet-screen-ui-ux-review — now captured. NEX-CASE-007 is code-complete on dev/staging;  -->
 <!-- only its Pi runtime step remains → moved A→B.                                                              -->
+<!-- 2026-06-04: NEX-CASE-011 corrected to dual-fix (code PR #163 + POS config); NEX-CASE-014 added (SESSION_DOMAIN). -->
 
 ### Bucket A — Stabilization (GATES the staging → main merge)
 
@@ -49,7 +50,8 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P1 | NEX-CASE-011 (POS cfg) | woosoo-nexus / POS | **Root-caused 2026-05-31 → POS-side, no Nexus code change.** Duplicate = Krypton POS auto-prints from `create_ordered_menu` while Nexus BT path also prints. BT-only intended → **disable the 3rd-party POS printer (or set no-print) in Krypton/POS config on the Pi**. Gates the restaurant rollout, NOT the code merge | 3 | none | ops — POS config on Pi | #140 |
+| P1 | NEX-CASE-011 | woosoo-nexus / POS | **Dual fix required.** (1) **Code — PR #163** (`fix/nex-011-duplicate-print → dev`, OPEN): removes `PrintOrder::dispatch()` from all `markPrinted` ack paths; adds `is_printed` idempotency guard in `OrderApiController` / `PrinterApiController` — review + merge before deploy. (2) **POS config:** disable 3rd-party Krypton printer on Pi (BT-only). Both required; neither alone closes the duplicate-ticket risk. Case: `nex-case-011-duplicate-order-printing.md` | 3 | none | in_progress — PR #163 open → dev | #140 |
+| P1 | NEX-CASE-014 | woosoo-nexus | SESSION_DOMAIN host-binding — `apply-woosoo-config.sh` pins `SESSION_DOMAIN` to box IP, defeating Laravel request-host fallback (`config/session.php:159`). Causes admin 419s on multi-host Pi rollout. Fix: emit `SESSION_DOMAIN=` empty (all profiles) + `WOOSOO_ENV` profile switch. PR #162 (`fix/nex-014 → dev`) is docs-only; implementation queued. **Must land before Pi rollout.** Case: `nex-case-014-session-domain-login-419.md` | 2 | none | queued — impl pending | — |
 | P1 | NEX-CASE-007 (deploy) | woosoo-nexus | Code merged to dev+staging. Run `php artisan pos:setup-payment-trigger` on the Pi POS env; confirm `pos:consume-payment-status-events` scheduler runs | 3 | none | code-landed; Pi step pending | #152 |
 | P2 | INFRA-CASE-002 | woosoo-platform | Deploy stability wrappers — Stage A on dev; **Stage B Pi runtime verification pending** | 2 | none | in_progress (verifier:Pi) | — |
 | P2 | INFRA-CASE-001 | woosoo-platform | Pi platform-root migration (compose/docker/scripts) — built on dev box, **untested on Pi hardware** | 3 | none | in_progress (specialist:infra) | — |
