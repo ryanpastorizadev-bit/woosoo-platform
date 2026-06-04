@@ -30,6 +30,7 @@ If all queued rows are blocked: report to user, list what must be resolved.
 <!-- Bucket C (features) must NOT gate any promotion. Three live cases were missing pre-refresh: INFRA-001/002, -->
 <!-- prn-rebuild-apk, tablet-screen-ui-ux-review — now captured. NEX-CASE-007 is code-complete on dev/staging;  -->
 <!-- only its Pi runtime step remains → moved A→B.                                                              -->
+<!-- 2026-06-04: NEX-CASE-011 corrected to dual-fix (code PR #163 + POS config); NEX-CASE-014 added (SESSION_DOMAIN). -->
 
 ### Bucket A — Stabilization (GATES the staging → main merge)
 
@@ -42,14 +43,28 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 ### Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)
 
 <!-- These don't gate the merge but DO gate the actual Pi/restaurant deployment. Run after the relevant code lands. -->
+<!-- ▶ Ordered execution sequence: docs/deployment/RELEASE_RUNBOOK_order-id-pos-sync.md (deploy → triggers → POS printer → APK → smoke test). -->
+<!-- Code is on `main` (2026-06-02); these are Pi-side ops requiring hardware access. -->
+<!-- Pi deploy DECISION: NEX-CASE-013 extended pos:setup-payment-trigger — re-run it on the Pi installs the new order-detail trigger too. -->
+<!-- NEX-CASE-001/002: now folded into Step 1 (deploy-all.sh) verification on the Pi.                                                       -->
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P1 | NEX-CASE-011 (POS cfg) | woosoo-nexus / POS | **Root-caused 2026-05-31 → POS-side, no Nexus code change.** Duplicate = Krypton POS auto-prints from `create_ordered_menu` while Nexus BT path also prints. BT-only intended → **disable the 3rd-party POS printer (or set no-print) in Krypton/POS config on the Pi**. Gates the restaurant rollout, NOT the code merge | 3 | none | ops — POS config on Pi | #140 |
+| P1 | NEX-CASE-011 | woosoo-nexus / POS | **Dual fix required.** (1) **Code — PR #163** (`fix/nex-011-duplicate-print → dev`, OPEN): removes `PrintOrder::dispatch()` from all `markPrinted` ack paths; adds `is_printed` idempotency guard in `OrderApiController` / `PrinterApiController` — review + merge before deploy. (2) **POS config:** disable 3rd-party Krypton printer on Pi (BT-only). Both required; neither alone closes the duplicate-ticket risk. Case: `nex-case-011-duplicate-order-printing.md` | 3 | none | in_progress — PR #163 open → dev | #140 |
+| P1 | NEX-CASE-014 | woosoo-nexus | SESSION_DOMAIN host-binding — `apply-woosoo-config.sh` pins `SESSION_DOMAIN` to box IP, defeating Laravel request-host fallback (`config/session.php:159`). Causes admin 419s on multi-host Pi rollout. Fix: emit `SESSION_DOMAIN=` empty (all profiles) + `WOOSOO_ENV` profile switch. PR #162 (`fix/nex-014 → dev`) is docs-only; implementation queued. **Must land before Pi rollout.** Case: `nex-case-014-session-domain-login-419.md` | 2 | none | queued — impl pending | — |
 | P1 | NEX-CASE-007 (deploy) | woosoo-nexus | Code merged to dev+staging. Run `php artisan pos:setup-payment-trigger` on the Pi POS env; confirm `pos:consume-payment-status-events` scheduler runs | 3 | none | code-landed; Pi step pending | #152 |
 | P2 | INFRA-CASE-002 | woosoo-platform | Deploy stability wrappers — Stage A on dev; **Stage B Pi runtime verification pending** | 2 | none | in_progress (verifier:Pi) | — |
 | P2 | INFRA-CASE-001 | woosoo-platform | Pi platform-root migration (compose/docker/scripts) — built on dev box, **untested on Pi hardware** | 3 | none | in_progress (specialist:infra) | — |
 | P3 | PRN-REBUILD-APK | woosoo-print-bridge | Rebuild Flutter release APK from current repo + SCP/install on Pi tablet | 3 | none | in_progress (verifier) | — |
+
+### Bucket B-follow — Post-promotion correctness (non-gating but should land soon)
+
+<!-- Captured 2026-06-03 from dev-branch audit. Not blocking promotion; should be tracked before Bucket C work begins. -->
+
+| Priority | Case ID | App | Description | Tier | Dep | Status | GH |
+|---|---|---|---|---|---|---|---|
+| P2 | TAB-CASE-011 | tablet-ordering-pwa | Active-order recovery filter (`stores/Order.ts` ~line 807) only includes `pending,confirmed,ready` — missing `in_progress` and `served` which Nexus includes as non-terminal (`DeviceOrder.php` active scope). Fix: include all backend non-terminal states + add recovery test | 2 | none | queued | — |
+| P2 | NEX-CASE-015 | woosoo-nexus | `StoreDeviceOrderRequest` accepts client-sent `totals`, `prices`, `discounts`, `ordered_menu_id`, and modifier fields. Tablet sends intent-only payload; backend should ignore or reject these fields for the tablet route to enforce POS-authoritative pricing | 2 | none | queued | — |
 
 ### Bucket C — Deferred (post-stabilization features; do NOT gate any promotion)
 

@@ -8,8 +8,8 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-05-31 — Backlog reorg: 3 buckets (A stabilization / B deploy-readiness / C deferred); -->
-<!-- gate model corrected to staging→main (nexus dev→staging already merged via #157); 4 missing live cases captured. -->
+<!-- Last updated: 2026-06-03 — Bucket A EMPTY; all stabilization gates cleared and merged to dev. -->
+<!-- Platform PR #36 (dev→staging) open; deploy docs and contract drift corrected. -->
 
 ---
 
@@ -25,10 +25,10 @@ branch:       dev → staging → main
 description:  Bucket A CLEAR — NEX-CASE-013 (+PR #160 detail-refresh), TAB-CASE-010, TAB-CASE-009,
               INFRA-CASE-003 all APPROVED + merged to dev. Promote dev→staging→main across all repos.
 case_file:    (release) state/QUEUE.md is the authoritative backlog; no per-task case file
-next_action:  Promote dev→staging per repo (nexus/tablet/print-bridge/platform), verify CI green,
-              then staging→main. NOTE: staging is 20–31 ahead of main — large production release.
-              Bucket B Pi ops (disable POS printer, pos:setup-payment-trigger, Stage-B verify, APK) in parallel.
-last_agent:   claude-code — 2026-06-02 — reconciled state (Bucket A empty, deduped tab-case-010); driving promotion.
+next_action:  Platform: merge PR #36 (dev→staging) once review threads resolved; then staging→main.
+              App repos (nexus/tablet/print-bridge) are content-equivalent across dev/staging/main already.
+              Bucket B Pi ops are the remaining restaurant-rollout gate — see state/QUEUE.md.
+last_agent:   claude-code — 2026-06-03 — fixed runbook branch risk, contract drift, WORK.md stale gates.
 ```
 
 ## Reconciliation Findings (2026-05-30)
@@ -56,11 +56,11 @@ none
 ## Last Agent
 
 ```
-role:         executioner — 2026-06-01 — NEX-CASE-013 APPROVED
-left_off:     NEX-CASE-013 full chain complete (438 tests, 6 regression guards). DEP-004 confirmed.
-              TAB-CASE-010 unblocked. State files (DONE/DEPS/QUEUE/WORK) all updated.
-              NEX-CASE-013 branch uncommitted — PR to be raised against staging.
-files_open:   docs/cases/nex-case-013-pos-order-detail-sync.md (status: COMPLETE)
+role:         claude-code — 2026-06-03 — doc/governance fixes (this commit)
+left_off:     All Bucket A gates merged to dev. TAB-CASE-010 APPROVED (tablet PR #196, 2026-06-02).
+              NEX-CASE-013 APPROVED + merged (nexus PR #160 included). Platform PR #36 open (dev→staging).
+              Runbook WOOSOO_DEPLOY_BRANCH risk fixed. Contract drift for order.details.updated fixed.
+files_open:   state/QUEUE.md (Bucket B Pi ops pending)
 ```
 
 ## On Completion of Next Task
@@ -72,9 +72,9 @@ staging→main ONLY. See state/QUEUE.md for the authoritative three-bucket backl
 BUCKET A — Stabilization (gates staging→main):
 1. ✅ INFRA-CASE-003 — APPROVED 2026-06-01
 2. ✅ TAB-CASE-009 — APPROVED 2026-06-01
-3. ✅ NEX-CASE-013 — APPROVED 2026-06-01 (branch uncommitted; PR to be raised)
-4. TAB-CASE-010 (tablet consumer, T3) — **queued → chuya-frontend** (DEP-004 confirmed)
-→ staging→main promotion waits for TAB-CASE-010 APPROVED
+3. ✅ NEX-CASE-013 — APPROVED 2026-06-01 (nexus PR #160 merged to dev)
+4. ✅ TAB-CASE-010 — APPROVED 2026-06-02 (tablet PR #196 merged to dev)
+→ BUCKET A CLEAR — staging→main promotion UNBLOCKED. See state/QUEUE.md.
 
 BUCKET B — Deploy readiness (NON-gating ops; gates the actual Pi rollout):
 → NEX-CASE-011 POS config (disable 3rd-party POS printer on Pi — BT-only; NO Nexus code change),

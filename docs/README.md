@@ -69,6 +69,7 @@ These four documents are the authoritative system-state references. Restructured
 ## Per-app documentation indexes
 
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
+- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation *(pending merge to Nexus dev; files exist locally on the nexus ui-handoff branch)*
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 
