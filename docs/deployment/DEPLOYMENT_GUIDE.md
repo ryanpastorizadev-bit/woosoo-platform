@@ -111,9 +111,17 @@ verify all values are accepted before triggering a full deploy.
 
 ### 3.3 Full safe deploy (recommended every time)
 
+> **Branch default warning:** `deploy.sh` defaults `NEXUS_BRANCH` and `TABLET_BRANCH` to `dev` if
+> `WOOSOO_DEPLOY_BRANCH` is not set in the shell environment. Always export the branch before
+> running the deploy, even if it is set in `.env` — `sudo` drops environment variables unless
+> you pass `-E`.
+
 ```bash
 cd /opt/woosoo/woosoo-platform
-sudo bash scripts/deployment/deploy-all.sh
+# Confirm branch before deploying — scripts default to dev if this is unset
+export WOOSOO_DEPLOY_BRANCH=main   # or staging / dev as appropriate
+echo "Deploying branch: $WOOSOO_DEPLOY_BRANCH"
+sudo -E bash scripts/deployment/deploy-all.sh
 ```
 
 This runs `doctor → backup → deploy → health` in strict order and aborts on
