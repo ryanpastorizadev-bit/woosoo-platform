@@ -412,11 +412,30 @@ set_env "SESSION_SECURE_COOKIE" "true"
 set_env "SESSION_SAME_SITE" "lax"
 set_env "SANCTUM_STATEFUL_DOMAINS" "${WOOSOO_HOST},${WOOSOO_HOST}:443,${WOOSOO_HOST}:80,${WOOSOO_HOST}:4443,${WOOSOO_SERVER_IP},${WOOSOO_SERVER_IP}:443,${WOOSOO_SERVER_IP}:4443"
 set_env "CORS_ALLOWED_ORIGINS" "${WOOSOO_SCHEME}://${WOOSOO_HOST},http://${WOOSOO_HOST},${WOOSOO_SCHEME}://${WOOSOO_HOST}:4443"
+# Reverb allowed origins: hostname + server IP so tablet WSS works whether the
+# tablet connects via woosoo.local or the bare LAN IP. config/reverb.php
+# normalises this list. Without this, the default falls through to
+# PublicOrigin (hostname only) and IP-based tablets fail the WS handshake.
+set_env "REVERB_ALLOWED_ORIGINS" "${WOOSOO_HOST},${WOOSOO_SERVER_IP}"
 set_env "DEVICE_AUTH_PASSCODE" "${WOOSOO_DEVICE_AUTH_PASSCODE:-}"
 set_env "LOG_LEVEL" "error"
 
-if ! grep -qE '^APP_KEY=base64:.+' .env; then
-  echo "INFO: APP_KEY is not set. Before first production use, run: $WOOSOO_DOCKER_COMPOSE exec -T $WOOSOO_APP_SERVICE php artisan key:generate"
+# APP_KEY self-heal: a missing key sends Laravel into 500/502. Generate a
+# Laravel-compatible base64 key locally so deploy-all.sh can run on a fresh Pi
+# without requiring a separate manual `artisan key:generate` step.
+#
+# Guard regex accepts both quoted (`APP_KEY="base64:..."`, what set_env writes)
+# and bare (`APP_KEY=base64:...`, what Laravel writes) forms — must be
+# idempotent or every reapply rotates the key and invalidates sessions.
+if ! grep -qE '^APP_KEY="?base64:.+' .env; then
+  if command_exists openssl; then
+    GENERATED_APP_KEY="base64:$(openssl rand -base64 32)"
+    set_env "APP_KEY" "$GENERATED_APP_KEY"
+    echo "INFO: APP_KEY was missing; generated a fresh base64 key into .env"
+  else
+    echo "ERROR: APP_KEY is missing and openssl is unavailable. Install openssl or set APP_KEY manually before deploy." >&2
+    exit 1
+  fi
 fi
 
 CERT_DIR="$WOOSOO_PLATFORM_PATH/docker/certs"

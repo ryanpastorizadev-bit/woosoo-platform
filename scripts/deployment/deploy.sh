@@ -162,7 +162,7 @@ echo "OK: Frontend assets built"
 echo
 
 # ── Step 4: Start / restart services ─────────────────────────────────────────
-echo ">>> [4/5] Starting services ..."
+echo ">>> [4/6] Starting services ..."
 # One-time cleanup: the nexus_build named volume was removed from compose.yaml;
 # drop the now-orphaned Docker volume. Idempotent — ignore error if absent/in-use.
 docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true
@@ -170,25 +170,39 @@ $COMPOSE_CMD up -d --remove-orphans
 echo "OK: Services started"
 echo
 
-# ── Step 5: Warm Laravel caches ──────────────────────────────────────────────
-echo ">>> [5/5] Warming Laravel caches ..."
-echo "  Waiting for app service..."
+# ── Step 5: Wait for app + run pending migrations ────────────────────────────
+# Migrations run automatically — a deploy that succeeds without applying
+# schema changes is worse than a deploy that fails fast. The wait loop is
+# shared with cache warm in Step 6 below.
+echo ">>> [5/6] Waiting for app service + running migrations ..."
 WAIT_ATTEMPTS=90
 WAIT_DELAY=2
+APP_READY=false
 for i in $(seq 1 "$WAIT_ATTEMPTS"); do
   if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
+    APP_READY=true
     echo "  OK: app service ready"
     break
   fi
   if [[ "$i" -eq "$WAIT_ATTEMPTS" ]]; then
-    echo "  WARNING: app service not ready after ${WAIT_ATTEMPTS}x${WAIT_DELAY}s — skipping cache warm."
-    echo "  Run manually: $COMPOSE_CMD exec $APP_SERVICE php artisan config:cache"
-    echo
-    break
+    echo "  ERROR: app service not ready after ${WAIT_ATTEMPTS}x${WAIT_DELAY}s — aborting before migrations." >&2
+    exit 1
   fi
   sleep "$WAIT_DELAY"
 done
 
+if [[ "$APP_READY" == "true" ]]; then
+  if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan migrate --force; then
+    echo "OK: Migrations applied"
+  else
+    echo "ERROR: artisan migrate failed — schema may be incomplete. Aborting." >&2
+    exit 1
+  fi
+fi
+echo
+
+# ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
+echo ">>> [6/6] Warming Laravel caches ..."
 if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
   $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:clear  || true
   $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan cache:clear   || true
