@@ -1,0 +1,71 @@
+---
+status: canonical
+last_reviewed: 2026-06-03
+scope: woosoo-nexus
+---
+
+# CASE: nexus-ui-handoff-visual-implementation
+
+## Run State
+- task_slug: nexus-ui-handoff-visual-implementation
+- tier: 2
+- branch: agent/nexus-ui-handoff-visual-implementation
+- status: IN_PROGRESS
+- last_completed_agent: contrarian
+- next_agent: specialist:ranpo-backend
+- active_runner: codex
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-03 00:00
+
+## Handoff
+- Phase in progress: Specialist implementation pending.
+- Done so far: Reviewed requested skills, Woosoo boot docs, Nexus app rules, execute hook, current working tree, and `handoff/IMPLEMENTATION_HANDOVER.md`.
+- Exact next action: Apply Nexus-only visual handoff changes against the live Vue/Inertia source, excluding Login redesign and backend route work.
+- Working-tree state (list edited files explicitly; cross-check with `git status`): Pre-existing unrelated changes are present in `docs/INDEX.md`, `resources/js/pages/auth/Login.vue`, `docs/cases/nex-case-014-session-domain-login-419.md`, and `docs/software-development/**`. Do not modify or stage them for this case.
+- Risks / do-not-redo: Do not blindly copy stale handoff files over live Orders/Devices code; preserve Echo listeners, Inertia forms, routes, and data props.
+
+## Tier
+2
+
+## Branch
+agent/nexus-ui-handoff-visual-implementation
+
+## Problem
+The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work needs to be implemented without widening into Login redesign, backend route changes, or business logic changes.
+
+## Contrarian Review
+1. Correct app/scope: Yes. This is `woosoo-nexus` admin UI and handoff documentation only.
+2. Risk: Standard Tier 2 because multiple shared Vue UI primitives/pages are touched, but no backend, order state, POS, print, or API contracts should change.
+3. Blockers removed: The handoff directory exists locally and is tracked. External `admin-v2.jsx`/Step 7 work is out of scope.
+4. Scope limits: Do not touch `tablet-ordering-pwa`, `woosoo-print-bridge`, Docker, routes, controllers, migrations, or Login redesign.
+5. Execution approach: Use live-file diffs and targeted class/layout patches, not blind copy, because some handoff steps are already applied and some live files have newer logic.
+
+## Success Criterion
+Task is done when the handoff findings are corrected, visual-only Nexus UI changes are applied, `npm.cmd run typecheck` and `npm.cmd run build` pass, and no unrelated dirty files are modified by this case.
+
+## Investigation
+- `handoff/IMPLEMENTATION_HANDOVER.md` is the tracked Step 5 handoff and still contains stale/assumption-based notes.
+- `resources/css/app.css`, Step 3 Badge/Button primitives, and `resources/js/pages/Dashboard.vue` already match the handoff.
+- `resources/js/pages/auth/Login.vue` is dirty from a separate case and must not be touched.
+- `resources/js/components/Stats/StatsCards.vue` already accepts `danger` as an alias but can still normalize guidance to `destructive`.
+
+## Root Cause
+The handoff plan was written before parts of the UI alignment were applied and before live-source drift was reviewed, so some instructions are stale or too broad for the current tree.
+
+## Proposed Fix
+- Correct stale documentation in `handoff/IMPLEMENTATION_HANDOVER.md`.
+- Apply visual-only page/card/table/badge/token changes to live Vue files named in the handoff.
+- Keep existing route names, form submissions, Echo listeners, data props, and admin behavior unchanged.
+
+## Files Changed
+Pending.
+
+## Verification
+Pending.
+
+## Executioner Verdict
+Pending.
+
+## Remaining Risks
+- Full platform pre-merge may require PHP/composer/runtime services not available in this shell.

@@ -134,11 +134,27 @@ Tests:    440 passed (1550 assertions)
 Duration: 137.56s
 ```
 
-- PARTIAL - DOCX render-to-PNG QA could not run because LibreOffice/`soffice` is not installed:
+- PASS - DOCX render QA completed after installing LibreOffice and using a writable patched copy under `C:\tmp\LibreOffice-codex` because the installed `Program Files` copy had a corrupt `bootstrap.ini` and was not writable from this shell. The packaged renderer still failed on this Windows install because its LibreOffice profile URI used `file://C:\...`; direct LibreOffice conversion with `file:///C:/...` succeeded, then PyMuPDF rasterized the PDFs to PNG pages.
 
 ```text
-INFO: Could not find files for the given pattern(s).
+LibreOffice conversion output:
+woosoo-process-documentation.pdf 256491
+woosoo-product-documentation.pdf 414081
+woosoo-user-documentation.pdf    267424
+
+PNG sanity check:
+pages=28
+bad=0
+sizes=(918, 1188):28
+woosoo-process-documentation: 8 png pages
+woosoo-product-documentation: 12 png pages
+woosoo-user-documentation: 8 png pages
 ```
+
+- PASS - visually inspected generated contact sheets:
+  - `C:\tmp\woosoo-docx-render\woosoo-process-documentation-contact.png`
+  - `C:\tmp\woosoo-docx-render\woosoo-product-documentation-contact.png`
+  - `C:\tmp\woosoo-docx-render\woosoo-user-documentation-contact.png`
 
 ## Executioner Verdict
 
@@ -147,6 +163,6 @@ APPROVED
 ## Remaining Risks
 
 - **Nexus docs not yet on Nexus dev.** The `woosoo-nexus/docs/software-development/` files were created locally on branch `agent/nexus-ui-handoff-visual-implementation` and are not yet committed to Nexus `dev`. The platform root docs index links to them but the GitHub URL will be broken until those files are merged. This must be tracked as a follow-up push to the Nexus repo.
-- DOCX structural checks passed, but visual page-render QA remains blocked until LibreOffice/`soffice` is installed.
+- The installed LibreOffice under `C:\Program Files\LibreOffice` remains unable to run conversion cleanly from this shell because `bootstrap.ini` contains `InstallMode=<installmode>` and Program Files is not writable. Render QA used a copied/patched `C:\tmp\LibreOffice-codex` folder instead.
 - Changelog summaries are verified at commit-subject level; deeper audit-grade release notes should inspect individual diffs with `git show`.
 - Existing unrelated `.codex/config.toml` is untracked in the platform root and was not touched.
