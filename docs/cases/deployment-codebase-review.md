@@ -1,0 +1,133 @@
+---
+status: canonical
+last_reviewed: 2026-06-04
+scope: ecosystem
+---
+
+# CASE: deployment-codebase-review
+
+## Run State
+- task_slug: deployment-codebase-review
+- tier: 3
+- branch: agent/deployment-codebase-review
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
+- active_runner: codex
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-04 00:00
+
+## Handoff
+- Phase in progress: none
+- Done so far: Contrarian triage opened this read-only deployment review case.
+- Exact next action: Infra specialist should inspect deployment docs, compose files, Nginx, scripts, env examples, and read-only Docker status for deployment blockers.
+- Working-tree state (list edited files explicitly; cross-check with `git status`): `docs/cases/deployment-codebase-review.md` created for this task. Pre-existing untracked file: `docs/cases/woosoo-cloud-portal-sync-plan-review.md`.
+- Risks / do-not-redo: Do not modify app code or read `.env`; this is a review task.
+
+## Tier
+3
+
+## Branch
+agent/deployment-codebase-review
+
+## Problem
+Review the Woosoo platform codebase for deployment issues, missing configuration, and gaps that could hinder smooth Docker/Raspberry Pi deployment.
+
+## Contrarian Review
+
+### Tier
+3
+
+### Success Criterion
+Task is done when current deployment docs, compose/Nginx/scripts/env examples, repo status, and available read-only Docker/config checks have been inspected and findings are reported with severity, impact, and concrete next action.
+
+### Assumptions Challenged
+- "Review codebase" could accidentally become a cross-app remediation task. This run is review-only and must not modify app code.
+- A green local Docker state, if present, does not prove Raspberry Pi readiness.
+- Deployment docs and scripts may drift from the executable path; both must be checked.
+
+### Alternate Interpretations
+- Broad app-code review: rejected for this task because the user invoked `docker-deployment-debug` and asked about smooth deployment.
+- Infrastructure/deployment readiness review: pursued because it matches Docker, Nginx, env, scripts, and configuration risks.
+
+### Risks
+- Production deployment can fail from env load order, stale compose assumptions, host/IP drift, missing health probes, or Pi-specific runtime gaps.
+- Reading `.env` could expose secrets, so this review only uses placeholders, examples, docs, and non-secret runtime metadata.
+- Cross-app source changes are out of scope; if a fix requires app code, split into a dedicated app task.
+
+### Hidden Failure Boundaries
+- Compose config validation does not prove container recreation or actual port binding.
+- Tablet container health can pass while runtime config, public endpoints, or service worker freshness are wrong.
+- POS IP defaults must be reconciled against canonical `192.168.1.32`.
+- Deployment scripts can document one config source while reading variables before sourcing it.
+
+### Assigned Specialist
+- infra
+
+### Affected App
+- Root infrastructure / deployment surface only.
+
+### Candidate Skills
+- agent-sequence
+- docker-deployment-debug
+- test-verification
+
+### Branch
+agent/deployment-codebase-review
+
+### Recommendation
+Proceed.
+
+## Investigation
+Read-only deployment review inspected:
+- Root deployment authority: `compose.yaml`, `docker/nginx/default.conf`, `docker/certs/*`.
+- Root deployment scripts: `scripts/deployment/deploy-all.sh`, `deploy.sh`, `apply-woosoo-config.sh`, `doctor.sh`, `woosoo-health.sh`, `woosoo-backup.sh`, `rollback-client.sh`, `switch-network.sh`, `dev-docker-bootstrap.sh`.
+- Deployment docs and state: `docs/deployment/DEPLOYMENT_GUIDE.md`, `docs/deployment/production-docker.md`, `docs/deployment/examples/woosoo.env.example`, `state/WORK.md`, `state/QUEUE.md`, related infra cases.
+- Relevant app-side config/docs surfaces: `woosoo-nexus/config/reverb.php`, `woosoo-nexus/app/Support/PublicOrigin.php`, active Nexus deployment docs, `tablet-ordering-pwa/Dockerfile.prod`, `tablet-ordering-pwa/docker/nginx/tablet-pwa.conf`.
+
+Findings:
+1. High: active Nexus docs still tell operators that `woosoo-nexus/compose.yaml` is production authority and to run Docker from `woosoo-nexus`, while platform-root docs and scripts now require `woosoo-platform/compose.yaml`.
+2. High: first-time Pi path does not make `APP_KEY` a hard preflight/deploy gate. `apply-woosoo-config.sh` only prints an info line if missing, and `doctor.sh` does not check it.
+3. High: production branch defaults conflict. `DEPLOYMENT_GUIDE.md` says production `WOOSOO_DEPLOY_BRANCH` should be `main`; the example and deploy script default to `dev`.
+4. Medium: deploy does not run or preflight pending migrations. This is documented as manual, but it can still produce an apparently successful deploy that is schema-incomplete.
+5. Medium: main Pi config apply path does not write `REVERB_ALLOWED_ORIGINS`. Laravel defaults to `PUBLIC_HOST` only; IP-based tablet access remains a drift risk.
+6. Medium: compose has no service-specific health gate for Reverb and uses `service_started` for Reverb/tablet before exposing Nginx; queue/scheduler also lack health checks.
+7. Medium: Pi runtime Stage B remains pending in active state/cases, so local/script validation is not a substitute for on-device deployment proof.
+8. Low: `docker/certs/rootCA.crt` is tracked. Public CA material is not a private secret, but it can be mistaken for the deploy-specific trust root.
+
+## Root Cause
+The platform-root deployment move is partially complete: the root scripts/docs are mostly migrated, but active Nexus-local docs and some runtime guardrails still describe or permit the older single-repo deployment model. Smooth deployment depends on operator discipline and Pi-side checks rather than one unambiguous, self-validating path.
+
+## Proposed Fix
+No fixes were implemented in this review. Recommended follow-up order:
+1. Align or archive Nexus-local active deployment docs so they point to platform-root deployment only.
+2. Add `APP_KEY` and migration-status checks to `doctor.sh` / `deploy-all.sh`, or document them as hard manual gates before deploy completion.
+3. Reconcile production branch defaults (`main` vs `dev`) across guide, example, and deploy script.
+4. Add `REVERB_ALLOWED_ORIGINS` generation in the main Pi apply path, including hostname and IP origins expected by tablets.
+5. Add health/process checks or compose healthchecks for `reverb`, `queue`, `scheduler`, and an Nginx dependency gate that waits for tablet readiness.
+6. Complete Pi Stage B: run `deploy-all.sh`, `woosoo-health.sh`, rollback drill, and public tablet/Reverb smoke tests on hardware.
+
+## Files Changed
+- `docs/cases/deployment-codebase-review.md`
+
+## Verification
+Commands attempted:
+- `docker compose ps` -> failed: `docker` is not recognized in this shell.
+- `docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --quiet` -> failed: `docker` is not recognized in this shell.
+- `docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --services` -> failed: `docker` is not recognized in this shell.
+- `wsl.exe -d Ubuntu -- bash -lc 'cd /mnt/e/Projects/woosoo-platform && bash -n ... && echo OK'` -> `OK`.
+- `git status --short --untracked-files=all` -> only this new case file plus pre-existing untracked `docs/cases/woosoo-cloud-portal-sync-plan-review.md`.
+
+No `scripts/pre-merge-check.sh --app <name>` was run because this review changed no app code and the target is root deployment/governance. Docker runtime validation remains blocked in this shell and still must run on the Pi.
+
+## Executioner Verdict
+Verdict: APPROVED
+
+Reason: Review-only Tier 3 chain completed with current-source findings, no app-code changes, and clear validation limitations. The deployment is not declared Pi-ready; the open Pi Stage B gate remains.
+
+Required next action: Treat the listed findings as follow-up cases, starting with docs authority drift and APP_KEY/branch/migration hard gates.
+
+## Remaining Risks
+- Docker runtime state was not inspected because Docker is unavailable in this shell.
+- Pi hardware deployment, rollback, WSS, tablet update, POS trigger, and BT-only print proof remain operational gates.

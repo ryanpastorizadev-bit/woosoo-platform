@@ -49,8 +49,8 @@ System truth is split:
 Authoritative audit documents (read on demand):
 
 - `docs/WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14.md` — cross-app review.
-- `woosoo-nexus/docs/WOOSOO_NEXUS_STABILIZATION_AND_HARDENING_AUDIT_2026-05-14.md` — backend audit.
-- `tablet-ordering-pwa/docs/TABLET_ORDERING_PWA_PRODUCTION_STABILITY_AUDIT_2026-05-14.md` — tablet audit.
+- `woosoo-nexus/docs/archive/2026-05/WOOSOO_NEXUS_STABILIZATION_AND_HARDENING_AUDIT_2026-05-14.md` — backend audit copy currently present in this checkout; verify claims against live source/contracts.
+- `tablet-ordering-pwa/docs/archive/2026-05/TABLET_ORDERING_PWA_PRODUCTION_STABILITY_AUDIT_2026-05-14.md` — tablet audit copy currently present in this checkout; verify claims against live source/contracts.
 - `woosoo-print-bridge/docs/WOOSOO_PRINT_BRIDGE_PRODUCTION_RELIABILITY_AUDIT_2026-05-14.md` — print bridge audit.
 
 ## Error Handling
