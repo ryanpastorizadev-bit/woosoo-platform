@@ -195,6 +195,10 @@ if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; th
   $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:cache   || true
   $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:cache    || true
   echo "OK: Caches warmed"
+else
+  echo "ERROR: $APP_SERVICE is not ready after startup; aborting deploy." >&2
+  $COMPOSE_CMD logs --tail=200 "$APP_SERVICE" || true
+  exit 1
 fi
 echo
 

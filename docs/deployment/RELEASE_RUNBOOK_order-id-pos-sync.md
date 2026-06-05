@@ -39,10 +39,10 @@ Runs doctor → backup → deploy (pull repos, apply config, build + `up`, warm 
 ## Step 2 — POS triggers + schedulers (NEX-CASE-007 + NEX-CASE-013)
 Install/refresh the POS-local outbox tables + triggers (payment, session-close, **and the new
 order-detail trigger from 013**), then confirm the consumers are scheduled. Run **inside the nexus
-app container** (replace `<nexus-svc>` with the compose service name):
+app container** (service name is `app` per `compose.yaml`):
 ```bash
-docker compose exec <nexus-svc> php artisan pos:setup-payment-trigger
-docker compose exec <nexus-svc> php artisan schedule:list | grep -E "pos:consume-payment-status-events|pos:consume-order-detail-events"
+docker compose exec app php artisan pos:setup-payment-trigger
+docker compose exec app php artisan schedule:list | grep -E "pos:consume-payment-status-events|pos:consume-order-detail-events"
 ```
 **Verify:** the command reports the outbox tables + triggers created; `schedule:list` shows **both**
 `pos:consume-payment-status-events` (every 5s) and `pos:consume-order-detail-events` (every 5s).
