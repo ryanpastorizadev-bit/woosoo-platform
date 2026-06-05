@@ -35,6 +35,7 @@
 | `nex-case-007` | ✅ APPROVED — on remote `dev` | Run `php artisan pos:setup-payment-trigger` on Pi after deploy |
 | `nex-case-011` | code-merged (PR #163, 2026-06-04); Pi POS config pending (Bucket B) | Confirm `NEXUS_PRINT_EVENTS_ENABLED=true`; disable Krypton 3rd-party printer; verify BT-only print |
 | `nex-case-005` | ✅ CLOSED — OBE (idempotency guard added inline via nex-case-011 PR #163) | — |
+| `nex-case-014` | ✅ COMPLETE 2026-06-05 — APPROVED | Operator: clear SESSION_DOMAIN in live .env, set WOOSOO_ENV=production, re-run apply-woosoo-config.sh |
 
 ### tablet-ordering-pwa
 | Case | Status | Next action |
