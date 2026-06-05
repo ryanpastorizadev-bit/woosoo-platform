@@ -186,20 +186,28 @@ echo
 
 # ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
 echo ">>> [6/6] Warming Laravel caches ..."
-if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:clear  || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan cache:clear   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:clear   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:clear    || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:cache  || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:cache   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:cache    || true
-  echo "OK: Caches warmed"
-else
-  echo "ERROR: $APP_SERVICE is not ready after startup; aborting deploy." >&2
+echo "  Waiting for $APP_SERVICE to be ready (up to 60s) ..."
+_app_ready=0
+for _i in $(seq 1 30); do
+  if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
+    _app_ready=1
+    break
+  fi
+  sleep 2
+done
+if [[ "$_app_ready" -ne 1 ]]; then
+  echo "ERROR: $APP_SERVICE is not ready after 60s; aborting deploy." >&2
   $COMPOSE_CMD logs --tail=200 "$APP_SERVICE" || true
   exit 1
 fi
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:clear  || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan cache:clear   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:clear   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:clear    || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:cache  || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:cache   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:cache    || true
+echo "OK: Caches warmed"
 echo
 
 # ── Summary ───────────────────────────────────────────────────────────────────
