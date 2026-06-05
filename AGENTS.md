@@ -291,6 +291,27 @@ Every task output must end with:
 - **Validation result** (output of `scripts/pre-merge-check.sh` or reason it could not run)
 - **Rollback plan** (one sentence)
 
+## Cursor Specialist Mode (EXPERIMENTAL — Tier 1–2 only)
+
+When `active_runner: cursor` is set in the case file, the Specialist phase is performed in
+Cursor IDE rather than as a Claude Code subagent. **Contrarian, Verifier, and Executioner always
+run in Claude Code regardless.**
+
+Rules:
+- Permitted for **Tier 1 and Tier 2 only.** Tier 3 always uses a Claude Code Specialist — Cursor
+  lacks the contract context needed for high-risk flows.
+- Tier 1 still requires a minimal Claude Code precheck (slug + case file + Run State checkpoint)
+  before Cursor takes over. Slug/case/resume discipline is never skipped.
+- Open via **`woosoo-platform.code-workspace`** (multi-root) so `docs/cases/` is in scope.
+- Cursor must write the Specialist checkpoint to the case file before handing off to Verifier.
+  Operator confirms the checkpoint landed before typing `verify` in Claude Code.
+- `.cursor/rules/woosoo.mdc` encodes the project rules for Cursor AI. **Rule Sync checklist:**
+  when immutable rules change in this file, update `.cursor/rules/woosoo.mdc` to match.
+- Known Cursor limitation: `.cursor/rules` may not load reliably in multi-root workspaces.
+  The operator paste-preamble (see `docs/USAGE_GUIDE.md § Cursor Hybrid Workflow`) is mandatory
+  until Phase 2 (per-app repo `.cursor/rules/` files) is complete and verified.
+- See `docs/USAGE_GUIDE.md § Cursor Hybrid Workflow` for the step-by-step handoff protocol.
+
 ## Reminders
 
 - The tablet sends intent; the backend owns truth.

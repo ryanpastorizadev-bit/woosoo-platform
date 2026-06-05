@@ -63,7 +63,84 @@ The Contrarian picks from the **scenario → skill map** in `AGENTS.md` → *Ski
 Specialist loads only those. `agent-sequence` is mandatory every task; `test-verification` and
 `dead-code-cleanup` on every code task.
 
-## 5. How docs stay current — and keep improving (anti-degradation loop)
+## 5. Cursor Hybrid Workflow (EXPERIMENTAL — Tier 1–2 only)
+
+Use Cursor for the Specialist (code-writing) phase. Claude Code keeps all orchestration gates.
+**Tier 3 tasks must use a Claude Code Specialist — do not use Cursor.**
+Full rules and rationale: `AGENTS.md § Cursor Specialist Mode`.
+
+### Mandatory session preamble (paste at the start of every Cursor session)
+
+> **Why mandatory:** Cursor has a known bug loading `.cursor/rules` in multi-root workspaces
+> (confirmed 2025–2026). Until Phase 2 (per-app repo rules files) lands, this paste-preamble
+> is the safety mechanism for Gaps 2 (app boundaries) and 3 (immutable rules). Do not skip it.
+
+```
+Woosoo Platform — session rules (mandatory, paste before any other prompt):
+
+IMMUTABLE RULES — never violate:
+1. Backend owns truth. Tablet sends only { guest_count, package_id, items:[{menu_id,quantity}] }.
+   Never send pricing, tax, modifiers, totals, POS mapping, or order state from the tablet.
+2. Order states: pending confirmed in_progress ready served completed cancelled voided archived.
+   Terminal: completed|cancelled|voided|archived. Do not invent states.
+3. No raw errors in customer UI. Friendly messages only; stack traces go to logs.
+4. No hardcoded LAN IPs or Reverb hosts in tablet or bridge code.
+5. No secrets in .env without operator review.
+
+APP BOUNDARY — edit only: [INSERT one of: woosoo-nexus/** | tablet-ordering-pwa/** | woosoo-print-bridge/**]
+If asked to touch a second app: STOP and request a SPLIT.
+
+TIER 3 STOP LIST — refuse and tell operator to use Claude Code if task touches:
+order state · session lifecycle · payment/pricing · printing · auth/tokens · API contracts ·
+Reverb/broadcasting · queues · race conditions · DB migrations · cross-app · production deploy
+
+GIT — do NOT: git commit, git add . / -A, git reset --hard, git clean, force-push.
+Branch must already be agent/<slug>. Operator stages and commits.
+
+CHECKPOINT (your last action): write ## Specialist Investigation & Implementation to
+docs/cases/<slug>.md in the platform repo, and refresh ## Run State:
+  last_completed_agent: specialist:<agent-name>
+  next_agent: verifier
+  active_runner: cursor
+  status: IN_PROGRESS
+  updated: <YYYY-MM-DD>
+If you cannot find the case file: STOP.
+```
+
+### Step-by-step
+
+1. **Claude Code:** `intake this: <task>` → Contrarian triages, creates `docs/cases/<slug>.md`.
+   For Tier 1, run a minimal precheck: slug + case file + Run State — slug/resume discipline is never skipped.
+2. Read the case file's `## Contrarian Review` and `## Handoff` blocks — this is Cursor's brief.
+3. **Cursor:** open **`woosoo-platform.code-workspace`** (multi-root). Confirm branch `agent/<slug>`.
+4. **Cursor:** paste the mandatory session preamble above, filling in the active app boundary.
+   Then paste the Contrarian brief. Implement — editing only the active app's `<app>/**`.
+5. **Cursor:** final action — write Specialist checkpoint to `docs/cases/<slug>.md`.
+   **Operator confirms the checkpoint is present before continuing.**
+6. **Operator:** `git diff` to review changes; stage specific files by path; commit.
+7. **Claude Code:** `verify` → Verifier runs `scripts/pre-merge-check.sh --app <name>`.
+8. **Claude Code:** `work` → Executioner returns `APPROVED` / `REJECTED` / `SPLIT_REQUIRED`.
+
+### On REJECTED
+
+`git restore <specific-files>` (restore only Cursor's files — **never** `git restore .`).
+Re-run Verifier clean before any fix-forward. If Cursor caused the failure, consider switching to a Claude Code Specialist for fix-forward.
+
+### Rule sync
+
+`.cursor/rules/woosoo.mdc` mirrors `AGENTS.md § Immutable Rules`. When immutable rules change, update both files. `AGENTS.md` is canonical; the `.mdc` file is a Cursor-side copy.
+
+### Phase 2 (recommended — removes paste-preamble requirement)
+
+Create one case per app repo (`plt-case-NNN-cursor-rules-<app>`) to add a scoped
+`.cursor/rules/<app>.mdc` to each of `woosoo-nexus`, `tablet-ordering-pwa`, and
+`woosoo-print-bridge`. Each is the platform `.mdc` scoped to that app's paths and verification
+commands. Once each app repo has its own rules file and it is verified to load in a single-root
+Cursor session, the paste-preamble for that app becomes optional.
+
+---
+
+## 6. How docs stay current — and keep improving (anti-degradation loop)
 
 Nothing auto-updates. `hooks/*.md` are markdown playbooks, not executable hooks; README/CHANGELOG
 do not self-write. Currency is **gate-enforced**, and the system is designed to ratchet forward,
