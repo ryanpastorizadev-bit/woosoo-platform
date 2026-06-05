@@ -33,8 +33,8 @@
 | Case | Status | Next action |
 |---|---|---|
 | `nex-case-007` | ✅ APPROVED — on remote `dev` | Run `php artisan pos:setup-payment-trigger` on Pi after deploy |
-| `nex-case-011` | queued | Duplicate order printing investigation — P1, gates dev→staging |
-| `nex-case-005` | queued | Legacy non-idempotent print path — investigate jointly with #011 |
+| `nex-case-011` | code-merged (PR #163, 2026-06-04); Pi POS config pending (Bucket B) | Confirm `NEXUS_PRINT_EVENTS_ENABLED=true`; disable Krypton 3rd-party printer; verify BT-only print |
+| `nex-case-005` | ✅ CLOSED — OBE (idempotency guard added inline via nex-case-011 PR #163) | — |
 
 ### tablet-ordering-pwa
 | Case | Status | Next action |
@@ -53,7 +53,9 @@
 | Gate | Status |
 |---|---|
 | nex-case-007 merged + `pos:setup-payment-trigger` run on Pi | ⏳ merged; Pi trigger pending |
-| nex-case-011 / nex-case-005 (Bucket A stabilization) | ⏳ queued |
+| nex-case-011 code (PR #163) | ✅ merged 2026-06-04 |
+| nex-case-005 | ✅ closed OBE (merged inline with #163) |
+| nex-case-011 POS config (disable Krypton printer on Pi) | ⏳ Bucket B ops pending |
 | Print-bridge APK rebuilt + installed | ⏳ pending |
 | tab-case-009 WS silent-death fix | ⏳ queued post-stabilization |
 | Restaurant smoke test (3 tables, pay 1, verify 1 tablet resets) | ⏳ after above |
