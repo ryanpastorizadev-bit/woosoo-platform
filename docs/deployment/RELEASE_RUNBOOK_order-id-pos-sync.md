@@ -51,6 +51,11 @@ Idempotent — safe to re-run.
 ## Step 3 — POS printer config — BT-only (NEX-CASE-011)
 Root cause (docs/cases/nex-case-011): the 3rd-party POS prints autonomously from `create_ordered_menu`
 while the Nexus BT path also prints → duplicate. Intended behavior is **BT thermal only**.
+
+**Code gate (cleared):** PR #163 (`fix/nex-011-duplicate-print`) merged to dev 2026-06-04 — removes
+`PrintOrder::dispatch()` from all `markPrinted` ack paths and adds `is_printed` idempotency guard.
+Confirm this commit is on the deployed branch (Step 1 pulls it when deploying from dev or a branch that includes it).
+
 - **Disable the 3rd-party POS printer (or set its no-print flag) in the Krypton/POS configuration.**
   This is a POS-side/vendor setting — not Nexus code. Confirm `NEXUS_PRINT_EVENTS_ENABLED=true` so the
   BT path (print bridge) keeps printing.
