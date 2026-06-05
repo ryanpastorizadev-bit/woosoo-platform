@@ -104,7 +104,7 @@ list with comments.
 | `WOOSOO_REVERB_APP_KEY`     | _(non-placeholder)_      | Reject `change_this_reverb_key`, etc.  |
 | `WOOSOO_REVERB_APP_SECRET`  | _(non-placeholder)_      |                                        |
 | `WOOSOO_DEVICE_AUTH_PASSCODE` | _(non-placeholder)_    | PIN tablets use to register            |
-| `WOOSOO_DEPLOY_BRANCH`      | `dev`                    | Active integration branch. Override to `main` for a locked production release, or `staging` for staging Pi |
+| `WOOSOO_DEPLOY_BRANCH`      | `main`                   | Locked production release branch. Use `dev` for integration testing or `staging` for staging Pi. |
 
 After editing, run `sudo bash scripts/deployment/doctor.sh` standalone to
 verify all values are accepted before triggering a full deploy.
