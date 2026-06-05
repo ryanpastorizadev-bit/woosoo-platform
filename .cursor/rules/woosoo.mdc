@@ -1,0 +1,115 @@
+---
+alwaysApply: true
+---
+
+# Woosoo Platform — Cursor AI Rules
+
+> **EXPERIMENTAL — Cursor hybrid mode, Tier 1–2 only.**
+> Source of truth: `AGENTS.md § Immutable Rules`. This file mirrors those rules for Cursor AI.
+> If this file and `AGENTS.md` ever conflict, **`AGENTS.md` wins**. Keep them in sync.
+>
+> **Known Cursor limitation:** `.cursor/rules` files may not load reliably in multi-root
+> workspaces (confirmed bug, 2025–2026). Until Phase 2 (per-app repo rules files) is complete,
+> the operator MUST paste the mandatory preamble (see `docs/USAGE_GUIDE.md § Cursor Hybrid
+> Workflow`) at the start of every Cursor session.
+
+---
+
+## Prime Directive
+
+Correctness > speed. This system runs a live restaurant. A bad change can break ordering,
+printing, and table sessions in real time.
+
+---
+
+## Workspace Setup
+
+Always open via **`woosoo-platform.code-workspace`** (multi-root workspace). This keeps the
+platform repo (with `docs/cases/` and `contracts/`) in scope alongside the app repo.
+
+**Edit only the one active app's directory.** If you are asked to modify files in more than one
+app in the same session: STOP, tell the operator, and request the task be split. Do not proceed
+cross-app.
+
+| App | You may edit |
+|-----|-------------|
+| Backend (Laravel 12) | `woosoo-nexus/**` |
+| Frontend (Nuxt 3 PWA) | `tablet-ordering-pwa/**` |
+| Print relay (Flutter) | `woosoo-print-bridge/**` |
+| Platform governance | `docs/**`, `*.md` (excl. `.claude/agents/**`, `.claude/skills/**`), `hooks/**`, `state/**` |
+
+---
+
+## Immutable Rules (verbatim from `AGENTS.md`)
+
+- **Backend owns truth.** Tablet sends only `{ guest_count, package_id, items: [{ menu_id, quantity }] }`. Never send pricing, tax, modifiers, totals, POS mapping, or order state from the tablet.
+- **Order state machine:** valid states: `pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`. Terminal: `completed | cancelled | voided | archived`. Do not invent new states. See `contracts/order-state.contract.md`.
+- **No raw errors in customer-facing UI.** Friendly messages only. Stack traces, SQL errors, exception dumps → logs only.
+- **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code. Production POS static IP is `192.168.1.32` — detect mismatches; never write it into tablet/bridge source.
+- **No secrets in `.env`** without explicit operator review and backup.
+- **One app per branch/commit** unless this is an explicitly approved integration-scoped change recorded in the case file.
+
+---
+
+## Tier 3 — STOP Immediately
+
+If the task touches **any** of the following, STOP and tell the operator to use Claude Code's
+Specialist agents instead (they have deep contract context that Cursor lacks):
+
+- Order state machine or order lifecycle
+- Session lifecycle (guest sessions, table sessions)
+- Payment / pricing / tax / totals
+- Printing / print jobs / print dispatch
+- Auth / tokens / Sanctum / device tokens / session guards
+- API contract changes (`contracts/*.md`)
+- Reverb / broadcasting / WebSocket events
+- Queues / schedulers / jobs / retries
+- Race conditions / idempotency
+- DB migrations
+- Cross-app dependencies
+- Production deployment
+
+---
+
+## Git Rules
+
+- Do **NOT** run `git commit` — the operator reviews and commits.
+- Do **NOT** run `git add .` or `git add -A` — operator stages specific files by path.
+- Do **NOT** run `git reset --hard`, `git clean -fd`, or any force-push variant.
+- The branch **must already be** `agent/<slug>` before you start. If it is not, tell the operator; do not create or switch branches yourself.
+
+---
+
+## Verification Commands
+
+Canonical gate: `bash scripts/pre-merge-check.sh --app <name>` (run by Claude Code Verifier, not by you).
+
+You may run these as self-checks only — they are not a substitute for the Verifier gate:
+
+| App | Self-check commands |
+|-----|---------------------|
+| woosoo-nexus | `php artisan test` |
+| tablet-ordering-pwa | `npm run typecheck && npm run lint && npm run build` |
+| woosoo-print-bridge | `flutter analyze && flutter test` |
+
+---
+
+## Mandatory Checkpoint (your last action)
+
+When you finish implementing, your **last action** must be to write the Specialist checkpoint to
+`docs/cases/<slug>.md` in the platform repo (it is always in scope via the multi-root workspace).
+
+Write or update these two sections:
+
+**`## Specialist Investigation & Implementation`** — what you investigated, what you changed, why.
+
+**`## Run State`** — refresh these fields:
+```
+- last_completed_agent: specialist:<agent-name>   # e.g. specialist:chuya-frontend
+- next_agent: verifier
+- active_runner: cursor
+- status: IN_PROGRESS
+- updated: <YYYY-MM-DD>
+```
+
+If you cannot locate the case file, STOP and tell the operator. Do not hand off without a checkpoint.
