@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_FILE="/etc/woosoo/woosoo.env"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Config file: prefer woosoo.env in platform root, fall back to /etc/woosoo/
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$_PLATFORM_ROOT/woosoo.env" ]]; then
+    CONFIG_FILE="$_PLATFORM_ROOT/woosoo.env"
+  else
+    CONFIG_FILE="/etc/woosoo/woosoo.env"
+  fi
+fi
 
 if [[ $EUID -ne 0 ]]; then
   echo "Run as root: sudo bash scripts/deployment/apply-woosoo-config.sh"
@@ -10,19 +20,22 @@ fi
 
 if [[ ! -f "$CONFIG_FILE" || -L "$CONFIG_FILE" ]]; then
   echo "Missing regular config file: $CONFIG_FILE"
-  echo "Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first."
+  echo "Run: bash scripts/deployment/init-woosoo-env.sh"
   exit 1
 fi
 
-config_uid="$(stat -c '%u' "$CONFIG_FILE")"
-config_mode="$(stat -c '%a' "$CONFIG_FILE")"
-if [[ "$config_uid" != "0" ]]; then
-  echo "ERROR: $CONFIG_FILE must be owned by root (UID 0)." >&2
-  exit 1
-fi
-if (( (8#$config_mode & 0022) != 0 )); then
-  echo "ERROR: $CONFIG_FILE must not be writable by group or other users." >&2
-  exit 1
+# Only enforce root ownership for the system-path config; ./woosoo.env is user-owned.
+if [[ "$CONFIG_FILE" == /etc/woosoo/* ]]; then
+  config_uid="$(stat -c '%u' "$CONFIG_FILE")"
+  config_mode="$(stat -c '%a' "$CONFIG_FILE")"
+  if [[ "$config_uid" != "0" ]]; then
+    echo "ERROR: $CONFIG_FILE must be owned by root (UID 0)." >&2
+    exit 1
+  fi
+  if (( (8#$config_mode & 0022) != 0 )); then
+    echo "ERROR: $CONFIG_FILE must not be writable by group or other users." >&2
+    exit 1
+  fi
 fi
 
 set -a

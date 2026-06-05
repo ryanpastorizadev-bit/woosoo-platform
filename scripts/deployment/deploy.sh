@@ -41,10 +41,16 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-if [[ ! -f /etc/woosoo/woosoo.env ]]; then
-  echo "ERROR: /etc/woosoo/woosoo.env not found."
-  echo "  See docs/deployment/production-docker.md."
-  exit 1
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$PLATFORM_ROOT/woosoo.env" ]]; then
+    export CONFIG_FILE="$PLATFORM_ROOT/woosoo.env"
+  elif [[ -f /etc/woosoo/woosoo.env ]]; then
+    export CONFIG_FILE="/etc/woosoo/woosoo.env"
+  else
+    echo "ERROR: no config file found."
+    echo "  Run: bash scripts/deployment/init-woosoo-env.sh"
+    exit 1
+  fi
 fi
 
 if [[ ! -f "$CONFIG_SCRIPT" ]]; then

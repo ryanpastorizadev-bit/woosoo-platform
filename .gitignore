@@ -9,6 +9,7 @@
 .env.*
 !.env.example
 !**/.env.example
+woosoo.env
 secrets/
 **/secrets/
 config/credentials.json
