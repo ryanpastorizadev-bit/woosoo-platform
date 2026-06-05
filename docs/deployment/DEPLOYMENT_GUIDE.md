@@ -131,9 +131,10 @@ the first failure. The `deploy` step:
 2. Writes a pre-deploy snapshot to `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/`
    (commits + `woosoo-nexus.env`) — this is the input `rollback-client.sh` uses
 3. `docker compose build` (only services with changed inputs rebuild)
-4. `docker compose up -d --remove-orphans`
-5. Waits for the `app` container, then runs `php artisan migrate --force`.
-   A migration failure aborts the deploy (no partial schema).
+4. Runs `php artisan migrate --force` in a one-off container — before any
+   long-running service starts. A migration failure aborts the deploy so
+   queue workers and the scheduler never boot on a stale schema.
+5. `docker compose up -d --remove-orphans`
 6. Warms Laravel caches (config, route, view)
 
 Tablets auto-update within ~1 minute of completion (see `production-docker.md`
