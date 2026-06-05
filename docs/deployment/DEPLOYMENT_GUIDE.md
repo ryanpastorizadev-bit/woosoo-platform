@@ -104,7 +104,7 @@ list with comments.
 | `WOOSOO_REVERB_APP_KEY`     | _(non-placeholder)_      | Reject `change_this_reverb_key`, etc.  |
 | `WOOSOO_REVERB_APP_SECRET`  | _(non-placeholder)_      |                                        |
 | `WOOSOO_DEVICE_AUTH_PASSCODE` | _(non-placeholder)_    | PIN tablets use to register            |
-| `WOOSOO_DEPLOY_BRANCH`      | `dev`                    | Active integration branch. Override to `main` for a locked production release, or `staging` for staging Pi |
+| `WOOSOO_DEPLOY_BRANCH`      | `main`                   | Locked production release branch. Use `dev` for integration testing or `staging` for staging Pi. |
 
 After editing, run `sudo bash scripts/deployment/doctor.sh` standalone to
 verify all values are accepted before triggering a full deploy.
@@ -131,9 +131,10 @@ the first failure. The `deploy` step:
 2. Writes a pre-deploy snapshot to `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/`
    (commits + `woosoo-nexus.env`) — this is the input `rollback-client.sh` uses
 3. `docker compose build` (only services with changed inputs rebuild)
-4. `docker compose up -d --remove-orphans`
-5. Waits for the `app` container, then runs `php artisan migrate --force`.
-   A migration failure aborts the deploy (no partial schema).
+4. Runs `php artisan migrate --force` in a one-off container — before any
+   long-running service starts. A migration failure aborts the deploy so
+   queue workers and the scheduler never boot on a stale schema.
+5. `docker compose up -d --remove-orphans`
 6. Warms Laravel caches (config, route, view)
 
 Tablets auto-update within ~1 minute of completion (see `production-docker.md`

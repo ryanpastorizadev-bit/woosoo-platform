@@ -15,9 +15,9 @@
 #   1. Pulls each APP repo (woosoo-nexus, tablet-ordering-pwa) in place
 #   2. Runs apply-woosoo-config.sh to enforce runtime config into woosoo-nexus/.env
 #   3. Rebuilds Docker images from the platform-root compose.yaml
-#   4. Starts all services
-#   5. Warms Laravel caches
-#   6. Shows service status
+#   4. Runs database migrations (before services start)
+#   5. Starts all services
+#   6. Warms Laravel caches
 #
 # First-time setup? See docs/deployment/production-docker.md — you need
 # /etc/woosoo/woosoo.env in place before running this.
@@ -107,7 +107,7 @@ pull_repo() {
   fi
 }
 
-echo ">>> [1/5] Snapshot + pull app repos ..."
+echo ">>> [1/6] Snapshot + pull app repos ..."
 
 # Pre-deploy snapshot — written BEFORE git reset --hard so rollback-client.sh
 # can restore the pre-deploy state by SHA + .env. This is the rollback handle.
@@ -139,13 +139,13 @@ pull_repo "$TABLET_DIR" "$TABLET_BRANCH" "tablet-ordering-pwa"
 echo
 
 # ── Step 2: Apply config (writes correct values into woosoo-nexus/.env) ───────
-echo ">>> [2/5] Applying Pi5 config (apply-woosoo-config.sh) ..."
+echo ">>> [2/6] Applying Pi5 config (apply-woosoo-config.sh) ..."
 WOOSOO_RESTART_DOCKER=false bash "$CONFIG_SCRIPT"
 echo "OK: Config applied — woosoo-nexus/.env is authoritative for this host"
 echo
 
 # ── Step 3: Build Docker images + frontend assets ─────────────────────────────
-echo ">>> [3/5] Building Docker images ..."
+echo ">>> [3/6] Building Docker images ..."
 $COMPOSE_CMD build
 echo "OK: Images built"
 
@@ -161,8 +161,22 @@ WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build
 echo "OK: Frontend assets built"
 echo
 
-# ── Step 4: Start / restart services ─────────────────────────────────────────
-echo ">>> [4/6] Starting services ..."
+# ── Step 4: Run pending database migrations ───────────────────────────────────
+# Migrations run in a one-off container before live services start so that
+# queue workers and scheduler boot on the updated schema, not the old one.
+# `docker compose run` respects depends_on service_healthy conditions, so
+# mysql and redis are guaranteed healthy before the migration executes.
+echo ">>> [4/6] Running database migrations ..."
+if $COMPOSE_CMD run --rm "$APP_SERVICE" php artisan migrate --force; then
+  echo "OK: Migrations applied"
+else
+  echo "ERROR: artisan migrate failed — aborting before services start." >&2
+  exit 1
+fi
+echo
+
+# ── Step 5: Start / restart services ─────────────────────────────────────────
+echo ">>> [5/6] Starting services ..."
 # One-time cleanup: the nexus_build named volume was removed from compose.yaml;
 # drop the now-orphaned Docker volume. Idempotent — ignore error if absent/in-use.
 docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true
@@ -170,49 +184,30 @@ $COMPOSE_CMD up -d --remove-orphans
 echo "OK: Services started"
 echo
 
-# ── Step 5: Wait for app + run pending migrations ────────────────────────────
-# Migrations run automatically — a deploy that succeeds without applying
-# schema changes is worse than a deploy that fails fast. The wait loop is
-# shared with cache warm in Step 6 below.
-echo ">>> [5/6] Waiting for app service + running migrations ..."
-WAIT_ATTEMPTS=90
-WAIT_DELAY=2
-APP_READY=false
-for i in $(seq 1 "$WAIT_ATTEMPTS"); do
-  if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
-    APP_READY=true
-    echo "  OK: app service ready"
-    break
-  fi
-  if [[ "$i" -eq "$WAIT_ATTEMPTS" ]]; then
-    echo "  ERROR: app service not ready after ${WAIT_ATTEMPTS}x${WAIT_DELAY}s — aborting before migrations." >&2
-    exit 1
-  fi
-  sleep "$WAIT_DELAY"
-done
-
-if [[ "$APP_READY" == "true" ]]; then
-  if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan migrate --force; then
-    echo "OK: Migrations applied"
-  else
-    echo "ERROR: artisan migrate failed — schema may be incomplete. Aborting." >&2
-    exit 1
-  fi
-fi
-echo
-
 # ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
 echo ">>> [6/6] Warming Laravel caches ..."
-if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:clear  || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan cache:clear   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:clear   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:clear    || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:cache  || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:cache   || true
-  $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:cache    || true
-  echo "OK: Caches warmed"
+echo "  Waiting for $APP_SERVICE to be ready (up to 60s) ..."
+_app_ready=0
+for _i in $(seq 1 30); do
+  if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
+    _app_ready=1
+    break
+  fi
+  sleep 2
+done
+if [[ "$_app_ready" -ne 1 ]]; then
+  echo "ERROR: $APP_SERVICE is not ready after 60s; aborting deploy." >&2
+  $COMPOSE_CMD logs --tail=200 "$APP_SERVICE" || true
+  exit 1
 fi
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:clear  || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan cache:clear   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:clear   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:clear    || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan config:cache  || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan route:cache   || true
+$COMPOSE_CMD exec -T "$APP_SERVICE" php artisan view:cache    || true
+echo "OK: Caches warmed"
 echo
 
 # ── Summary ───────────────────────────────────────────────────────────────────
