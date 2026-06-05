@@ -53,7 +53,7 @@ services:
       app:
         condition: service_healthy
       reverb:
-        condition: service_started
+        condition: service_healthy
       tablet-pwa:
         condition: service_started
     networks:
@@ -113,6 +113,8 @@ services:
       start_period: 90s
     mem_limit: 768m
     mem_reservation: 384m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -138,6 +140,8 @@ services:
         condition: service_healthy
     mem_limit: 512m
     mem_reservation: 256m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -162,6 +166,8 @@ services:
     mem_limit: 512m
     mem_reservation: 256m
     memswap_limit: 768m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 
@@ -184,6 +190,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      # TCP probe on the WS port — proves the Reverb server is actually
+      # accepting connections, not just that the PHP process is alive.
+      # Same fsockopen pattern as the `app` service's PHP-FPM probe.
+      test: ["CMD-SHELL", "php -r \"if(!($$s=fsockopen('127.0.0.1',8080,$$e,$$m,3)))exit(1);fclose($$s);\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - woosoo
 

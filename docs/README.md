@@ -12,6 +12,7 @@ This is the canonical entry point for all Woosoo platform documentation. Only do
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
 - [AI_CONTEXT.md](AI_CONTEXT.md) — Business and architecture context
+- [WOOSOO_DOCUMENT_CONTEXT.md](WOOSOO_DOCUMENT_CONTEXT.md) — Concise context for the platform, Nexus, Tablet PWA, and Print Bridge
 
 ## Agent operating system (Lite, 4-agent)
 
@@ -51,24 +52,27 @@ Authoritative cross-app contracts. Implementation must be verified against actua
 - [Woosoo Origin Specification (Archived)](business/WOOSOO_ORIGIN_SPECIFICATION.md) — Original May 20XX signed specification for the Woosoo KBBQ table ordering system project; historical reference only (KDS component later replaced by Woosoo Print Bridge)
 - [Specification Delta & Cost Analysis](business/WOOSOO_SPEC_DELTA.md) — Feature-by-feature comparison of origin spec vs. current system; project cost breakdown (legacy ₱350k / current est. ₱875k / delta ₱525k)
 
-## Canonical audit documents (2026-05-14)
+## Audit and review documents (2026-05-14)
 
-These four documents are the authoritative system-state references. Restructured against a unified template; read the relevant one for any non-trivial task.
+The ecosystem and print bridge audits are active at the paths below. In this checkout, the Nexus
+and Tablet audit copies currently resolve under app archive folders; verify any implementation
+claim against live source and contracts before relying on those older audit files.
 
 - [Ecosystem Engineering Review](WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14.md) — cross-app system review
-- [Nexus Stabilization & Hardening Audit](../woosoo-nexus/docs/WOOSOO_NEXUS_STABILIZATION_AND_HARDENING_AUDIT_2026-05-14.md) — Laravel backend
-- [Tablet PWA Production Stability Audit](../tablet-ordering-pwa/docs/TABLET_ORDERING_PWA_PRODUCTION_STABILITY_AUDIT_2026-05-14.md) — Nuxt tablet client
+- [Nexus Stabilization & Hardening Audit](../woosoo-nexus/docs/archive/2026-05/WOOSOO_NEXUS_STABILIZATION_AND_HARDENING_AUDIT_2026-05-14.md) — Laravel backend audit copy currently present in this checkout
+- [Tablet PWA Production Stability Audit](../tablet-ordering-pwa/docs/archive/2026-05/TABLET_ORDERING_PWA_PRODUCTION_STABILITY_AUDIT_2026-05-14.md) — Nuxt tablet audit copy currently present in this checkout
 - [Print Bridge Production Reliability Audit](../woosoo-print-bridge/docs/WOOSOO_PRINT_BRIDGE_PRODUCTION_RELIABILITY_AUDIT_2026-05-14.md) — Flutter print relay
 
 ## Per-app scope rules
 
 - [woosoo-nexus/.agents.md](../woosoo-nexus/.agents.md)
-- [tablet-ordering-pwa/.agents.md](../tablet-ordering-pwa/.agents.md)
-- [woosoo-print-bridge/.agents.md](../woosoo-print-bridge/.agents.md)
+- `tablet-ordering-pwa/.agents.md` — not present in this checkout; use root `AGENTS.md`, contracts, and live app docs/source until restored
+- `woosoo-print-bridge/.agents.md` — not present in this checkout; use root `AGENTS.md`, contracts, and live app docs/source until restored
 
 ## Per-app documentation indexes
 
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
+- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation *(pending merge to Nexus dev; files exist locally on the nexus ui-handoff branch)*
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 

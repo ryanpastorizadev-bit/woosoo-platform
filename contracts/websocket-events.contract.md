@@ -47,8 +47,8 @@ local `device_orders.id`. The order channel is always `orders.{order_id}`.
 | `broadcastAs` | Producer event class | Channel(s) | Tablet | Admin UI | Print-bridge | Payload |
 |---|---|---|---|---|---|---|
 | `order.created` | `Order/OrderCreated` | admin.orders, orders.{order_id}, device.{id} | ✅ orders.{order_id} | ✅ | ✅ admin.orders | `OrderBroadcastPayload` |
-| `order.updated` | `Order/OrderStatusUpdated` | device.{id}, admin.orders | ✅ device.{id} | ✅ | ✅ admin.orders | `{order: OrderBroadcastPayload}` |
-| `order.details.updated` | `Order/OrderDetailsUpdated` **(new — see below)** | orders.{order_id}, admin.orders | ⏳ DEP-004 | ⏳ planned | — | `{order: OrderBroadcastPayload}` |
+| `order.updated` | `Order/OrderStatusUpdated` | device.{id}, orders.{order_id}, admin.orders | ✅ device.{id} | ✅ | ✅ admin.orders | `{order: OrderBroadcastPayload}` |
+| `order.details.updated` | `Order/OrderDetailsUpdated` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ⏳ planned | — | `{order: OrderBroadcastPayload}` |
 | `order.completed` | `Order/OrderCompleted` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | `OrderBroadcastPayload` |
 | `order.voided` | `Order/OrderVoided` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | `OrderBroadcastPayload` |
 | `order.cancelled` | `Order/OrderCancelled` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | minimal order |
@@ -77,7 +77,7 @@ order/session, mutex-guarded, idempotent via `SessionEnd.startTransition`) → r
 
 ---
 
-## New event — `order.details.updated` (POS→device live sync)
+## Event — `order.details.updated` (POS→device live sync)
 
 Dispatched when the POS edits an existing order's details under `krypton_woosoo.orders.id`
 (guest_count, totals, items; incl. `order_checks`). See `docs/cases/nex-case-013-*` (producer) and
@@ -90,17 +90,19 @@ Dispatched when the POS edits an existing order's details under `krypton_woosoo.
 
 ---
 
-## Target architecture (broadcast layer — adopt via NEX-CASE-013)
+## Broadcast architecture (shipped via NEX-CASE-013)
 
-> **Status: PLANNED, not yet implemented.** This section is the intended end state to be built in
-> **NEX-CASE-013 Phase 1** (`OrderBroadcaster.php`, `BroadcastEvent.php` enum, shared `events.ts`/
-> `events.dart` constants do not exist yet). The current implementation still dispatches ad hoc from
-> multiple sites; the present-tense wording below describes the target, not current code.
+> **Status: IN PROGRESS — infrastructure exists, dispatch-site migration pending.**
+> `OrderBroadcaster.php` and `BroadcastEvent.php` exist in `app/Broadcasting/`. The 5 legacy
+> dispatch sites (`ConsumePosPaymentStatusEvents`, `ForceEndSession`, `MonitoringController`,
+> `OrderController`, etc.) have **NOT** been migrated to route through `OrderBroadcaster` — that is
+> a tracked non-blocking follow-up from NEX-CASE-013. Until migration is complete, the "single
+> boundary" below describes the **target**, not the current enforced state. Shared consumer
+> constants (`events.ts` / `events.dart`) also remain a future hardening item.
 
-To keep events accurate and easy to change as consumers grow (Kitchen Display System next), all
-order broadcasts route through **one boundary** instead of being dispatched ad hoc from multiple
-sites (today: `ConsumePosPaymentStatusEvents`, `ForceEndSession`, `MonitoringController`,
-`OrderController` each dispatch independently).
+To keep events accurate and easy to change as consumers grow (Kitchen Display System next), the
+**target** is that all order broadcasts route through **one boundary** instead of being dispatched
+from multiple sites.
 
 1. **Single broadcaster** — `app/Broadcasting/OrderBroadcaster.php` with intent methods
    (`created`, `statusChanged`, `detailsUpdated`, `finalized`, `printRequested`). It is the ONLY

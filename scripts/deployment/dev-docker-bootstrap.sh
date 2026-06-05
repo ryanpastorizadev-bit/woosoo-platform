@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Woosoo Dev Docker Bootstrap  (Windows / Docker Desktop / WSL — NOT for Pi)
+# Woosoo Dev Docker Bootstrap  (Windows WSL2 Docker Engine — NOT for Pi)
 # =============================================================================
 # Local-dev counterpart to apply-woosoo-config.sh. Writes a fresh
 # woosoo-nexus/.env (and optional tablet-ordering-pwa/.env) suitable for
-# running the platform stack on Docker Desktop. Skips Pi-only setup:
+# running the platform stack with Docker Engine in WSL2. Skips Pi-only setup:
 # NetworkManager static IP, dnsmasq, systemd-resolved, apt packages, /etc/hosts.
 #
 # Usage (from platform repo root):
@@ -65,7 +65,7 @@ DEV_DEVICE_AUTH_PASSCODE="${DEV_DEVICE_AUTH_PASSCODE:-123456}"
 #    instead — that is the canonical production path per AGENTS.md.
 if [[ -f /etc/woosoo/woosoo.env ]]; then
   echo "ERROR: /etc/woosoo/woosoo.env is present — this looks like the production Pi." >&2
-  echo "       dev-docker-bootstrap.sh is for Windows / Docker Desktop / WSL only." >&2
+  echo "       dev-docker-bootstrap.sh is for Windows WSL2 Docker Engine only." >&2
   echo "       On the Pi, use: sudo bash scripts/deployment/apply-woosoo-config.sh" >&2
   exit 1
 fi

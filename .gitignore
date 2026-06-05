@@ -65,6 +65,9 @@ Thumbs.db
 # --- Machine-local Claude Code settings (not shared) ---
 .claude/settings.local.json
 
+# --- Machine-local Codex runtime config (sandbox_mode etc.; not shared) ---
+.codex/config.toml
+
 # --- Editor-local Windsurf workspace (not a supported runner; do not commit) ---
 /.windsurf/
 
