@@ -75,6 +75,11 @@ host-provided; only `generate-dev-certs.sh` + `README.md` are tracked.
 
 `scripts/deployment/` (run from platform root):
 
+- `setup-woosoo-env.sh` — interactive first-time setup wizard for
+  `/etc/woosoo/woosoo.env`. Auto-detects paths and network; prompts for
+  credentials; runs `doctor.sh` at the end to verify.
+- `deploy-all.sh` — safe full-deploy wrapper: doctor → backup → deploy → health.
+  **Use this** instead of calling deploy.sh directly.
 - `deploy.sh` — pulls each app repo in place (`WOOSOO_NEXUS_BRANCH`,
   `WOOSOO_TABLET_BRANCH`), runs `apply-woosoo-config.sh`, builds, starts,
   warms caches. **Migrated; syntax-checked; Pi runtime verification PENDING.**
@@ -84,9 +89,20 @@ host-provided; only `generate-dev-certs.sh` + `README.md` are tracked.
 - The other 7 scripts are copied but **not yet platform-migrated** — see
   `scripts/deployment/README.md` for per-script status.
 
-Config contract: `/etc/woosoo/woosoo.env` (root-owned, mode 0600). Template:
-`docs/deployment/examples/woosoo.env.example` (now includes
-`WOOSOO_PLATFORM_PATH`, `WOOSOO_NEXUS_BRANCH`, `WOOSOO_TABLET_BRANCH`).
+Config contract: `/etc/woosoo/woosoo.env` (root-owned, mode 0640).
+
+**First-time setup** — run the interactive setup wizard (auto-detects paths and
+network, prompts only for credentials):
+
+```bash
+sudo bash scripts/deployment/setup-woosoo-env.sh
+```
+
+Re-runnable: loads existing values as defaults. After setup, run
+`sudo bash scripts/deployment/doctor.sh` to verify, then
+`sudo bash scripts/deployment/deploy-all.sh` to deploy.
+
+Manual template (if you prefer hand-editing): `docs/deployment/examples/woosoo.env.example`.
 
 ## Verification status
 
