@@ -266,15 +266,23 @@ woosoo_ensure_lan_access() {
         return 1
       fi
       if [[ "$dry" == "1" ]]; then
-        _hn_info "DRY-RUN: would run setup-wsl-lan-access.ps1 (requires Admin)"
+        _hn_info "DRY-RUN: would run invoke-elevated.ps1 → setup-wsl-lan-access.ps1 (UAC may prompt)"
         return 0
       fi
-      local win_ps1
+      local wrapper win_ps1 win_wrapper
+      wrapper="$_HOST_NETWORK_ROOT/scripts/windows/invoke-elevated.ps1"
+      if [[ ! -f "$wrapper" ]]; then
+        _hn_warn "invoke-elevated.ps1 missing at $wrapper"
+        return 1
+      fi
       win_ps1="$(wslpath -w "$ps1")"
-      _hn_info "Delegating LAN bridge to setup-wsl-lan-access.ps1 (Admin required)..."
-      if ! powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$win_ps1"; then
-        _hn_warn "setup-wsl-lan-access.ps1 failed — run elevated PowerShell:"
-        printf '       powershell -ExecutionPolicy Bypass -File "%s"\n' "$ps1" >&2
+      win_wrapper="$(wslpath -w "$wrapper")"
+      _hn_info "Windows UAC prompt may appear for portproxy setup..."
+      _hn_info "Delegating LAN bridge to setup-wsl-lan-access.ps1 via invoke-elevated.ps1..."
+      if ! powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$win_wrapper" -TargetScript "$win_ps1"; then
+        _hn_warn "Portproxy setup failed (UAC declined or script error)"
+        printf '       Approve the Windows UAC prompt, or run elevated PowerShell:\n' >&2
+        printf '       powershell -ExecutionPolicy Bypass -File "%s"\n' "$win_ps1" >&2
         return 1
       fi
       return 0

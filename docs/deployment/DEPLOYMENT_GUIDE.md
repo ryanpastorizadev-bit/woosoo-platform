@@ -238,7 +238,8 @@ WOOSOO_AUTO_SYNC=1 woosoo dev                    # opt-in silent PUBLIC_HOST syn
 **CA bootstrap:** `http://<PUBLIC_HOST>/woosoo-ca.crt`
 
 Do **not** call `scripts/windows/setup-wsl-lan-access.ps1` directly — `woosoo network`
-delegates to it (requires elevated PowerShell).
+delegates to it via `invoke-elevated.ps1`. The first run from WSL may show a **Windows
+UAC prompt**; approve once to create portproxy rules.
 
 **Equivalent manual commands** (if you prefer not to use the pipeline):
 ```bash

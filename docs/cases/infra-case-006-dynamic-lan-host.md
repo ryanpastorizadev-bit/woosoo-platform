@@ -69,6 +69,17 @@ without auto-writing `.env`.
 
 8. **`DEPLOYMENT_GUIDE.md` §4.1.1** — operator workflow
 
+### Follow-up: WSL portproxy self-elevation (2026-06-06)
+
+Operator smoke showed `woosoo network` failed because `powershell.exe` from WSL is
+non-elevated and `#Requires -RunAsAdministrator` blocked `setup-wsl-lan-access.ps1`.
+
+9. **`scripts/windows/invoke-elevated.ps1`** — UAC `RunAs -Wait` wrapper; runs target
+   `.ps1` elevated without requiring a separate Admin PowerShell session
+10. **`host-network.sh` WSL branch** — delegates via `invoke-elevated.ps1`; fixed failure
+    hint to print Windows path (`win_ps1`); UAC info log before invoke
+11. **`DEPLOYMENT_GUIDE.md` §4.1.1** — note first-run UAC prompt
+
 ## Files Changed
 
 - `scripts/lib/host-network.sh` (new)
@@ -81,6 +92,7 @@ without auto-writing `.env`.
 - `docker/nginx/default.conf`
 - `docs/deployment/DEPLOYMENT_GUIDE.md`
 - `docs/cases/infra-case-006-dynamic-lan-host.md` (this file)
+- `scripts/windows/invoke-elevated.ps1` (new — UAC wrapper)
 
 ## Verification
 
@@ -94,8 +106,15 @@ Operator smoke (WSL):
 
 ```bash
 woosoo network --dry-run
-woosoo network
+woosoo network          # approve Windows UAC when prompted
 curl -ksf "https://$(grep ^PUBLIC_HOST woosoo-nexus/.env | cut -d= -f2 | tr -d '\"'):4443/build-info.json"
+```
+
+Windows confirm after UAC approval:
+
+```powershell
+netsh interface portproxy show v4tov4
+curl.exe -ksf https://192.168.100.7:4443/build-info.json
 ```
 
 ## Contract impact
