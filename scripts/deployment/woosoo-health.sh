@@ -132,6 +132,11 @@ else
   pass "config file exists"
 fi
 
+# Validate the config before this root process sources it.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
+
 if [[ -r "$CONFIG_FILE" ]]; then
   set -a
   # shellcheck source=/dev/null

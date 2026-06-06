@@ -75,6 +75,11 @@ if [[ ! -f "$CONFIG_SCRIPT" ]]; then
   exit 1
 fi
 
+# Validate the config before this root process (and the steps it runs) source it.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
+
 cd "$PLATFORM_ROOT"
 
 echo "========================================"

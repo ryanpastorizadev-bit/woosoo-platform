@@ -18,25 +18,18 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-if [[ ! -f "$CONFIG_FILE" || -L "$CONFIG_FILE" ]]; then
-  echo "Missing regular config file: $CONFIG_FILE"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "Missing config file: $CONFIG_FILE"
   echo "Run: bash scripts/deployment/init-woosoo-env.sh"
   exit 1
 fi
 
-# Only enforce root ownership for the system-path config; ./woosoo.env is user-owned.
-if [[ "$CONFIG_FILE" == /etc/woosoo/* ]]; then
-  config_uid="$(stat -c '%u' "$CONFIG_FILE")"
-  config_mode="$(stat -c '%a' "$CONFIG_FILE")"
-  if [[ "$config_uid" != "0" ]]; then
-    echo "ERROR: $CONFIG_FILE must be owned by root (UID 0)." >&2
-    exit 1
-  fi
-  if (( (8#$config_mode & 0022) != 0 )); then
-    echo "ERROR: $CONFIG_FILE must not be writable by group or other users." >&2
-    exit 1
-  fi
-fi
+# Validate the config before this root process sources it. The symlink /
+# ownership / group-other-writable checks now apply to BOTH ./woosoo.env and
+# /etc/woosoo/* — a root `source` of a user-writable file is a code-exec risk.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 set -a
 # shellcheck source=/dev/null

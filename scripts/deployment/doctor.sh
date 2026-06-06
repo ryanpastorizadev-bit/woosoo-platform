@@ -24,6 +24,12 @@ if [[ -z "${CONFIG_FILE:-}" ]]; then
     CONFIG_FILE="/etc/woosoo/woosoo.env"
   fi
 fi
+
+# Validate the config before sourcing it (doctor runs under sudo via deploy/deploy-all).
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
+
 PASS=0
 WARN=0
 FAIL=0
