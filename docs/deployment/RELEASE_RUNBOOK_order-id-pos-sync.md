@@ -32,7 +32,9 @@ echo "Deploy branch: $WOOSOO_DEPLOY_BRANCH"   # verify before proceeding
 sudo -E bash scripts/deployment/deploy-all.sh
 ```
 `-E` passes the exported variable into the sudo environment.
-Runs doctor → backup → deploy (pull repos, apply config, build + `up`, warm cache) → health.
+Runs check → doctor → backup → deploy (pull repos, hydrate deps, build fresh, migrate, `up`, warm
+cache) → health. The health step has grace + retry; on any failure the wrapper prints a diagnosis
+bundle (`docker compose ps` + recent logs) plus the exact rollback command.
 **Verify:** the wrapper exits `0` and `woosoo-health.sh` reports the stack healthy.
 **Rollback if it fails:** `sudo bash scripts/deployment/rollback-client.sh <backup-dir>` (the wrapper prints the exact snapshot path on failure).
 

@@ -163,7 +163,11 @@ safe_backup_file() {
   local file="$1"
   if [[ -f "$file" ]]; then
     mkdir -p "$WOOSOO_BACKUP_DIR/config"
-    cp "$file" "$WOOSOO_BACKUP_DIR/config/$(basename "$file").$(date +%F_%H%M%S).bak"
+    # The config backup dir holds secret-bearing files (.env). Keep it owner-only.
+    chmod 700 "$WOOSOO_BACKUP_DIR/config"
+    local dest="$WOOSOO_BACKUP_DIR/config/$(basename "$file").$(date +%F_%H%M%S).bak"
+    cp "$file" "$dest"
+    chmod 600 "$dest"
   fi
 }
 
@@ -484,6 +488,10 @@ if ! grep -qE '^APP_KEY="?base64:.+' .env; then
     exit 1
   fi
 fi
+
+# Lock down the secret-bearing Laravel .env (DB password, DB root password,
+# APP_KEY, Reverb secret, POS password, device passcode). cwd is WOOSOO_NEXUS_PATH.
+chmod 600 .env
 
 CERT_DIR="$WOOSOO_PLATFORM_PATH/docker/certs"
 mkdir -p "$CERT_DIR"
