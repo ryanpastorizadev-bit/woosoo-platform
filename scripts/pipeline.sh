@@ -138,7 +138,29 @@ _dev_build() {
 }
 
 _dev_start_migrate() {
-  $DC up -d --remove-orphans
+  # Start the stack. Reverb can be slow on first boot — if it's the only
+  # unhealthy service, restart it once and give it another 60s.
+  $DC up -d --remove-orphans || {
+    local rc=$?
+    # Check if only reverb is unhealthy (common on dev first run)
+    local unhealthy; unhealthy="$($DC ps --format '{{.Service}}\t{{.Status}}' 2>/dev/null \
+      | grep -v "healthy" | grep -v "running" | awk '{print $1}' | tr '\n' ' ' || true)"
+    if [[ "$unhealthy" == "reverb " || "$unhealthy" == " reverb" ]]; then
+      echo "  Reverb unhealthy on first start — restarting once..."
+      $DC restart reverb
+      local waited=0
+      while (( waited < 60 )); do
+        sleep 5; waited=$(( waited + 5 ))
+        if $DC ps reverb 2>/dev/null | grep -qiE "(healthy|running)"; then
+          echo "  Reverb recovered after ${waited}s"
+          break
+        fi
+        echo "  Waiting for Reverb... (${waited}s)"
+      done
+    else
+      return $rc
+    fi
+  }
   # Generate APP_KEY if missing (first run)
   if ! grep -qE '^APP_KEY=base64:' "$_env_file" 2>/dev/null; then
     echo "  APP_KEY missing — generating..."
