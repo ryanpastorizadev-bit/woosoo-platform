@@ -34,9 +34,19 @@ NEXUS_DIR="$PLATFORM_ROOT/woosoo-nexus"
 TABLET_DIR="$PLATFORM_ROOT/tablet-ordering-pwa"
 
 # Dev-mode defaults. Override by setting these env vars before invocation.
-DEV_PUBLIC_HOST="${DEV_PUBLIC_HOST:-192.168.100.7}"     # this PC (also home POS)
+# shellcheck source=scripts/lib/host-network.sh
+source "$PLATFORM_ROOT/scripts/lib/host-network.sh"
+_detected_lan_ip="$(woosoo_detect_lan_ip 2>/dev/null || true)"
+_detected_lan_ip="${_detected_lan_ip//$'\r'/}"
+_detected_lan_ip="${_detected_lan_ip//$'\n'/}"
+if [[ -z "${DEV_PUBLIC_HOST:-}" && -z "${WOOSOO_PUBLIC_HOST:-}" && -z "$_detected_lan_ip" ]]; then
+  echo "ERROR: Could not detect LAN IP for PUBLIC_HOST." >&2
+  echo "       Set DEV_PUBLIC_HOST or WOOSOO_PUBLIC_HOST before running bootstrap." >&2
+  exit 1
+fi
+DEV_PUBLIC_HOST="${DEV_PUBLIC_HOST:-${WOOSOO_PUBLIC_HOST:-$_detected_lan_ip}}"
 DEV_PUBLIC_SCHEME="${DEV_PUBLIC_SCHEME:-https}"
-DEV_SERVER_IP="${DEV_SERVER_IP:-192.168.100.7}"
+DEV_SERVER_IP="${DEV_SERVER_IP:-$DEV_PUBLIC_HOST}"
 DEV_TIMEZONE="${DEV_TIMEZONE:-Asia/Manila}"
 
 # POS DB connection (krypton_woosoo on the same dev PC).

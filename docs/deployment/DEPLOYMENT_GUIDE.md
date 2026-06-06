@@ -210,6 +210,36 @@ woosoo health                     # health check only
 woosoo logs                       # tail logs
 ```
 
+### 4.1.1 LAN access and `PUBLIC_HOST` (WSL2)
+
+On WSL2, Docker binds ports inside the WSL VM. `localhost` works from Windows and WSL;
+the physical LAN IP (`PUBLIC_HOST`) requires a Windows portproxy bridge.
+
+| Mode | Command | What it does |
+| ---- | ------- | ------------ |
+| Passive (default) | `woosoo dev` | Detects LAN IP; **WARNs** if it drifts from `PUBLIC_HOST` — no `.env` writes |
+| Active | `woosoo network` | Detect → sync `PUBLIC_HOST` → portproxy bridge → verify |
+| TLS regen (opt-in) | `woosoo network --regen-certs` | Above + regenerate dev certs + restart nginx |
+| Preview | `woosoo network --dry-run` | Show what would change; no writes |
+
+**When to run `woosoo network`:**
+- After `wsl --shutdown` (WSL VM IP changes → stale portproxy)
+- After moving the laptop to a new network
+- When `woosoo dev` preflight WARNs about `PUBLIC_HOST` drift
+- Before testing from a LAN tablet
+
+**Overrides:**
+```bash
+WOOSOO_PUBLIC_HOST=192.168.1.55 woosoo network   # skip auto-detection
+WOOSOO_AUTO_SYNC=1 woosoo dev                    # opt-in silent PUBLIC_HOST sync (no portproxy)
+```
+
+**Tablet URL:** `https://<PUBLIC_HOST>:4443`  
+**CA bootstrap:** `http://<PUBLIC_HOST>/woosoo-ca.crt`
+
+Do **not** call `scripts/windows/setup-wsl-lan-access.ps1` directly — `woosoo network`
+delegates to it (requires elevated PowerShell).
+
 **Equivalent manual commands** (if you prefer not to use the pipeline):
 ```bash
 # Bootstrap .env

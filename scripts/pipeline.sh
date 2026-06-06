@@ -12,6 +12,7 @@
 #   staging   Staging-parity on WSL/dev host (requires woosoo.env; uses WOOSOO_ALLOW_NON_PI)
 #   pi        Production Pi deploy (requires root + woosoo.env)
 #   health    Inline dev health check (services + HTTP endpoints)
+#   network   Sync PUBLIC_HOST + ensure LAN bridge + verify (WSL portproxy)
 #   logs      Tail all service logs
 #   check     Preflight check (scripts/deployment/check.sh)
 #
@@ -38,12 +39,14 @@ NO_PULL=0
 NO_BUILD=0
 FROM_STEP=1
 DRY_RUN=0
+REGEN_CERTS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --no-pull)     NO_PULL=1 ;;
-    --no-build)    NO_BUILD=1 ;;
-    --dry-run)     DRY_RUN=1 ;;
+    --no-pull)       NO_PULL=1 ;;
+    --no-build)      NO_BUILD=1 ;;
+    --dry-run)       DRY_RUN=1 ;;
+    --regen-certs)   REGEN_CERTS=1 ;;
     --from-step)   FROM_STEP="${2:?--from-step requires a step number}"; shift ;;
     --from-step=*) FROM_STEP="${1#*=}" ;;
     -h|--help)     TARGET="help" ;;
@@ -188,12 +191,13 @@ _dev_health() {
     return 0
   fi
 
-  # Read host/scheme from .env
-  local host scheme
-  host="$(grep -E '^PUBLIC_HOST=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || echo '192.168.100.7')"
+  # Read host/scheme from .env — localhost fallback when PUBLIC_HOST unset
+  local pub_host scheme localhost_host
+  pub_host="$(grep -E '^PUBLIC_HOST=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
   scheme="$(grep -E '^PUBLIC_SCHEME=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || echo 'https')"
-  host="${host:-192.168.100.7}"
+  pub_host="${pub_host:-}"
   scheme="${scheme:-https}"
+  localhost_host="localhost"
 
   local health_fail=0
 
@@ -209,21 +213,44 @@ _dev_health() {
     fi
   done
 
-  # Admin HTTP
-  if curl -ksf --max-time 10 "${scheme}://${host}/" -o /dev/null 2>/dev/null; then
-    echo -e "  ${_C_GREEN}✓${_C_RESET}  ${scheme}://${host}/"
+  # Baseline: localhost (always reachable from WSL when stack is up)
+  if curl -ksf --max-time 10 "${scheme}://${localhost_host}/" -o /dev/null 2>/dev/null; then
+    echo -e "  ${_C_GREEN}✓${_C_RESET}  ${scheme}://${localhost_host}/"
   else
-    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  ${scheme}://${host}/ — not reachable (may still be starting)"
+    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  ${scheme}://${localhost_host}/ — not reachable (may still be starting)"
     _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
   fi
 
-  # Tablet build-info
-  local sha; sha="$(curl -ksf --max-time 5 "${scheme}://${host}:4443/build-info.json" 2>/dev/null \
+  local sha_local
+  sha_local="$(curl -ksf --max-time 5 "${scheme}://${localhost_host}:4443/build-info.json" 2>/dev/null \
     | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 || echo '')"
-  if [[ -n "$sha" ]]; then
-    echo -e "  ${_C_GREEN}✓${_C_RESET}  tablet build-info.json → sha: ${sha:0:7}"
+  if [[ -n "$sha_local" ]]; then
+    echo -e "  ${_C_GREEN}✓${_C_RESET}  ${localhost_host}:4443 build-info.json → sha: ${sha_local:0:7}"
   else
-    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  build-info.json — not reachable (tablet may still be starting)"
+    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  ${localhost_host}:4443 build-info.json — not reachable"
+    _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+  fi
+
+  # LAN probe when PUBLIC_HOST is set
+  if [[ -n "$pub_host" && "$pub_host" != "$localhost_host" && "$pub_host" != "127.0.0.1" ]]; then
+    if curl -ksf --max-time 10 "${scheme}://${pub_host}/" -o /dev/null 2>/dev/null; then
+      echo -e "  ${_C_GREEN}✓${_C_RESET}  ${scheme}://${pub_host}/ (LAN)"
+    else
+      echo -e "  ${_C_YELLOW}⚠${_C_RESET}  ${scheme}://${pub_host}/ — LAN not reachable. Run: woosoo network"
+      _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+    fi
+
+    local sha_lan
+    sha_lan="$(curl -ksf --max-time 5 "${scheme}://${pub_host}:4443/build-info.json" 2>/dev/null \
+      | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 || echo '')"
+    if [[ -n "$sha_lan" ]]; then
+      echo -e "  ${_C_GREEN}✓${_C_RESET}  ${pub_host}:4443 build-info.json (LAN) → sha: ${sha_lan:0:7}"
+    else
+      echo -e "  ${_C_YELLOW}⚠${_C_RESET}  ${pub_host}:4443 build-info.json — LAN not reachable. Run: woosoo network"
+      _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+    fi
+  elif [[ -z "$pub_host" ]]; then
+    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  PUBLIC_HOST unset — using localhost only. Run: woosoo network"
     _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
   fi
 
@@ -250,8 +277,13 @@ target_help() {
     staging   Staging-parity (requires woosoo.env; uses WOOSOO_ALLOW_NON_PI)
     pi        Production Pi deploy (requires root + woosoo.env)
     health    Dev health check
+    network   Sync PUBLIC_HOST + LAN bridge + verify
     logs      Tail all service logs
     check     Preflight + env alignment check (auto-fixes config drift)
+
+  Network flags:
+    --dry-run       Preview changes without writes
+    --regen-certs   Regenerate dev TLS certs for PUBLIC_HOST + restart nginx
 
   Dev flags:
     --no-pull        Skip git pull
@@ -264,9 +296,78 @@ target_help() {
     woosoo dev --no-pull --no-build
     woosoo dev --from-step 4
     woosoo health
+    woosoo network
+    woosoo network --regen-certs
     woosoo logs
 
 EOF
+}
+
+target_network() {
+  cd "$PLATFORM_ROOT"
+  pipeline_banner "network"
+
+  # shellcheck source=scripts/lib/host-network.sh
+  source "$LIB_DIR/host-network.sh"
+  export HOST_NETWORK_DRY_RUN="${DRY_RUN:-0}"
+  export HOST_NETWORK_PLATFORM_ROOT="$PLATFORM_ROOT"
+
+  local detected runtime net_fail=0
+  runtime="$(woosoo_detect_runtime)"
+  detected="$(woosoo_detect_lan_ip 2>/dev/null || true)"
+  detected="${detected//$'\r'/}"
+  detected="${detected//$'\n'/}"
+
+  echo
+  echo -e "  Runtime     : ${runtime}"
+  echo -e "  Detected IP : ${detected:-<none>}"
+  echo
+
+  woosoo_check_public_host_drift
+  woosoo_check_tls_san
+
+  if ! woosoo_sync_public_host "$detected"; then
+    net_fail=1
+  fi
+
+  if ! woosoo_ensure_lan_access; then
+    _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+  fi
+
+  if [[ "${REGEN_CERTS:-0}" == "1" ]]; then
+    echo
+    echo -e "${_C_CYAN}Regenerating TLS certs...${_C_RESET}"
+    if woosoo_regen_dev_certs; then
+      if [[ "${DRY_RUN:-0}" != "1" ]]; then
+        $DC restart nginx 2>/dev/null || docker compose --env-file "$_env_file" -f "$PLATFORM_ROOT/compose.yaml" restart nginx
+      fi
+    else
+      net_fail=1
+    fi
+  fi
+
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    echo
+    echo -e "${_C_CYAN}Aligning derived Reverb/CORS vars...${_C_RESET}"
+    bash "$SCRIPT_DIR/deployment/dev-preflight.sh"
+  fi
+
+  if ! woosoo_verify_lan_reachability; then
+    _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+  fi
+
+  if [[ -f "$_env_file" ]]; then
+    local final_host
+    final_host="$(grep -E '^PUBLIC_HOST=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+    if [[ -n "$final_host" ]]; then
+      echo
+      echo -e "${_C_GREEN}Tablet URL:${_C_RESET} https://${final_host}:4443"
+      echo -e "${_C_GREEN}Admin URL:${_C_RESET}  https://${final_host}/"
+    fi
+  fi
+
+  pipeline_summary
+  (( net_fail == 0 ))
 }
 
 target_dev() {
@@ -429,6 +530,7 @@ case "$TARGET" in
   staging) target_staging ;;
   pi)      target_pi ;;
   health)  target_health ;;
+  network) target_network ;;
   logs)    target_logs ;;
   check)   target_check ;;
   help|-h|--help) target_help ;;

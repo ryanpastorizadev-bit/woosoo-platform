@@ -26,6 +26,8 @@
 #   [CHECK]    Secrets are non-placeholder
 #   [CHECK]    Ports 80/443/4443/8080/3306/6379 not conflicted by external processes
 #   [CHECK]    vendor/autoload.php present (bind-mount target)
+#   [WARN]     PUBLIC_HOST drift vs detected LAN IP (no auto-write unless WOOSOO_AUTO_SYNC=1)
+#   [WARN]     TLS cert SAN mismatch vs PUBLIC_HOST
 # =============================================================================
 set -uo pipefail
 
@@ -132,6 +134,32 @@ if [[ ! -f "$NEXUS_ENV" ]]; then
   exit 1
 fi
 _pass "nexus .env present"
+
+# =============================================================================
+# 1b. Host network (PUBLIC_HOST drift + TLS SAN — warn only)
+# =============================================================================
+_sec "Host network (PUBLIC_HOST)"
+
+# shellcheck source=scripts/lib/host-network.sh
+source "$PLATFORM_ROOT/scripts/lib/host-network.sh"
+export HOST_NETWORK_DRY_RUN="$DRY_RUN"
+export HOST_NETWORK_PLATFORM_ROOT="$PLATFORM_ROOT"
+export HOST_NETWORK_NEXUS_ENV="$NEXUS_ENV"
+
+woosoo_check_public_host_drift
+woosoo_check_tls_san
+
+if [[ "${WOOSOO_AUTO_SYNC:-0}" == "1" ]]; then
+  if (( DRY_RUN )); then
+    _skip "WOOSOO_AUTO_SYNC=1 would sync PUBLIC_HOST to detected LAN IP"
+  else
+    if woosoo_sync_public_host; then
+      _fix "WOOSOO_AUTO_SYNC=1: synced PUBLIC_HOST to detected LAN IP"
+    else
+      _warn "WOOSOO_AUTO_SYNC=1: sync failed — run: woosoo network"
+    fi
+  fi
+fi
 
 # =============================================================================
 # 2. APP_KEY
