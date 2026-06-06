@@ -64,7 +64,7 @@ not part of the Docker deploy. Changes — all edits to existing scripts/docs,
 ## Handoff
 - Phase in progress: COMPLETE (Executioner APPROVED)
 - Done so far: all changes implemented (see Implementation) + review blockers fixed
-- Exact next action: operator review → commit on `agent/infra-004-deploy-hardening` → merge to `dev`
+- Exact next action: review + merge PR #45 (→ `dev`); then Pi runtime checks (Bucket B)
 - Working-tree state: edits applied to deploy.sh, deploy-all.sh, apply-woosoo-config.sh,
   dev-docker-bootstrap.sh, check.sh, docs, QUEUE.md (uncommitted)
 - Risks / do-not-redo: do NOT re-create setup-woosoo-env.sh; do NOT add a new parallel deploy
