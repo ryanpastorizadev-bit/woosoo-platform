@@ -31,7 +31,7 @@ next_action:  Platform: merge PR #36 (dev→staging) once review threads resolve
 last_agent:   claude-code — 2026-06-03 — fixed runbook branch risk, contract drift, WORK.md stale gates.
 ```
 
-## Reconciliation Findings (2026-05-30)
+## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->
 
 ```text
 DRIFT FOUND between agent-OS tracking and GitHub Issues:

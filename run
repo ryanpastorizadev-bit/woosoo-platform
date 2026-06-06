@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Woosoo local pipeline runner — root entry point.
+# Usage: ./run <target> [flags]   OR   woosoo <target> [flags]  (after: bash scripts/install.sh)
+# Resolve symlinks (e.g. /usr/local/bin/woosoo -> .../run) so paths stay under the platform root.
+_resolve_platform_root() {
+  local src="${BASH_SOURCE[0]}"
+  while [[ -L "$src" ]]; do
+    local dir target
+    dir="$(cd "$(dirname "$src")" && pwd)"
+    target="$(readlink "$src")"
+    [[ "$target" == /* ]] && src="$target" || src="$dir/$target"
+  done
+  cd "$(dirname "$src")" && pwd
+}
+PLATFORM_ROOT="$(_resolve_platform_root)"
+exec bash "$PLATFORM_ROOT/scripts/pipeline.sh" "$@"

@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -29,3 +29,16 @@ scope: ecosystem
 - The tablet flow must not continue after a critical API failure — it must surface a friendly
   message and stop, not fabricate success.
 - No hardcoded LAN IPs or API/Reverb hosts in tablet code.
+
+## Backend enforcement gap (NEX-CASE-015, queued)
+
+`StoreDeviceOrderRequest` currently accepts client-submitted `totals`, `prices`, `discounts`,
+`ordered_menu_id`, and modifier fields without rejecting them. The initial-order path
+recalculates these server-side, so client values are effectively ignored in practice — but
+passive acceptance is not sufficient. The contract requirement is that the backend explicitly
+**reject or strip** any field outside the intent-only payload above, making enforcement a code
+property rather than a runtime coincidence.
+
+This is tracked under **NEX-CASE-015**. Until that case is complete, agents must not assume
+backend enforcement exists — validate intent-only behaviour against live `StoreDeviceOrderRequest`
+rules, not this contract.

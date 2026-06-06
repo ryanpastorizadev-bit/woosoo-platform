@@ -191,14 +191,66 @@ cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
 
-# 2. Generate a dev-mode woosoo-nexus/.env (no system mutations)
+# 2. Install the woosoo CLI command (once — creates /usr/local/bin/woosoo)
+bash scripts/install.sh
+
+# 3. Run the full dev pipeline (bootstrap + build + up + migrate + warm + health)
+woosoo dev
+```
+
+`woosoo dev` handles everything: writes `woosoo-nexus/.env` (if needed), builds images,
+starts the stack, migrates, warms caches, and prints a health summary. First build takes
+~10 minutes; subsequent runs with `--no-pull --no-build` complete in under 30 seconds.
+
+**Fast iteration after the first build:**
+```bash
+woosoo dev --no-pull --no-build   # skip pull + build (source changes only)
+woosoo dev --from-step 4          # resume from a specific step
+woosoo health                     # health check only
+woosoo logs                       # tail logs
+```
+
+### 4.1.1 LAN access and `PUBLIC_HOST` (WSL2)
+
+On WSL2, Docker binds ports inside the WSL VM. `localhost` works from Windows and WSL;
+the physical LAN IP (`PUBLIC_HOST`) requires a Windows portproxy bridge.
+
+| Mode | Command | What it does |
+| ---- | ------- | ------------ |
+| Passive (default) | `woosoo dev` | Detects LAN IP; **WARNs** if it drifts from `PUBLIC_HOST` — no `.env` writes |
+| Active | `woosoo network` | Detect → sync `PUBLIC_HOST` → portproxy bridge → verify |
+| TLS regen (opt-in) | `woosoo network --regen-certs` | Above + regenerate dev certs + restart nginx |
+| Preview | `woosoo network --dry-run` | Show what would change; no writes |
+
+**When to run `woosoo network`:**
+- After `wsl --shutdown` (WSL VM IP changes → stale portproxy)
+- After moving the laptop to a new network
+- When `woosoo dev` preflight WARNs about `PUBLIC_HOST` drift
+- Before testing from a LAN tablet
+
+**Overrides:**
+```bash
+WOOSOO_PUBLIC_HOST=192.168.1.55 woosoo network   # skip auto-detection
+WOOSOO_AUTO_SYNC=1 woosoo dev                    # opt-in silent PUBLIC_HOST sync (no portproxy)
+```
+
+**Tablet URL:** `https://<PUBLIC_HOST>:4443`  
+**CA bootstrap:** `http://<PUBLIC_HOST>/woosoo-ca.crt`
+
+Do **not** call `scripts/windows/setup-wsl-lan-access.ps1` directly — `woosoo network`
+delegates to it via `invoke-elevated.ps1`. The first run from WSL may show a **Windows
+UAC prompt**; approve once to create portproxy rules.
+
+**Equivalent manual commands** (if you prefer not to use the pipeline):
+```bash
+# Bootstrap .env
 bash scripts/deployment/dev-docker-bootstrap.sh
 
-# 3. Build and start the stack
+# Build + start
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml build
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d
 
-# 4. Generate APP_KEY (first run only) and migrate
+# First-run key + migrate
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   exec -T app php artisan key:generate --force
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \

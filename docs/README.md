@@ -20,6 +20,7 @@ The Lite 4-agent operating system (Contrarian → Specialist → Verifier → Ex
 in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 
 - [USAGE_GUIDE.md](USAGE_GUIDE.md) — **operator runbook**: how to drive the system, common-scenario protocol index, and the anti-degradation loop
+- [CONTEXT7_GUIDE.md](CONTEXT7_GUIDE.md) — **Cursor Context7 plugin**: fetch up-to-date library docs (Nuxt, Laravel, Flutter, etc.)
 - [AGENT_USAGE_GUIDE.md](AGENT_USAGE_GUIDE.md) — **technical reference**: 4-agent chain detail, skill routing, evidence standards, and hook trigger map
 - Claude subagents: `.claude/agents/*.md` — agent definitions (single source of truth)
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
@@ -72,7 +73,7 @@ claim against live source and contracts before relying on those older audit file
 ## Per-app documentation indexes
 
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
-- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation *(pending merge to Nexus dev; files exist locally on the nexus ui-handoff branch)*
+- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 

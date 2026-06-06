@@ -61,6 +61,28 @@ the source of truth for identity, so every POS-sourced id is canonical — `orde
   `device_orders.id` as the order reference. See `contracts/websocket-events.contract.md`.
 - Payloads may include the local `id` for debugging, but `order_id` is the authoritative key.
 
+## Nexus active-order scope
+
+`DeviceOrder::scopeActiveOrder()` (`app/Models/DeviceOrder.php`) defines the server-side
+non-terminal set used for order recovery and active-session queries:
+
+| Status | Included |
+|---|---|
+| `pending` | ✅ |
+| `confirmed` | ✅ |
+| `in_progress` | ✅ |
+| `ready` | ✅ |
+| `served` | ✅ |
+| `completed` | ❌ terminal |
+| `cancelled` | ❌ terminal |
+| `voided` | ❌ terminal |
+| `archived` | ❌ terminal |
+
+**Implication for tablet recovery (TAB-CASE-011):** the tablet active-order recovery filter in
+`stores/Order.ts` must include all five non-terminal states above. Filtering on only
+`pending,confirmed,ready` (current behaviour) incorrectly excludes `in_progress` and `served`
+orders, causing in-flight orders to drop from the tablet session.
+
 ## What the tablet sees
 
 - The tablet flow is anchored by `CONFIRMED` (in-session) and the terminal signals it reacts to:
