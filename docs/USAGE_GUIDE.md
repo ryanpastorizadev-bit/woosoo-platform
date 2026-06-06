@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-31
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -125,6 +125,12 @@ If you cannot find the case file: STOP.
 
 `git restore <specific-files>` (restore only Cursor's files — **never** `git restore .`).
 Re-run Verifier clean before any fix-forward. If Cursor caused the failure, consider switching to a Claude Code Specialist for fix-forward.
+
+### Context7 documentation lookup
+
+For up-to-date library/framework docs inside Cursor (Nuxt, Laravel, Flutter, etc.), see
+[CONTEXT7_GUIDE.md](CONTEXT7_GUIDE.md). Ask library-specific questions in chat or use the
+`/docs` command; never paste secrets or `.env` values into Context7 queries.
 
 ### Rule sync
 
