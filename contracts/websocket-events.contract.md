@@ -134,8 +134,11 @@ is cross-app (touches print-bridge + admin consumers), so it is phased and track
 ## Known issues (tracked; do not "fix" silently)
 
 - **`order.printed` name collision.** Three distinct events (`OrderPrinted`, `PrintOrder`,
-  `PrintRefill`) all broadcast `order.printed` on `admin.orders`, and the **print-bridge prints off
-  `order.printed`** — a possible duplicate-print vector. Tracked under **NEX-CASE-011**.
+  `PrintRefill`) all broadcast `order.printed` on `admin.orders`. **Partially resolved:** NEX-CASE-011
+  PR #163 (merged 2026-06-04) removed the spurious `PrintOrder::dispatch()` calls from all ack
+  paths and added `is_printed` idempotency in `OrderApiController`. The event-name de-collision
+  (renaming to `order.print.requested` / `order.print.refill` / `order.print.acked`) remains
+  planned but not yet implemented — tracked in the Event-name de-collision section above.
 - **Dead consumer.** Admin `Orders/Index.vue` subscribes `admin.print` → `.order.printed`, but no
   producer broadcasts on `admin.print` (all go to `admin.orders`). Minor nexus cleanup.
 - **Dead producers (no consumer anywhere):** `payment.completed`, `menu.updated`,
