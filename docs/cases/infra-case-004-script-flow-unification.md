@@ -28,10 +28,10 @@ scope: woosoo-platform
 ## Implementation (2026-06-05)
 
 The single command remains `sudo bash scripts/deployment/deploy-all.sh`
-(`check → doctor → backup → deploy → health`). It pulls/builds the **two deployable Docker app
-repos** — `woosoo-nexus` + `tablet-ordering-pwa`; `woosoo-print-bridge` is an Android/APK relay,
-not part of the Docker deploy. Changes — all edits to existing scripts/docs,
-**no `compose.yaml` or `Dockerfile` changes**:
+(`check → backup → deploy → health`; the `doctor.sh` gate runs **inside** `deploy`, after config
+hydration). It pulls/builds the **two deployable Docker app repos** — `woosoo-nexus` +
+`tablet-ordering-pwa`; `woosoo-print-bridge` is an Android/APK relay, not part of the Docker
+deploy. Changes — all edits to existing scripts/docs, **no `compose.yaml` or `Dockerfile` changes**:
 
 1. **`deploy.sh`** — added `retry()` (3-attempt, flat 5s gap) around `git fetch`,
    `composer install`, and `docker compose build`. Added **composer hydration**: a one-off
@@ -40,17 +40,19 @@ not part of the Docker deploy. Changes — all edits to existing scripts/docs,
    shadows the image `vendor/`). Added **tablet UI freshness**: export real
    `TABLET_BUILD_SHA/BRANCH/TIME` (consumed by compose build-args; also fixes `build-info.json`)
    and `--no-cache tablet-pwa` when the tablet HEAD moved vs the pre-pull snapshot.
-2. **`deploy.sh`** — **always** runs `doctor.sh` as step `[0/6]`; there is **no skip flag**, so the
-   placeholder/empty-secret gate cannot be bypassed by calling `deploy.sh` directly. Also fixed the
-   end-of-run summary to `source "$CONFIG_FILE"` (was hardcoded `/etc/woosoo/woosoo.env`, wrong for
-   the `./woosoo.env` primary).
-3. **`deploy-all.sh`** — `check.sh` wired as informational step `[0/4]` (never blocks); banner now
-   reads `check -> doctor -> backup -> deploy -> health`. Deploy step runs `deploy.sh` plainly —
-   doctor runs in both (step 1 + deploy.sh step 0); that intentional double read-only run is the
-   price of an unbypassable gate. **Health step has grace + retry** (initial + 2 retries with 45s
-   gaps = 90s, matching the app `start_period`), and **every failure prints a diagnosis bundle**
-   (`docker compose ps` + tail logs) alongside the exact manual rollback command. Rollback stays
-   manual by design (forward-only migrations make blind auto-revert unsafe).
+2. **`deploy.sh`** — runs the `doctor.sh` gate as step `[3/7]`, **immediately after**
+   `apply-woosoo-config.sh` (step 2) has written `woosoo-nexus/.env`. This fixes the Codex P2:
+   doctor hard-requires that file (and validates compose against it), so gating *before* config
+   hydration deadlocked a fresh Pi. **No skip flag** — the gate always runs (can't be bypassed by
+   calling `deploy.sh` directly) and gates build/migrate/up. Also fixed the end-of-run summary to
+   `source "$CONFIG_FILE"` (was hardcoded `/etc/woosoo/woosoo.env`, wrong for the `./woosoo.env` primary).
+3. **`deploy-all.sh`** — `check.sh` wired as informational step `[0/3]` (never blocks); banner now
+   reads `check -> backup -> deploy -> health`. The standalone pre-deploy doctor step was **removed**
+   (it would deadlock a fresh Pi before `woosoo-nexus/.env` exists); the gate lives solely inside
+   `deploy.sh` after config hydration, still unbypassable. **Health step has grace + retry** (initial
+   + 2 retries with 45s gaps = 90s, matching the app `start_period`), and **every failure prints a
+   diagnosis bundle** (`docker compose ps` + tail logs) alongside the exact manual rollback command.
+   Rollback stays manual by design (forward-only migrations make blind auto-revert unsafe).
 4. **`apply-woosoo-config.sh`** — `chmod 600` the written `woosoo-nexus/.env`; `safe_backup_file`
    now `chmod 700` the config-backup dir and `chmod 600` each backup. **`dev-docker-bootstrap.sh`**
    — `chmod 600` the written `.env` and its `.env.bak` copy.
@@ -226,15 +228,24 @@ check.sh has no role here. deploy-all.sh prints the rollback command when any st
 ## Review cycle (2026-06-05)
 First pass returned **REJECTED** (independent review). Findings, all fixed:
 - [P1] `WOOSOO_SKIP_DOCTOR` made the gate bypassable → flag removed entirely; `deploy.sh` always
-  runs doctor (intentional double read-only run via the wrapper).
+  runs doctor.
 - [P2] `deploy.sh` summary sourced hardcoded `/etc/woosoo/woosoo.env` → now `source "$CONFIG_FILE"`.
-- [P3] `deploy-all.sh` banner stale → now `check -> doctor -> backup -> deploy -> health`.
+- [P3] `deploy-all.sh` banner stale → corrected.
 - [P2] case-file contradictions (stale "do NOT call check.sh"/"do NOT touch dev-docker-bootstrap")
   → marked superseded.
 - [P2] false grep claim → scoped with `--exclude-dir=cases` (verified: 0 matches outside docs/cases).
 - [Open Q] "every app repo" → clarified to the two deployable Docker app repos.
-Re-verified: `bash -n` PASS ×6; `grep WOOSOO_SKIP_DOCTOR scripts/` → none; banner/summary/grep
-assertions all pass. Also added (change 7): health grace+retry and a failure diagnosis bundle.
+Also added (change 7): health grace+retry and a failure diagnosis bundle.
+
+**Second pass (Codex, PR #45) — REJECTED → fixed:**
+- [P2] `deploy.sh` ran the doctor gate **before** `apply-woosoo-config.sh` wrote `woosoo-nexus/.env`,
+  yet doctor hard-requires that file → fresh-Pi / post-rotation **deadlock**. Fixed by moving the
+  gate to step `[3/7]` (after config hydration) and **removing** the standalone pre-deploy doctor
+  step from `deploy-all.sh` (sequence now `check → backup → deploy → health`; gate lives inside
+  `deploy`, still unbypassable). Mutating-step order unchanged; only the read-only gate's position moved.
+- All deploy-sequence narratives across docs updated to match.
+Re-verified: `bash -n` PASS ×7; `grep WOOSOO_SKIP_DOCTOR scripts/` → none; no `doctor → backup`
+ordering left in operator docs/scripts.
 
 ## Executioner Verdict
 APPROVED — review blockers fixed and re-verified; local gates green; change set matches the

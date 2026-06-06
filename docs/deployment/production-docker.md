@@ -80,15 +80,17 @@ host-provided; only `generate-dev-certs.sh` + `README.md` are tracked.
   FIX command for each. Run it first on any machine.
 - `init-woosoo-env.sh` — seeds `./woosoo.env` from the app `.env` files and
   prompts to confirm each value; re-runnable. Writes the file `chmod 600`. No sudo.
-- `deploy-all.sh` — the single full-deploy command: `check → doctor → backup →
-  deploy → health`. **Use this** instead of calling `deploy.sh` directly. The
-  `deploy` step pulls each app repo, hydrates dependencies (composer/npm), builds
-  **fresh** images (tablet UI cache-busted by build sha), migrates, starts, and
-  warms caches — with retry on the flaky network/build steps.
-- `deploy.sh` — the workhorse the wrapper calls; it **always** runs `doctor.sh`
-  first (no skip flag), so the placeholder/empty-secret gate cannot be bypassed by
-  calling it directly. When run via `deploy-all.sh`, doctor runs in both — a cheap,
-  intentional double read-only check.
+- `deploy-all.sh` — the single full-deploy command: `check → backup → deploy →
+  health`. **Use this** instead of calling `deploy.sh` directly. The `deploy` step
+  pulls each app repo, applies config, runs the `doctor.sh` gate, hydrates
+  dependencies (composer/npm), builds **fresh** images (tablet UI cache-busted by
+  build sha), migrates, starts, and warms caches — with retry on the flaky
+  network/build steps.
+- `deploy.sh` — the workhorse the wrapper calls. It runs the `doctor.sh` gate
+  itself, **right after `apply-woosoo-config.sh` writes `woosoo-nexus/.env`** — so
+  the gate validates the generated env and is never blocked on a fresh machine.
+  Always runs (no skip flag); the placeholder/empty-secret gate cannot be bypassed
+  by calling `deploy.sh` directly, and it gates build/migrate/up.
 - `apply-woosoo-config.sh` — writes `woosoo-nexus/.env` (`chmod 600`) and runs
   compose from `WOOSOO_PLATFORM_PATH` (default = parent of `WOOSOO_NEXUS_PATH`).
 

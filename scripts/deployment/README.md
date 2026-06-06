@@ -12,8 +12,8 @@ Run from the **platform repo root** (`woosoo-platform/`), as root:
 
 | Goal | Command |
 |---|---|
-| Full safe deploy (check → doctor → backup → deploy → health) | `sudo bash scripts/deployment/deploy-all.sh` |
-| Deploy step only (runs doctor; skips backup + health verify) | `sudo bash scripts/deployment/deploy.sh` |
+| Full safe deploy (check → backup → deploy → health; doctor gate runs inside deploy) | `sudo bash scripts/deployment/deploy-all.sh` |
+| Deploy step only (runs config + doctor gate + build/migrate/up; skips backup + health verify) | `sudo bash scripts/deployment/deploy.sh` |
 | Rollback last deploy | see fenced command below the table |
 | Post-reboot check only | `sudo bash scripts/deployment/pi-reboot-health.sh` |
 | Verify what's live | `curl -ks https://$WOOSOO_HOST:4443/build-info.json` |
@@ -38,7 +38,7 @@ Run everything from the **platform repo root** (`woosoo-platform/`).
 
 | Script | Status | Notes |
 |---|---|---|
-| `deploy-all.sh` | **Migrated (new)** | Strict-ordered wrapper: `check` (informational) → `doctor` → `backup` → `deploy` → `health` (with grace + retry). Hard stops on any failure; prints a diagnosis bundle + rollback command on failure. The default operator command for a full deploy. |
+| `deploy-all.sh` | **Migrated (new)** | Strict-ordered wrapper: `check` (informational) → `backup` → `deploy` → `health` (with grace + retry). The `doctor.sh` gate runs inside `deploy`, after config hydration. Hard stops on any failure; prints a diagnosis bundle + rollback command on failure. The default operator command for a full deploy. |
 | `deploy.sh` | **Migrated** | Platform-root; pulls each app repo in place; `bash -n` clean. Default branch is `dev` (overridable via `WOOSOO_DEPLOY_BRANCH`). **Writes a pre-deploy snapshot** to `$WOOSOO_BACKUP_DIR/update-YYYYMMDD-HHMMSS/` containing `woosoo-nexus.commit`, `tablet-ordering-pwa.commit`, and `woosoo-nexus.env` BEFORE `git reset --hard` — this is the input `rollback-client.sh` consumes. Path is printed at end of deploy. |
 | `rollback-client.sh` | **Migrated** | Platform-root; consumes a backup directory (`update-YYYYMMDD-HHMMSS`) produced by `deploy.sh`. Saves a forward-roll snapshot to `/opt/woosoo/backups/rollback-points/` before resetting so you can step forward again if the rollback target was also bad. |
 | `apply-woosoo-config.sh` | **Migrated** | Adds `WOOSOO_PLATFORM_PATH`; writes `woosoo-nexus/.env`; runs compose from platform root; `bash -n` clean. Pi runtime verification still required after config changes. |
@@ -108,7 +108,7 @@ WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/deploy-all.sh
 ```
 
 `WOOSOO_ALLOW_NON_PI=true` bypasses the Pi-only guard that would otherwise abort.
-This exercises: check → doctor → backup → deploy → health — identical to production
+This exercises: check → backup → deploy (apply config → doctor gate → build → migrate → up) → health — identical to production
 minus Pi system mutations (nmcli, dnsmasq, systemd-resolved).
 
 **What this tests:**

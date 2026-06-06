@@ -70,7 +70,8 @@ bash scripts/deployment/check.sh
 #    Re-runnable — confirm or edit each value. See §3.2 for required values.
 bash scripts/deployment/init-woosoo-env.sh
 
-# 4. Full deploy. deploy-all.sh runs check -> doctor -> backup -> deploy -> health.
+# 4. Full deploy. deploy-all.sh runs check -> backup -> deploy -> health
+#    (the doctor.sh gate runs inside deploy, right after config is written).
 #    The deploy step runs apply-woosoo-config.sh (installs dnsmasq, sets the
 #    static IP, writes woosoo-nexus/.env), hydrates deps, builds fresh, migrates,
 #    and starts the stack.
@@ -127,25 +128,32 @@ echo "Deploying branch: $WOOSOO_DEPLOY_BRANCH"
 sudo -E bash scripts/deployment/deploy-all.sh
 ```
 
-This is the single CI-style command. It runs `check → doctor → backup → deploy
-→ health` in strict order and aborts on the first failure (`check` is
-informational and never blocks; `doctor` is the hard gate). The `deploy` step:
+This is the single CI-style command. It runs `check → backup → deploy → health`
+in strict order and aborts on the first failure (`check` is informational and
+never blocks). The `deploy` step itself runs:
 
 1. `git pull` on each app repo at `WOOSOO_*_BRANCH` (with retry on transient
-   network failures)
-2. Writes a pre-deploy snapshot to `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/`
-   (commits + `woosoo-nexus.env`) — this is the input `rollback-client.sh` uses
-3. `docker compose build` (with retry). The tablet image is cache-busted by its
+   network failures) + a pre-deploy snapshot to
+   `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/` (the input `rollback-client.sh` uses)
+2. `apply-woosoo-config.sh` — writes `woosoo-nexus/.env` (and applies host/network
+   config), so the generated env exists before it is validated
+3. **Preflight gate** — `doctor.sh` (the hard gate; rejects placeholder/empty
+   secrets and config drift). Always runs, no skip flag. Everything below is gated on it.
+4. `docker compose build` (with retry). The tablet image is cache-busted by its
    build sha so a UI update is never served stale; if the tablet code actually
-   moved, it is rebuilt `--no-cache`
-4. Hydrates PHP dependencies (`composer install`) onto the bind-mounted
-   `woosoo-nexus` when `vendor/` is missing or `composer.lock` changed, then
-   builds Vite assets once — so the running containers always have current deps
-5. Runs `php artisan migrate --force` in a one-off container — before any
-   long-running service starts. A migration failure aborts the deploy so
-   queue workers and the scheduler never boot on a stale schema.
+   moved, it is rebuilt `--no-cache`. PHP deps are hydrated (`composer install`)
+   onto the bind-mounted `woosoo-nexus` when `vendor/` is missing or `composer.lock`
+   changed; Vite assets build once
+5. `php artisan migrate --force` in a one-off container — before any long-running
+   service starts. A migration failure aborts the deploy so queue workers and the
+   scheduler never boot on a stale schema
 6. `docker compose up -d --remove-orphans`
 7. Warms Laravel caches (config, route, view)
+
+> The `doctor.sh` gate runs **inside** `deploy` (step 3), right after
+> `apply-woosoo-config.sh` writes `woosoo-nexus/.env` — so it validates the
+> generated env and is never blocked on a fresh machine where that file does not
+> exist yet.
 
 Tablets auto-update within ~1 minute of completion (see `production-docker.md`
 § "Tablet PWA auto-update").
@@ -258,9 +266,9 @@ WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/deploy-all.sh
 ```
 
 This is Scenario B2 from `docs/cases/infra-case-004-script-flow-unification.md`.
-It exercises every stage of `deploy-all.sh` (check → doctor → backup → deploy → health)
-except Pi system mutations (nmcli, dnsmasq, systemd). See that case doc for the full
-overlap audit and the list of what still requires Pi hardware.
+It exercises every stage of `deploy-all.sh` (check → backup → deploy → health, with the
+`doctor.sh` gate inside deploy after config hydration) except Pi system mutations (nmcli,
+dnsmasq, systemd). See that case doc for the full overlap audit and what still requires Pi hardware.
 
 ---
 

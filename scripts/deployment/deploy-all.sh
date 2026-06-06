@@ -9,10 +9,15 @@
 # canonical sequence in strict order with hard stops on any failure:
 #
 #   0. check.sh          — informational preflight (never blocks)
-#   1. doctor.sh         — preflight gate (read-only; rejects bad/placeholder config)
-#   2. woosoo-backup.sh  — DB backup BEFORE any change
-#   3. deploy.sh         — pull app repos, hydrate deps, build fresh, migrate, up, warm cache
-#   4. woosoo-health.sh  — post-deploy smoke verify (grace + retry)
+#   1. woosoo-backup.sh  — DB backup BEFORE any change (no-op on a fresh machine)
+#   2. deploy.sh         — pull repos, apply config, PREFLIGHT GATE (doctor.sh),
+#                          hydrate deps, build fresh, migrate, up, warm cache
+#   3. woosoo-health.sh  — post-deploy smoke verify (grace + retry)
+#
+# The doctor.sh gate runs INSIDE deploy.sh, right after apply-woosoo-config.sh has
+# written woosoo-nexus/.env — so it can validate the generated env and is never
+# blocked on a fresh machine where that file doesn't exist yet. It is unbypassable
+# (deploy.sh always runs it; no skip flag) and gates build/migrate/up.
 #
 # On any failure the wrapper prints a diagnosis bundle (container status + recent
 # logs) and the exact rollback command, then exits non-zero. Rollback is manual
@@ -31,7 +36,7 @@ fi
 
 echo "========================================"
 echo "  Woosoo Pi5 Safe Deploy"
-echo "  Sequence: check -> doctor -> backup -> deploy -> health"
+echo "  Sequence: check -> backup -> deploy (apply config -> doctor gate -> build -> migrate -> up) -> health"
 echo "========================================"
 echo
 
@@ -85,26 +90,27 @@ run_step() {
 
 # Step 0 — informational preflight. check.sh reports anything missing or not
 # running (tools, certs, config, app repos, built images, containers) with FIX
-# hints. It never blocks the deploy: doctor.sh (step 1) is the hard gate.
+# hints. It never blocks the deploy: the doctor.sh gate (inside deploy.sh, after
+# config hydration) is the hard gate.
 echo "########################################"
-echo "# [0/4] check.sh — environment preflight (informational)"
+echo "# [0/3] check.sh — environment preflight (informational)"
 echo "########################################"
 if ! bash "$SCRIPT_DIR/check.sh"; then
-  echo "NOTE: check.sh reported warnings/failures above. doctor.sh will gate the deploy."
+  echo "NOTE: check.sh reported warnings/failures above. The doctor.sh gate inside deploy.sh will block a bad deploy."
 fi
 echo
 
-run_step "[1/4] doctor.sh — preflight"        bash "$SCRIPT_DIR/doctor.sh"
-run_step "[2/4] woosoo-backup.sh — DB backup" bash "$SCRIPT_DIR/woosoo-backup.sh"
-# deploy.sh re-runs doctor itself (the gate has no skip flag, so it can never be
-# bypassed). That intentional second read-only run is the price of an unbypassable gate.
-run_step "[3/4] deploy.sh — build + up"       bash "$SCRIPT_DIR/deploy.sh"
+run_step "[1/3] woosoo-backup.sh — DB backup" bash "$SCRIPT_DIR/woosoo-backup.sh"
+# deploy.sh runs the doctor.sh gate itself, right after apply-woosoo-config.sh writes
+# woosoo-nexus/.env — so the gate validates the generated env and is never blocked on
+# a fresh machine. It is unbypassable (no skip flag) and gates build/migrate/up.
+run_step "[2/3] deploy.sh — config + gate + build + up" bash "$SCRIPT_DIR/deploy.sh"
 
-# Step 4 — health with grace + retry. The app container has a 90s start_period,
+# Step 3 — health with grace + retry. The app container has a 90s start_period,
 # so a check run too early can report a false failure. Re-try with a grace gap
 # before declaring the deploy failed.
 echo "########################################"
-echo "# [4/4] woosoo-health.sh — verify (grace + retry)"
+echo "# [3/3] woosoo-health.sh — verify (grace + retry)"
 echo "########################################"
 _health_ok=0
 # Initial run + up to 2 retries with a 45s gap = 90s grace, matching the app
@@ -116,7 +122,7 @@ for _attempt in 1 2 3; do
     sleep 45
   fi
 done
-[[ "$_health_ok" -eq 1 ]] || fail_step "[4/4] woosoo-health.sh — verify"
+[[ "$_health_ok" -eq 1 ]] || fail_step "[3/3] woosoo-health.sh — verify"
 echo
 
 SNAP="$(latest_snapshot)"

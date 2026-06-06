@@ -75,17 +75,6 @@ if [[ ! -f "$CONFIG_SCRIPT" ]]; then
   exit 1
 fi
 
-# ── Preflight gate (unbypassable) ─────────────────────────────────────────────
-# doctor.sh rejects placeholder/empty secrets and config drift. It ALWAYS runs —
-# there is intentionally no skip flag, so the secret gate cannot be bypassed by
-# reaching for the inner script. When invoked via deploy-all.sh, doctor also runs
-# there as step 1; that deliberate double-check is cheap (read-only) and is the
-# price of a gate that no invocation path can skip.
-echo ">>> [0/6] Preflight (doctor.sh) ..."
-bash "$SCRIPT_DIR/doctor.sh"
-echo "OK: preflight passed"
-echo
-
 cd "$PLATFORM_ROOT"
 
 echo "========================================"
@@ -141,7 +130,7 @@ pull_repo() {
   fi
 }
 
-echo ">>> [1/6] Snapshot + pull app repos ..."
+echo ">>> [1/7] Snapshot + pull app repos ..."
 
 # Pre-deploy snapshot — written BEFORE git reset --hard so rollback-client.sh
 # can restore the pre-deploy state by SHA + .env. This is the rollback handle.
@@ -173,13 +162,24 @@ pull_repo "$TABLET_DIR" "$TABLET_BRANCH" "tablet-ordering-pwa"
 echo
 
 # ── Step 2: Apply config (writes correct values into woosoo-nexus/.env) ───────
-echo ">>> [2/6] Applying Pi5 config (apply-woosoo-config.sh) ..."
+echo ">>> [2/7] Applying Pi5 config (apply-woosoo-config.sh) ..."
 WOOSOO_RESTART_DOCKER=false bash "$CONFIG_SCRIPT"
 echo "OK: Config applied — woosoo-nexus/.env is authoritative for this host"
 echo
 
-# ── Step 3: Build Docker images + frontend assets ─────────────────────────────
-echo ">>> [3/6] Building Docker images ..."
+# ── Step 3: Preflight gate (unbypassable) ─────────────────────────────────────
+# doctor.sh validates operator secrets (rejects placeholder/empty) AND the compose
+# env — now that apply-woosoo-config.sh has WRITTEN woosoo-nexus/.env. It ALWAYS
+# runs (no skip flag) so the gate cannot be bypassed, and it runs HERE — after
+# config hydration — so a fresh Pi (no woosoo-nexus/.env yet) is never blocked
+# before the file doctor gates on exists. Build/migrate/up below run only if it passes.
+echo ">>> [3/7] Preflight gate (doctor.sh) ..."
+bash "$SCRIPT_DIR/doctor.sh"
+echo "OK: preflight passed"
+echo
+
+# ── Step 4: Build Docker images + frontend assets ─────────────────────────────
+echo ">>> [4/7] Building Docker images ..."
 
 # Tablet build metadata: consumed by compose tablet-pwa.build.args. Stamping the
 # real tablet HEAD makes /build-info.json reflect the deployed build (the tablet
@@ -232,7 +232,7 @@ echo
 # queue workers and scheduler boot on the updated schema, not the old one.
 # `docker compose run` respects depends_on service_healthy conditions, so
 # mysql and redis are guaranteed healthy before the migration executes.
-echo ">>> [4/6] Running database migrations ..."
+echo ">>> [5/7] Running database migrations ..."
 if $COMPOSE_CMD run --rm "$APP_SERVICE" php artisan migrate --force; then
   echo "OK: Migrations applied"
 else
@@ -242,7 +242,7 @@ fi
 echo
 
 # ── Step 5: Start / restart services ─────────────────────────────────────────
-echo ">>> [5/6] Starting services ..."
+echo ">>> [6/7] Starting services ..."
 # One-time cleanup: the nexus_build named volume was removed from compose.yaml;
 # drop the now-orphaned Docker volume. Idempotent — ignore error if absent/in-use.
 docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true
@@ -251,7 +251,7 @@ echo "OK: Services started"
 echo
 
 # ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
-echo ">>> [6/6] Warming Laravel caches ..."
+echo ">>> [7/7] Warming Laravel caches ..."
 echo "  Waiting for $APP_SERVICE to be ready (up to 60s) ..."
 _app_ready=0
 for _i in $(seq 1 30); do
