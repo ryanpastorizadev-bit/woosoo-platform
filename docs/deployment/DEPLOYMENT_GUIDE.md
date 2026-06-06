@@ -191,14 +191,35 @@ cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
 
-# 2. Generate a dev-mode woosoo-nexus/.env (no system mutations)
+# 2. Install the woosoo CLI command (once — creates /usr/local/bin/woosoo)
+bash scripts/install.sh
+
+# 3. Run the full dev pipeline (bootstrap + build + up + migrate + warm + health)
+woosoo dev
+```
+
+`woosoo dev` handles everything: writes `woosoo-nexus/.env` (if needed), builds images,
+starts the stack, migrates, warms caches, and prints a health summary. First build takes
+~10 minutes; subsequent runs with `--no-pull --no-build` complete in under 30 seconds.
+
+**Fast iteration after the first build:**
+```bash
+woosoo dev --no-pull --no-build   # skip pull + build (source changes only)
+woosoo dev --from-step 4          # resume from a specific step
+woosoo health                     # health check only
+woosoo logs                       # tail logs
+```
+
+**Equivalent manual commands** (if you prefer not to use the pipeline):
+```bash
+# Bootstrap .env
 bash scripts/deployment/dev-docker-bootstrap.sh
 
-# 3. Build and start the stack
+# Build + start
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml build
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d
 
-# 4. Generate APP_KEY (first run only) and migrate
+# First-run key + migrate
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   exec -T app php artisan key:generate --force
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
