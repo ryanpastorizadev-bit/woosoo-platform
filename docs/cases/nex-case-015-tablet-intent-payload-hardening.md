@@ -10,7 +10,7 @@ scope: woosoo-nexus
 - task_slug: nex-case-015-tablet-intent-payload-hardening
 - tier: 2
 - branch: agent/nex-case-015-tablet-intent-payload-hardening
-- status: QUEUED
+- status: IN_PROGRESS
 - last_completed_agent: none
 - next_agent: contrarian
 - active_runner: claude-code

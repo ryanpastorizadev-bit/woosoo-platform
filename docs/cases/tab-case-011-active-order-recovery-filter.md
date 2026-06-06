@@ -10,7 +10,7 @@ scope: tablet-ordering-pwa
 - task_slug: tab-case-011-active-order-recovery-filter
 - tier: 2
 - branch: agent/tab-case-011-active-order-recovery-filter
-- status: QUEUED
+- status: IN_PROGRESS
 - last_completed_agent: none
 - next_agent: contrarian
 - active_runner: claude-code
