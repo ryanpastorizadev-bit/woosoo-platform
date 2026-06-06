@@ -140,6 +140,7 @@ NEXUS_ENV="$NEXUS_DIR/.env"
 if [[ -f "$NEXUS_ENV" ]]; then
   BACKUP_NAME="$NEXUS_ENV.bak.$(date +%F_%H%M%S)"
   cp "$NEXUS_ENV" "$BACKUP_NAME"
+  chmod 600 "$BACKUP_NAME"
   echo "Backed up existing .env -> $BACKUP_NAME"
 fi
 
@@ -235,6 +236,9 @@ set_env "CORS_ALLOWED_ORIGINS"     "${DEV_PUBLIC_SCHEME}://${DEV_PUBLIC_HOST},${
 
 # Device auth
 set_env "DEVICE_AUTH_PASSCODE" "$DEV_DEVICE_AUTH_PASSCODE"
+
+# Lock down the secret-bearing .env (mirrors apply-woosoo-config.sh on the Pi).
+chmod 600 "$NEXUS_ENV"
 
 echo "OK: nexus/.env written"
 echo

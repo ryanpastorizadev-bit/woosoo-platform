@@ -1,33 +1,90 @@
 ---
-status: queued
+status: COMPLETE
 last_reviewed: 2026-06-05
 scope: woosoo-platform
 ---
 
 # INFRA-CASE-004: Deployment Script Flow Unification
 
+> **Re-scoped 2026-06-05** from "doc/dedup cleanup" to **one robust deploy command +
+> secure env handling**, at operator request ("simple working solution… secure .env…
+> a command that pulls all app repos… composer/npm/build… no stale builds… retry logic…
+> install missing dependencies… check if anything is missing/not running"). The original
+> doc-reconciliation + check.sh dedup is folded in (Changes 5–6 below). Implementation plan:
+> `~/.claude/plans/created-another-issue-deployment-nested-cupcake.md`.
+
 ## Run State
 - task_slug: infra-case-004-script-flow-unification
 - tier: 2
-- branch: agent/infra-004-script-flow-unification
-- status: queued
-- last_completed_agent: none
-- next_agent: contrarian
+- branch: agent/infra-004-deploy-hardening
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-05
 
+## Implementation (2026-06-05)
+
+The single command remains `sudo bash scripts/deployment/deploy-all.sh`
+(`check → backup → deploy → health`; the `doctor.sh` gate runs **inside** `deploy`, after config
+hydration). It pulls/builds the **two deployable Docker app repos** — `woosoo-nexus` +
+`tablet-ordering-pwa`; `woosoo-print-bridge` is an Android/APK relay, not part of the Docker
+deploy. Changes — all edits to existing scripts/docs, **no `compose.yaml` or `Dockerfile` changes**:
+
+1. **`deploy.sh`** — added `retry()` (3-attempt, flat 5s gap) around `git fetch`,
+   `composer install`, and `docker compose build`. Added **composer hydration**: a one-off
+   `run --rm --no-deps app composer install --no-dev --optimize-autoloader` when
+   `vendor/autoload.php` is missing or `composer.lock` is newer (fixes the bind-mount that
+   shadows the image `vendor/`). Added **tablet UI freshness**: export real
+   `TABLET_BUILD_SHA/BRANCH/TIME` (consumed by compose build-args; also fixes `build-info.json`)
+   and `--no-cache tablet-pwa` when the tablet HEAD moved vs the pre-pull snapshot.
+2. **`deploy.sh`** — runs the `doctor.sh` gate as step `[3/7]`, **immediately after**
+   `apply-woosoo-config.sh` (step 2) has written `woosoo-nexus/.env`. This fixes the Codex P2:
+   doctor hard-requires that file (and validates compose against it), so gating *before* config
+   hydration deadlocked a fresh Pi. **No skip flag** — the gate always runs (can't be bypassed by
+   calling `deploy.sh` directly) and gates build/migrate/up. Also fixed the end-of-run summary to
+   `source "$CONFIG_FILE"` (was hardcoded `/etc/woosoo/woosoo.env`, wrong for the `./woosoo.env` primary).
+3. **`deploy-all.sh`** — `check.sh` wired as informational step `[0/3]` (never blocks); banner now
+   reads `check -> backup -> deploy -> health`. The standalone pre-deploy doctor step was **removed**
+   (it would deadlock a fresh Pi before `woosoo-nexus/.env` exists); the gate lives solely inside
+   `deploy.sh` after config hydration, still unbypassable. **Health step has grace + retry** (initial
+   + 2 retries with 45s gaps = 90s, matching the app `start_period`), and **every failure prints a
+   diagnosis bundle** (`docker compose ps` + tail logs) alongside the exact manual rollback command.
+   Rollback stays manual by design (forward-only migrations make blind auto-revert unsafe).
+4. **`apply-woosoo-config.sh`** — `chmod 600` the written `woosoo-nexus/.env`; `safe_backup_file`
+   now `chmod 700` the config-backup dir and `chmod 600` each backup. **`dev-docker-bootstrap.sh`**
+   — `chmod 600` the written `.env` and its `.env.bak` copy.
+5. **Docs** — `production-docker.md` + `DEPLOYMENT_GUIDE.md` + `README.md` now teach one config
+   method (`./woosoo.env`, 0600, via `init-woosoo-env.sh`; `/etc/woosoo` = root-owned fallback),
+   reference `check.sh`, and describe `deploy-all.sh` as the one CI-style command. Removed the
+   stale "7 scripts not migrated" claim and all `setup-woosoo-env.sh` references.
+6. **`check.sh`** — dropped the `docker`/`ss`/`curl` and `rootCA.crt` checks that duplicate
+   `doctor.sh`; kept git/openssl/docker-engine-running/TLS-expiry (unique to check.sh).
+
 ## Handoff
-- Phase in progress: —
-- Done so far: investigation complete (this document)
-- Exact next action: contrarian review → specialist:infra implements the four changes listed in Proposed Changes
-- Working-tree state: no edits yet — this document is the only new file
-- Risks / do-not-redo: do NOT re-create setup-woosoo-env.sh; do NOT add a new script; do NOT call check.sh from deploy-all.sh (it requires no sudo and is a user-run step only)
+- Phase in progress: COMPLETE (Executioner APPROVED)
+- Done so far: all changes implemented (see Implementation) + review blockers fixed
+- Exact next action: review + merge PR #45 (→ `dev`); then Pi runtime checks (Bucket B)
+- Working-tree state: edits applied to deploy.sh, deploy-all.sh, apply-woosoo-config.sh,
+  dev-docker-bootstrap.sh, check.sh, docs, QUEUE.md (uncommitted)
+- Risks / do-not-redo: do NOT re-create setup-woosoo-env.sh; do NOT add a new parallel deploy
+  script; do NOT introduce auto-rollback (forward-only migrations make it unsafe — rollback is
+  manual by design)
+
+> **Re-scope note (2026-06-05):** two constraints from the original narrow plan were intentionally
+> reversed — `check.sh` is now the informational step 0 of `deploy-all.sh` (was "do NOT call it
+> from deploy-all"), and `dev-docker-bootstrap.sh` received the `chmod 600` secure-env fix (was
+> "do NOT touch"). The Implementation section above is the authoritative record; the sections below
+> "## Problem" are the original investigation kept for context only.
 
 ---
 
 ## Problem
+
+> _Original investigation (2026-06-05), describing the pre-change state that motivated this case.
+> Kept for context; the Implementation section above is the authoritative record of what shipped._
 
 Three issues surfaced during INFRA-CASE-002 Stage B prep:
 
@@ -153,100 +210,52 @@ check.sh has no role here. deploy-all.sh prints the rollback command when any st
 
 ---
 
-## Proposed Changes
+## Verification (local gates, 2026-06-05)
+- `bash -n` PASS on deploy.sh, deploy-all.sh, apply-woosoo-config.sh, dev-docker-bootstrap.sh,
+  check.sh, doctor.sh.
+- `retry()` exercised in isolation: first-try success, transient (fail×2 → succeed on 3rd),
+  permanent failure (exhausts attempts → non-zero) all behave correctly.
+- grep: no `setup-woosoo-env` in `production-docker.md`/`DEPLOYMENT_GUIDE.md`/`scripts`; no
+  `check_tool docker|ss|curl` and no `rootCA` *check* left in check.sh; `DEPLOYMENT_GUIDE.md`
+  §3.1 uses `init-woosoo-env.sh`.
+- `chmod 600`/`700` insertions confirmed in both env-writing scripts.
+- `compose.yaml` untouched → no compose regression. `docker compose config` not runnable on this
+  Windows dev box (no docker in shell); deferred to the Pi gate.
+- **Pi runtime verification (composer hydration on a fresh clone, tablet `--no-cache` freshness,
+  doctor gate end-to-end, chmod under real deploy) = Bucket B follow-up — requires Pi hardware,
+  cannot run from this host.** Consistent with INFRA-CASE-001/002 treatment.
 
-Four changes. No new scripts. No new logic.
+## Review cycle (2026-06-05)
+First pass returned **REJECTED** (independent review). Findings, all fixed:
+- [P1] `WOOSOO_SKIP_DOCTOR` made the gate bypassable → flag removed entirely; `deploy.sh` always
+  runs doctor.
+- [P2] `deploy.sh` summary sourced hardcoded `/etc/woosoo/woosoo.env` → now `source "$CONFIG_FILE"`.
+- [P3] `deploy-all.sh` banner stale → corrected.
+- [P2] case-file contradictions (stale "do NOT call check.sh"/"do NOT touch dev-docker-bootstrap")
+  → marked superseded.
+- [P2] false grep claim → scoped with `--exclude-dir=cases` (verified: 0 matches outside docs/cases).
+- [Open Q] "every app repo" → clarified to the two deployable Docker app repos.
+Also added (change 7): health grace+retry and a failure diagnosis bundle.
 
-### Change 1 — Remove true duplicates from check.sh (§3 tools)
-
-Remove docker, ss, curl from §3 (they are already in doctor.sh, which runs as step 1 of deploy-all.sh).
-Keep git and openssl (unique to check.sh).
-Keep the "Docker Engine running" check (separate from tool availability — catches a common setup problem not covered by doctor.sh at the right time).
-
-Current §3:
-```
-check_tool docker  "Install Docker Engine: ..."
-check_tool git     "sudo apt install git"
-check_tool openssl "sudo apt install openssl"
-check_tool curl    "sudo apt install curl"
-check_tool ss      "sudo apt install iproute2"
-# Docker must be reachable (not just installed)
-if command -v docker ...; docker info ...; fi
-```
-After:
-```
-check_tool git     "sudo apt install git"
-check_tool openssl "sudo apt install openssl"
-# Docker must be installed AND reachable
-if ! command -v docker ...; then fail + fix; elif ! docker info ...; then fail + fix; else pass; fi
-```
-
-### Change 2 — Remove rootCA.crt existence check from check.sh §4
-
-check.sh §4 checks `fullchain.pem`, `privkey.pem`, `rootCA.crt`. doctor.sh §Platform-root compose authority also checks `rootCA.crt`. Remove `rootCA.crt` from check.sh — it will still be caught by doctor.sh.
-
-Keep `fullchain.pem` and `privkey.pem` in check.sh (unique — TLS cert presence + expiry check).
-
-### Change 3 — Fix production-docker.md (three stale references)
-
-1. Replace `setup-woosoo-env.sh` description (line 78) with `init-woosoo-env.sh`.
-2. Replace `sudo bash scripts/deployment/setup-woosoo-env.sh` code block (line 98) with `bash scripts/deployment/init-woosoo-env.sh`.
-3. Update "Config contract" line (line 92) to show both paths.
-4. Add `check.sh` to the deploy scripts table.
-5. Add a "Two dev paths on WSL2" note for Scenario B.
-
-### Change 4 — Add infra-case-004 to QUEUE.md
-
-Track this case in the active queue under Bucket B (deploy readiness infrastructure, non-gating).
-
----
-
-## What NOT to Change
-
-- Do NOT call check.sh from deploy-all.sh. check.sh is a user-run step; it requires no sudo and is informational. deploy-all.sh → doctor.sh is the pipeline gate.
-- Do NOT merge check.sh into doctor.sh. They serve different moments (before-deploy vs inside-deploy-pipeline) and different privilege levels (no sudo vs sudo).
-- Do NOT add DEPLOYMENT_GUIDE.md changes until production-docker.md is corrected first — that is the canonical doc.
-- Do NOT touch dev-docker-bootstrap.sh. Its guards are correct and it is not related to this issue.
-- Do NOT change QUEUE.md row counts, priorities, or order of other rows.
-
----
-
-## Success Criterion
-
-`production-docker.md` contains no reference to `setup-woosoo-env.sh`; check.sh contains no check that is a true duplicate of doctor.sh; a fresh read of production-docker.md gives an operator the correct first command for each of the two WSL2 paths and for the Pi path.
-
----
-
-## Tier
-2
-
-## Branch
-agent/infra-004-script-flow-unification
-
-## Files to Change
-
-| File | Repo | Change |
-|---|---|---|
-| `scripts/deployment/check.sh` | woosoo-platform | Remove docker/ss/curl from §3; remove rootCA.crt from §4 |
-| `docs/deployment/production-docker.md` | woosoo-platform | Fix 3 stale refs + add check.sh row + add WSL2 two-path note |
-| `state/QUEUE.md` | woosoo-platform | Add infra-case-004 row under Bucket B |
-
----
-
-## Verification
-
-1. `grep -r 'setup-woosoo-env' docs/ scripts/` returns no matches
-2. `grep -n 'check_tool docker\|check_tool ss\|check_tool curl' scripts/deployment/check.sh` returns no matches
-3. `grep -n 'rootCA' scripts/deployment/check.sh` returns no matches (removed from §4)
-4. `bash -n scripts/deployment/check.sh` exits 0 (syntax clean)
-5. `bash -n scripts/deployment/doctor.sh` exits 0 (syntax clean)
-6. `cat docs/deployment/production-docker.md | grep 'setup-woosoo-env'` returns empty
-
----
+**Second pass (Codex, PR #45) — REJECTED → fixed:**
+- [P2] `deploy.sh` ran the doctor gate **before** `apply-woosoo-config.sh` wrote `woosoo-nexus/.env`,
+  yet doctor hard-requires that file → fresh-Pi / post-rotation **deadlock**. Fixed by moving the
+  gate to step `[3/7]` (after config hydration) and **removing** the standalone pre-deploy doctor
+  step from `deploy-all.sh` (sequence now `check → backup → deploy → health`; gate lives inside
+  `deploy`, still unbypassable). Mutating-step order unchanged; only the read-only gate's position moved.
+- All deploy-sequence narratives across docs updated to match.
+Re-verified: `bash -n` PASS ×7; `grep WOOSOO_SKIP_DOCTOR scripts/` → none; no `doctor → backup`
+ordering left in operator docs/scripts.
 
 ## Executioner Verdict
-(pending)
+APPROVED — review blockers fixed and re-verified; local gates green; change set matches the
+approved plan; risk contained (no compose/Dockerfile/architecture change; rollback stays manual).
+Merge to `dev` after operator review. Pi runtime checks tracked as a Bucket B deploy-gate.
 
 ## Remaining Risks
-- deploy-all.sh prints "Sequence: doctor -> backup -> deploy -> health" in its banner. If the operator has never run check.sh, they may hit doctor.sh failures for things check.sh would have caught and shown FIX commands for (missing TLS certs, missing app .env, expired certs). Mitigation: production-docker.md now explicitly states "run check.sh first."
+- First-time-on-a-fresh-Pi: `woosoo-backup.sh` (step 2) now **safely no-ops** when the MySQL
+  container isn't running yet (exits 0 with a clear message), so `deploy-all.sh` works uniformly
+  on a fresh machine — no special first-run path needed. Later deploys back up normally.
+- composer hydration runs inside a one-off `app` container; if the image build (step 3) failed the
+  hydration can't run — but the deploy already aborts at build in that case. No masking.
 - WSL2 path B2 still requires `sudo -E bash` because deploy-all.sh guards on EUID. If the operator runs without sudo they get an error. This is documented in check.sh WSL2 notes and in production-docker.md after Change 3. No code change needed.

@@ -75,32 +75,42 @@ host-provided; only `generate-dev-certs.sh` + `README.md` are tracked.
 
 `scripts/deployment/` (run from platform root):
 
-- `setup-woosoo-env.sh` — interactive first-time setup wizard for
-  `/etc/woosoo/woosoo.env`. Auto-detects paths and network; prompts for
-  credentials; runs `doctor.sh` at the end to verify.
-- `deploy-all.sh` — safe full-deploy wrapper: doctor → backup → deploy → health.
-  **Use this** instead of calling deploy.sh directly.
-- `deploy.sh` — pulls each app repo in place (`WOOSOO_NEXUS_BRANCH`,
-  `WOOSOO_TABLET_BRANCH`), runs `apply-woosoo-config.sh`, builds, starts,
-  warms caches. **Migrated; syntax-checked; Pi runtime verification PENDING.**
-- `apply-woosoo-config.sh` — `WOOSOO_PLATFORM_PATH` (default = parent of
-  `WOOSOO_NEXUS_PATH`); still writes `woosoo-nexus/.env`; runs compose from the
-  platform path. **Migrated; syntax-checked; Pi runtime verification PENDING.**
-- The other 7 scripts are copied but **not yet platform-migrated** — see
-  `scripts/deployment/README.md` for per-script status.
+- `check.sh` — no-sudo pre-deploy readiness check. Reports anything missing
+  (tools, certs, config, app repos, built images, not-running containers) with a
+  FIX command for each. Run it first on any machine.
+- `init-woosoo-env.sh` — seeds `./woosoo.env` from the app `.env` files and
+  prompts to confirm each value; re-runnable. Writes the file `chmod 600`. No sudo.
+- `deploy-all.sh` — the single full-deploy command: `check → backup → deploy →
+  health`. **Use this** instead of calling `deploy.sh` directly. The `deploy` step
+  pulls each app repo, applies config, runs the `doctor.sh` gate, hydrates
+  dependencies (composer/npm), builds **fresh** images (tablet UI cache-busted by
+  build sha), migrates, starts, and warms caches — with retry on the flaky
+  network/build steps.
+- `deploy.sh` — the workhorse the wrapper calls. It runs the `doctor.sh` gate
+  itself, **right after `apply-woosoo-config.sh` writes `woosoo-nexus/.env`** — so
+  the gate validates the generated env and is never blocked on a fresh machine.
+  Always runs (no skip flag); the placeholder/empty-secret gate cannot be bypassed
+  by calling `deploy.sh` directly, and it gates build/migrate/up.
+- `apply-woosoo-config.sh` — writes `woosoo-nexus/.env` (`chmod 600`) and runs
+  compose from `WOOSOO_PLATFORM_PATH` (default = parent of `WOOSOO_NEXUS_PATH`).
 
-Config contract: `/etc/woosoo/woosoo.env` (root-owned, mode 0640).
+See `scripts/deployment/README.md` for the full per-script reference.
 
-**First-time setup** — run the interactive setup wizard (auto-detects paths and
-network, prompts only for credentials):
+Config contract — secrets live in **one** operator file, resolved in this order:
+1. `./woosoo.env` (platform root, user-owned, mode 0600) — **primary**; written by
+   `init-woosoo-env.sh`, no sudo required.
+2. `/etc/woosoo/woosoo.env` (root-owned, mode 0640) — optional system-path
+   alternative for a locked-down production host.
+
+**First-time setup** — generate `./woosoo.env`, confirming each value
+(re-runnable; loads existing values as defaults):
 
 ```bash
-sudo bash scripts/deployment/setup-woosoo-env.sh
+bash scripts/deployment/check.sh          # see what's missing first
+bash scripts/deployment/init-woosoo-env.sh
 ```
 
-Re-runnable: loads existing values as defaults. After setup, run
-`sudo bash scripts/deployment/doctor.sh` to verify, then
-`sudo bash scripts/deployment/deploy-all.sh` to deploy.
+Then deploy: `sudo bash scripts/deployment/deploy-all.sh`.
 
 Manual template (if you prefer hand-editing): `docs/deployment/examples/woosoo.env.example`.
 

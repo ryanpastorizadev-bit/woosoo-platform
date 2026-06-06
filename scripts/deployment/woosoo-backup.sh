@@ -73,6 +73,22 @@ fi
 
 cd "$WOOSOO_PLATFORM_PATH"
 
+# Backup-target detection. We must NEVER silently skip a backup when real DB data
+# exists — only a truly fresh machine (no data volume at all) is allowed to no-op.
+if ! docker_compose ps --status running --services 2>/dev/null | grep -qx "$MYSQL_SERVICE"; then
+  # Container isn't running. Is there a MySQL data volume holding real data?
+  db_volume="$(docker volume ls --format '{{.Name}}' 2>/dev/null | grep -E '(^|_)mysql_data$' | head -n1 || true)"
+  if [[ -z "$db_volume" ]]; then
+    echo "No '$MYSQL_SERVICE' container and no MySQL data volume — first deploy. Skipping backup."
+    exit 0
+  fi
+  echo "ERROR: MySQL data volume '$db_volume' exists but the '$MYSQL_SERVICE' container is not running." >&2
+  echo "       Refusing to deploy without backing up existing database data." >&2
+  echo "       Start the database first, then re-run the deploy:" >&2
+  echo "         (cd \"$WOOSOO_PLATFORM_PATH\" && $WOOSOO_DOCKER_COMPOSE up -d $MYSQL_SERVICE)" >&2
+  exit 1
+fi
+
 BACKUP_FILE="$WOOSOO_BACKUP_DIR/db/${DB_NAME}_$(date +%F_%H%M%S).sql.gz"
 TEMP_SQL_FILE="${BACKUP_FILE%.gz}.tmp"
 TEMP_GZ_FILE="$BACKUP_FILE.tmp"

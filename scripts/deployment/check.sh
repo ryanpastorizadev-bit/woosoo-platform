@@ -112,11 +112,11 @@ check_tool() {
   fi
 }
 
-check_tool docker  "Install Docker Engine: https://docs.docker.com/engine/install/"
+# NOTE: docker / curl / ss tool-availability are validated by doctor.sh (which
+# runs as the deploy gate). Only the checks unique to check.sh live here — git,
+# openssl, and the "Docker engine actually reachable" probe below.
 check_tool git     "sudo apt install git"
 check_tool openssl "sudo apt install openssl"
-check_tool curl    "sudo apt install curl"
-check_tool ss      "sudo apt install iproute2"
 
 # Docker must be reachable (not just installed)
 if command -v docker >/dev/null 2>&1; then
@@ -136,9 +136,11 @@ fi
 # ── 4. TLS certificates ───────────────────────────────────────────────────────
 section "TLS certificates (docker/certs/)"
 
+# rootCA.crt presence is validated by doctor.sh (bootstrap-endpoint authority);
+# check.sh covers the unique TLS-serving cert pair + expiry only.
 _cert_dir="$ROOT/docker/certs"
 _certs_ok=true
-for _cf in fullchain.pem privkey.pem rootCA.crt; do
+for _cf in fullchain.pem privkey.pem; do
   if [[ -f "$_cert_dir/$_cf" ]]; then
     pass "cert present: $_cf"
   else
