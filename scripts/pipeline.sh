@@ -251,7 +251,7 @@ target_help() {
     pi        Production Pi deploy (requires root + woosoo.env)
     health    Dev health check
     logs      Tail all service logs
-    check     Preflight check
+    check     Preflight + env alignment check (auto-fixes config drift)
 
   Dev flags:
     --no-pull        Skip git pull
@@ -271,8 +271,20 @@ EOF
 
 target_dev() {
   cd "$PLATFORM_ROOT"
-  local total=7
+  local total=8
   pipeline_banner "dev"
+
+  # Step 0 — Preflight (always runs, before --from-step applies)
+  echo
+  echo -e "${_C_BOLD}[0/${total}]${_C_RESET} ${_C_CYAN}Preflight check + auto-fix${_C_RESET}"
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    bash "$SCRIPT_DIR/deployment/dev-preflight.sh" --dry-run
+  else
+    bash "$SCRIPT_DIR/deployment/dev-preflight.sh"
+  fi
+  echo
+  # Re-number total for subsequent steps to stay readable
+  total=7
 
   # 1 — Pull
   if (( NO_PULL )); then
@@ -403,7 +415,9 @@ target_logs() {
 target_check() {
   cd "$PLATFORM_ROOT"
   pipeline_banner "check"
-  pipeline_step 1 1 "Preflight check" bash "$SCRIPT_DIR/deployment/check.sh"
+  # Run dev preflight (auto-fix + env alignment) then env check
+  pipeline_step 1 2 "Dev preflight (auto-fix)" bash "$SCRIPT_DIR/deployment/dev-preflight.sh"
+  pipeline_step 2 2 "Environment check" bash "$SCRIPT_DIR/deployment/check.sh"
   pipeline_summary
 }
 
