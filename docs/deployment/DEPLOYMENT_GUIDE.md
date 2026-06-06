@@ -63,25 +63,29 @@ cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
 
-# 2. Create the root-owned config file
-sudo mkdir -p /etc/woosoo
-sudo cp /opt/woosoo/woosoo-platform/docs/deployment/examples/woosoo.env.example \
-        /etc/woosoo/woosoo.env
-sudo chmod 600 /etc/woosoo/woosoo.env
-sudo chown root:root /etc/woosoo/woosoo.env
+# 2. See what's still missing (no sudo; prints a FIX line for each item)
+bash scripts/deployment/check.sh
 
-# 3. Edit the config — see §3.2 for required values
-sudo nano /etc/woosoo/woosoo.env
+# 3. Generate the operator config ./woosoo.env (no sudo; written chmod 600).
+#    Re-runnable — confirm or edit each value. See §3.2 for required values.
+bash scripts/deployment/init-woosoo-env.sh
 
-# 4. Apply the config (writes woosoo-nexus/.env, installs dnsmasq,
-#    sets static IP, enables systemd services)
-cd /opt/woosoo/woosoo-platform
-sudo bash scripts/deployment/apply-woosoo-config.sh
+# 4. Full deploy. deploy-all.sh runs check -> backup -> deploy -> health
+#    (the doctor.sh gate runs inside deploy, right after config is written).
+#    The deploy step runs apply-woosoo-config.sh (installs dnsmasq, sets the
+#    static IP, writes woosoo-nexus/.env), hydrates deps, builds fresh, migrates,
+#    and starts the stack.
+sudo bash scripts/deployment/deploy-all.sh
 ```
 
-### 3.2 Required values in `/etc/woosoo/woosoo.env`
+> Prefer a root-owned system-path config instead of `./woosoo.env`? Copy the
+> template to `/etc/woosoo/woosoo.env` (mode 0640, root:root) — every script
+> checks `./woosoo.env` first, then falls back to `/etc/woosoo/woosoo.env`.
 
-These map to what `doctor.sh` validates. See the example file for the full
+### 3.2 Required values in `woosoo.env`
+
+These map to what `doctor.sh` validates (it rejects placeholder/empty secrets, so
+a deploy cannot proceed on default credentials). See the example file for the full
 list with comments.
 
 | Variable                    | Production value         | Notes                                  |
@@ -124,18 +128,32 @@ echo "Deploying branch: $WOOSOO_DEPLOY_BRANCH"
 sudo -E bash scripts/deployment/deploy-all.sh
 ```
 
-This runs `doctor → backup → deploy → health` in strict order and aborts on
-the first failure. The `deploy` step:
+This is the single CI-style command. It runs `check → backup → deploy → health`
+in strict order and aborts on the first failure (`check` is informational and
+never blocks). The `deploy` step itself runs:
 
-1. `git pull` on each app repo at `WOOSOO_*_BRANCH`
-2. Writes a pre-deploy snapshot to `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/`
-   (commits + `woosoo-nexus.env`) — this is the input `rollback-client.sh` uses
-3. `docker compose build` (only services with changed inputs rebuild)
-4. Runs `php artisan migrate --force` in a one-off container — before any
-   long-running service starts. A migration failure aborts the deploy so
-   queue workers and the scheduler never boot on a stale schema.
-5. `docker compose up -d --remove-orphans`
-6. Warms Laravel caches (config, route, view)
+1. `git pull` on each app repo at `WOOSOO_*_BRANCH` (with retry on transient
+   network failures) + a pre-deploy snapshot to
+   `/opt/woosoo/backups/update-YYYYMMDD-HHMMSS/` (the input `rollback-client.sh` uses)
+2. `apply-woosoo-config.sh` — writes `woosoo-nexus/.env` (and applies host/network
+   config), so the generated env exists before it is validated
+3. **Preflight gate** — `doctor.sh` (the hard gate; rejects placeholder/empty
+   secrets and config drift). Always runs, no skip flag. Everything below is gated on it.
+4. `docker compose build` (with retry). The tablet image is cache-busted by its
+   build sha so a UI update is never served stale; if the tablet code actually
+   moved, it is rebuilt `--no-cache`. PHP deps are hydrated (`composer install`)
+   onto the bind-mounted `woosoo-nexus` when `vendor/` is missing or `composer.lock`
+   changed; Vite assets build once
+5. `php artisan migrate --force` in a one-off container — before any long-running
+   service starts. A migration failure aborts the deploy so queue workers and the
+   scheduler never boot on a stale schema
+6. `docker compose up -d --remove-orphans`
+7. Warms Laravel caches (config, route, view)
+
+> The `doctor.sh` gate runs **inside** `deploy` (step 3), right after
+> `apply-woosoo-config.sh` writes `woosoo-nexus/.env` — so it validates the
+> generated env and is never blocked on a fresh machine where that file does not
+> exist yet.
 
 Tablets auto-update within ~1 minute of completion (see `production-docker.md`
 § "Tablet PWA auto-update").
@@ -228,7 +246,33 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   exec -T app php artisan migrate
 ```
 
-### 4.3 Dev: fast tablet UI iteration (no rebuild)
+### 4.3 Testing the deploy pipeline on WSL2 (staging-parity)
+
+Agents and operators who need to verify the deploy script flow before a Pi deploy
+can run a staging-parity test from WSL2.
+
+**Enter WSL from Windows cmd or PowerShell:**
+
+```cmd
+wsl
+cd ~/projects/woosoo-platform
+```
+
+**Run the full pipeline with the Pi-guard bypassed:**
+
+```bash
+bash scripts/deployment/init-woosoo-env.sh   # first time only — writes ./woosoo.env
+WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/deploy-all.sh
+```
+
+This is Scenario B2 from `docs/cases/infra-case-004-script-flow-unification.md`.
+It exercises every stage of `deploy-all.sh` (check → backup → deploy → health, with the
+`doctor.sh` gate inside deploy after config hydration) except Pi system mutations (nmcli,
+dnsmasq, systemd). See that case doc for the full overlap audit and what still requires Pi hardware.
+
+---
+
+### 4.4 Dev: fast tablet UI iteration (no rebuild)
 
 The production `tablet-pwa` service is a static `nuxi generate` image with
 no bind-mount. For instant hot-reload use the profile-gated dev service:

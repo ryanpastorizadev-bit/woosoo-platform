@@ -35,22 +35,50 @@ CONFIG_SCRIPT="$SCRIPT_DIR/apply-woosoo-config.sh"
 COMPOSE_CMD="${WOOSOO_DOCKER_COMPOSE:-docker compose --env-file ./woosoo-nexus/.env -f compose.yaml}"
 APP_SERVICE="${WOOSOO_APP_SERVICE:-app}"
 
+# Retry a flaky command (network pulls, dependency installs, image builds).
+# Usage: retry <max_attempts> <description> <command> [args...]
+retry() {
+  local max="$1" desc="$2"; shift 2
+  local attempt=1 rc=0
+  until "$@"; do
+    rc=$?
+    if (( attempt >= max )); then
+      echo "ERROR: ${desc} failed after ${max} attempt(s) (exit ${rc})." >&2
+      return "$rc"
+    fi
+    echo "WARN: ${desc} failed (attempt ${attempt}/${max}); retrying in 5s ..." >&2
+    sleep 5
+    attempt=$((attempt + 1))
+  done
+}
+
 # ── Guards ────────────────────────────────────────────────────────────────────
 if [[ $EUID -ne 0 ]]; then
   echo "ERROR: Run as root: sudo bash scripts/deployment/deploy.sh"
   exit 1
 fi
 
-if [[ ! -f /etc/woosoo/woosoo.env ]]; then
-  echo "ERROR: /etc/woosoo/woosoo.env not found."
-  echo "  See docs/deployment/production-docker.md."
-  exit 1
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$PLATFORM_ROOT/woosoo.env" ]]; then
+    export CONFIG_FILE="$PLATFORM_ROOT/woosoo.env"
+  elif [[ -f /etc/woosoo/woosoo.env ]]; then
+    export CONFIG_FILE="/etc/woosoo/woosoo.env"
+  else
+    echo "ERROR: no config file found."
+    echo "  Run: bash scripts/deployment/init-woosoo-env.sh"
+    exit 1
+  fi
 fi
 
 if [[ ! -f "$CONFIG_SCRIPT" ]]; then
   echo "ERROR: apply-woosoo-config.sh not found at $CONFIG_SCRIPT"
   exit 1
 fi
+
+# Validate the config before this root process (and the steps it runs) source it.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 cd "$PLATFORM_ROOT"
 
@@ -98,7 +126,7 @@ pull_repo() {
         echo "Proceeding with reset --hard..." >&2
       fi
     fi
-    git -C "$dir" fetch origin
+    retry 3 "git fetch ($name)" git -C "$dir" fetch origin
     git -C "$dir" checkout "$branch"
     git -C "$dir" reset --hard "origin/$branch"
     echo "OK: $name -> $(git -C "$dir" rev-parse --short HEAD)"
@@ -107,7 +135,7 @@ pull_repo() {
   fi
 }
 
-echo ">>> [1/6] Snapshot + pull app repos ..."
+echo ">>> [1/7] Snapshot + pull app repos ..."
 
 # Pre-deploy snapshot — written BEFORE git reset --hard so rollback-client.sh
 # can restore the pre-deploy state by SHA + .env. This is the rollback handle.
@@ -139,15 +167,58 @@ pull_repo "$TABLET_DIR" "$TABLET_BRANCH" "tablet-ordering-pwa"
 echo
 
 # ── Step 2: Apply config (writes correct values into woosoo-nexus/.env) ───────
-echo ">>> [2/6] Applying Pi5 config (apply-woosoo-config.sh) ..."
+echo ">>> [2/7] Applying Pi5 config (apply-woosoo-config.sh) ..."
 WOOSOO_RESTART_DOCKER=false bash "$CONFIG_SCRIPT"
 echo "OK: Config applied — woosoo-nexus/.env is authoritative for this host"
 echo
 
-# ── Step 3: Build Docker images + frontend assets ─────────────────────────────
-echo ">>> [3/6] Building Docker images ..."
-$COMPOSE_CMD build
+# ── Step 3: Preflight gate (unbypassable) ─────────────────────────────────────
+# doctor.sh validates operator secrets (rejects placeholder/empty) AND the compose
+# env — now that apply-woosoo-config.sh has WRITTEN woosoo-nexus/.env. It ALWAYS
+# runs (no skip flag) so the gate cannot be bypassed, and it runs HERE — after
+# config hydration — so a fresh Pi (no woosoo-nexus/.env yet) is never blocked
+# before the file doctor gates on exists. Build/migrate/up below run only if it passes.
+echo ">>> [3/7] Preflight gate (doctor.sh) ..."
+bash "$SCRIPT_DIR/doctor.sh"
+echo "OK: preflight passed"
+echo
+
+# ── Step 4: Build Docker images + frontend assets ─────────────────────────────
+echo ">>> [4/7] Building Docker images ..."
+
+# Tablet build metadata: consumed by compose tablet-pwa.build.args. Stamping the
+# real tablet HEAD makes /build-info.json reflect the deployed build (the tablet
+# auto-update mechanism depends on it) AND busts the nuxi-generate layer so a UI
+# change can never be served stale.
+TABLET_BUILD_SHA="$(git -C "$TABLET_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
+TABLET_BUILD_BRANCH="$(git -C "$TABLET_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+TABLET_BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export TABLET_BUILD_SHA TABLET_BUILD_BRANCH TABLET_BUILD_TIME
+
+# Belt-and-suspenders: if the tablet code actually moved since the pre-pull
+# snapshot, rebuild tablet-pwa with --no-cache so the UI is guaranteed fresh.
+_tablet_old="$(cat "$BACKUP_DIR/tablet-ordering-pwa.commit" 2>/dev/null || true)"
+if [[ -n "$_tablet_old" && "$_tablet_old" != "$TABLET_BUILD_SHA" && "$TABLET_BUILD_SHA" != "unknown" ]]; then
+  echo "  Tablet UI changed (${_tablet_old:0:7} -> ${TABLET_BUILD_SHA:0:7}); clean rebuild of tablet-pwa ..."
+  retry 3 "tablet-pwa clean build" $COMPOSE_CMD build --no-cache tablet-pwa
+fi
+
+retry 3 "docker compose build" $COMPOSE_CMD build
 echo "OK: Images built"
+
+# Hydrate PHP dependencies onto the bind-mounted host path. The image builds
+# vendor/ at image-build time, but the ./woosoo-nexus:/var/www/html bind-mount
+# shadows it with the host directory — on a fresh pull the running containers
+# (and the migrate step below) would otherwise have no vendor/. Idempotent:
+# skipped when vendor/ is present and composer.lock has not changed.
+if [[ ! -f "$NEXUS_DIR/vendor/autoload.php" || "$NEXUS_DIR/composer.lock" -nt "$NEXUS_DIR/vendor/autoload.php" ]]; then
+  echo "  Installing PHP dependencies (composer) ..."
+  retry 3 "composer install" $COMPOSE_CMD run --rm --no-deps "$APP_SERVICE" \
+    composer install --no-dev --optimize-autoloader --no-interaction
+  echo "OK: PHP dependencies installed"
+else
+  echo "OK: PHP dependencies already current"
+fi
 
 # Build Vite assets exactly once, here, because this deploy just pulled new code.
 # A one-off `run --rm app npm run build` writes the compiled bundle into the
@@ -157,7 +228,7 @@ echo "OK: Images built"
 # container restart stays fast and build-free. (Forcing via `up` instead would
 # bake the flag into the container and make restarts rebuild too.)
 echo "  Building frontend assets (one-off) ..."
-WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build
+retry 3 "vite build" env WOOSOO_FORCE_VITE_BUILD=true $COMPOSE_CMD run --rm app npm run build
 echo "OK: Frontend assets built"
 echo
 
@@ -166,7 +237,7 @@ echo
 # queue workers and scheduler boot on the updated schema, not the old one.
 # `docker compose run` respects depends_on service_healthy conditions, so
 # mysql and redis are guaranteed healthy before the migration executes.
-echo ">>> [4/6] Running database migrations ..."
+echo ">>> [5/7] Running database migrations ..."
 if $COMPOSE_CMD run --rm "$APP_SERVICE" php artisan migrate --force; then
   echo "OK: Migrations applied"
 else
@@ -176,7 +247,7 @@ fi
 echo
 
 # ── Step 5: Start / restart services ─────────────────────────────────────────
-echo ">>> [5/6] Starting services ..."
+echo ">>> [6/7] Starting services ..."
 # One-time cleanup: the nexus_build named volume was removed from compose.yaml;
 # drop the now-orphaned Docker volume. Idempotent — ignore error if absent/in-use.
 docker volume rm woosoo-nexus_nexus_build 2>/dev/null || true
@@ -185,7 +256,7 @@ echo "OK: Services started"
 echo
 
 # ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
-echo ">>> [6/6] Warming Laravel caches ..."
+echo ">>> [7/7] Warming Laravel caches ..."
 echo "  Waiting for $APP_SERVICE to be ready (up to 60s) ..."
 _app_ready=0
 for _i in $(seq 1 30); do
@@ -217,7 +288,7 @@ echo "========================================"
 $COMPOSE_CMD ps
 echo
 
-source /etc/woosoo/woosoo.env 2>/dev/null || true
+source "$CONFIG_FILE" 2>/dev/null || true
 WOOSOO_HOST="${WOOSOO_HOST:-<host>}"
 WOOSOO_SCHEME="${WOOSOO_SCHEME:-https}"
 

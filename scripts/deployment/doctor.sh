@@ -15,7 +15,21 @@
 # =============================================================================
 set -euo pipefail
 
-CONFIG_FILE="${CONFIG_FILE:-/etc/woosoo/woosoo.env}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$_PLATFORM_ROOT/woosoo.env" ]]; then
+    CONFIG_FILE="$_PLATFORM_ROOT/woosoo.env"
+  else
+    CONFIG_FILE="/etc/woosoo/woosoo.env"
+  fi
+fi
+
+# Validate the config before sourcing it (doctor runs under sudo via deploy/deploy-all).
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
+
 PASS=0
 WARN=0
 FAIL=0

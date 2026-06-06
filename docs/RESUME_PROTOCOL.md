@@ -32,7 +32,7 @@ header. Agents **rewrite it in full** when they finish their phase:
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
-- active_runner: claude-code
+- active_runner: <runner>   # claude-code | codex | copilot | cascade | cursor
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
 - updated: <YYYY-MM-DD HH:MM, or date if time unknown>

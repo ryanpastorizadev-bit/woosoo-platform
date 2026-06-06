@@ -1,29 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_FILE="/etc/woosoo/woosoo.env"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Config file: prefer woosoo.env in platform root, fall back to /etc/woosoo/
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$_PLATFORM_ROOT/woosoo.env" ]]; then
+    CONFIG_FILE="$_PLATFORM_ROOT/woosoo.env"
+  else
+    CONFIG_FILE="/etc/woosoo/woosoo.env"
+  fi
+fi
 
 if [[ $EUID -ne 0 ]]; then
   echo "Run as root: sudo bash scripts/deployment/apply-woosoo-config.sh"
   exit 1
 fi
 
-if [[ ! -f "$CONFIG_FILE" || -L "$CONFIG_FILE" ]]; then
-  echo "Missing regular config file: $CONFIG_FILE"
-  echo "Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first."
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "Missing config file: $CONFIG_FILE"
+  echo "Run: bash scripts/deployment/init-woosoo-env.sh"
   exit 1
 fi
 
-config_uid="$(stat -c '%u' "$CONFIG_FILE")"
-config_mode="$(stat -c '%a' "$CONFIG_FILE")"
-if [[ "$config_uid" != "0" ]]; then
-  echo "ERROR: $CONFIG_FILE must be owned by root (UID 0)." >&2
-  exit 1
-fi
-if (( (8#$config_mode & 0022) != 0 )); then
-  echo "ERROR: $CONFIG_FILE must not be writable by group or other users." >&2
-  exit 1
-fi
+# Validate the config before this root process sources it. The symlink /
+# ownership / group-other-writable checks now apply to BOTH ./woosoo.env and
+# /etc/woosoo/* — a root `source` of a user-writable file is a code-exec risk.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 set -a
 # shellcheck source=/dev/null
@@ -98,6 +104,39 @@ require_var WOOSOO_REVERB_APP_SECRET
 # Laravel app repo. docker compose + compose.yaml + docker/ live here.
 WOOSOO_PLATFORM_PATH="${WOOSOO_PLATFORM_PATH:-$(dirname "$WOOSOO_NEXUS_PATH")}"
 WOOSOO_APPLY_STATIC_IP="${WOOSOO_APPLY_STATIC_IP:-true}"
+
+# WOOSOO_ENV selects the environment profile: local | staging | production.
+# Default: production so existing deployments that do not set this value are unchanged.
+WOOSOO_ENV="${WOOSOO_ENV:-production}"
+case "$WOOSOO_ENV" in
+  local)
+    _APP_ENV="local"
+    _APP_DEBUG="true"
+    _LOG_LEVEL="debug"
+    ;;
+  staging)
+    _APP_ENV="staging"
+    _APP_DEBUG="false"
+    _LOG_LEVEL="info"
+    ;;
+  production)
+    _APP_ENV="production"
+    _APP_DEBUG="false"
+    _LOG_LEVEL="error"
+    ;;
+  *)
+    echo "ERROR: WOOSOO_ENV='${WOOSOO_ENV}' is not valid. Allowed values: local | staging | production" >&2
+    exit 1
+    ;;
+esac
+
+# SESSION_SECURE_COOKIE is derived from WOOSOO_SCHEME, not from WOOSOO_ENV.
+# https → true so the Secure flag is set; http → false for local dev over plain HTTP.
+if [[ "${WOOSOO_SCHEME}" == "https" ]]; then
+  _SESSION_SECURE_COOKIE="true"
+else
+  _SESSION_SECURE_COOKIE="false"
+fi
 WOOSOO_RESTART_DOCKER="${WOOSOO_RESTART_DOCKER:-true}"
 WOOSOO_DOCKER_COMPOSE="${WOOSOO_DOCKER_COMPOSE:-docker compose --env-file ./woosoo-nexus/.env -f compose.yaml}"
 WOOSOO_APP_SERVICE="${WOOSOO_APP_SERVICE:-app}"
@@ -117,7 +156,11 @@ safe_backup_file() {
   local file="$1"
   if [[ -f "$file" ]]; then
     mkdir -p "$WOOSOO_BACKUP_DIR/config"
-    cp "$file" "$WOOSOO_BACKUP_DIR/config/$(basename "$file").$(date +%F_%H%M%S).bak"
+    # The config backup dir holds secret-bearing files (.env). Keep it owner-only.
+    chmod 700 "$WOOSOO_BACKUP_DIR/config"
+    local dest="$WOOSOO_BACKUP_DIR/config/$(basename "$file").$(date +%F_%H%M%S).bak"
+    cp "$file" "$dest"
+    chmod 600 "$dest"
   fi
 }
 
@@ -237,6 +280,7 @@ echo "Gateway:       $WOOSOO_GATEWAY"
 echo "Nexus path:    $WOOSOO_NEXUS_PATH"
 echo "Platform path: $WOOSOO_PLATFORM_PATH"
 echo "Compose:       $WOOSOO_DOCKER_COMPOSE  (run from platform path)"
+echo "Environment:   $WOOSOO_ENV (APP_ENV=${_APP_ENV}, APP_DEBUG=${_APP_DEBUG}, LOG_LEVEL=${_LOG_LEVEL}, SESSION_SECURE_COOKIE=${_SESSION_SECURE_COOKIE})"
 echo
 
 install_packages_if_missing
@@ -356,8 +400,8 @@ set_env "PUBLIC_SCHEME" "$WOOSOO_SCHEME"
 set_env "PUBLIC_HOST" "$WOOSOO_HOST"
 set_env "PUBLIC_HTTP_PORT" "80"
 set_env "PUBLIC_HTTPS_PORT" "443"
-set_env "APP_ENV" "production"
-set_env "APP_DEBUG" "false"
+set_env "APP_ENV" "$_APP_ENV"
+set_env "APP_DEBUG" "$_APP_DEBUG"
 set_env "APP_URL" "${WOOSOO_SCHEME}://${WOOSOO_HOST}"
 # ASSET_URL intentionally left empty — assets use root-relative paths so the
 # admin panel works from any hostname or IP without cross-origin blocking.
@@ -408,7 +452,7 @@ set_env "VITE_REVERB_SCHEME" "$WOOSOO_SCHEME"
 # SESSION_DOMAIN left empty so the cookie is scoped to whatever host the
 # browser uses (woosoo.local or IP) instead of being locked to one hostname.
 set_env "SESSION_DOMAIN" ""
-set_env "SESSION_SECURE_COOKIE" "true"
+set_env "SESSION_SECURE_COOKIE" "$_SESSION_SECURE_COOKIE"
 set_env "SESSION_SAME_SITE" "lax"
 set_env "SANCTUM_STATEFUL_DOMAINS" "${WOOSOO_HOST},${WOOSOO_HOST}:443,${WOOSOO_HOST}:80,${WOOSOO_HOST}:4443,${WOOSOO_SERVER_IP},${WOOSOO_SERVER_IP}:443,${WOOSOO_SERVER_IP}:4443"
 set_env "CORS_ALLOWED_ORIGINS" "${WOOSOO_SCHEME}://${WOOSOO_HOST},http://${WOOSOO_HOST},${WOOSOO_SCHEME}://${WOOSOO_HOST}:4443"
@@ -418,7 +462,7 @@ set_env "CORS_ALLOWED_ORIGINS" "${WOOSOO_SCHEME}://${WOOSOO_HOST},http://${WOOSO
 # PublicOrigin (hostname only) and IP-based tablets fail the WS handshake.
 set_env "REVERB_ALLOWED_ORIGINS" "${WOOSOO_HOST},${WOOSOO_SERVER_IP}"
 set_env "DEVICE_AUTH_PASSCODE" "${WOOSOO_DEVICE_AUTH_PASSCODE:-}"
-set_env "LOG_LEVEL" "error"
+set_env "LOG_LEVEL" "$_LOG_LEVEL"
 
 # APP_KEY self-heal: a missing key sends Laravel into 500/502. Generate a
 # Laravel-compatible base64 key locally so deploy-all.sh can run on a fresh Pi
@@ -437,6 +481,10 @@ if ! grep -qE '^APP_KEY="?base64:.+' .env; then
     exit 1
   fi
 fi
+
+# Lock down the secret-bearing Laravel .env (DB password, DB root password,
+# APP_KEY, Reverb secret, POS password, device passcode). cwd is WOOSOO_NEXUS_PATH.
+chmod 600 .env
 
 CERT_DIR="$WOOSOO_PLATFORM_PATH/docker/certs"
 mkdir -p "$CERT_DIR"
