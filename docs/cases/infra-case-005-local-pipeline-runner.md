@@ -9,21 +9,37 @@ scope: woosoo-platform
 ## Run State
 - task_slug: infra-case-005-local-pipeline-runner
 - tier: 2
-- branch: agent/infra-005-local-pipeline-runner
-- status: COMPLETE
-- last_completed_agent: executioner
-- next_agent: done
-- active_runner: claude-code
+- branch: dev
+- status: IN_PROGRESS
+- last_completed_agent: specialist:infra
+- next_agent: verifier
+- active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-06
 
+## Specialist Investigation & Implementation
+
+**Bug (WSL operator report):** `woosoo dev` failed with
+`bash: /usr/local/bin/scripts/pipeline.sh: No such file or directory` when invoked via the
+`/usr/local/bin/woosoo` symlink from `scripts/install.sh`.
+
+**Root cause:** `run` used `dirname "${BASH_SOURCE[0]}"` without resolving symlinks. When `$0` is
+`/usr/local/bin/woosoo`, `PLATFORM_ROOT` became `/usr/local/bin` instead of the platform repo.
+
+**Fix:** Added `_resolve_platform_root()` in `run` — walks symlink chain with `readlink` before
+`exec` to `scripts/pipeline.sh`. `./run` from repo root unchanged.
+
+**Separate runtime issue (not fixed here):** `woosoo-nexus-reverb-1` unhealthy blocks nginx.
+Operator should run `docker compose logs reverb --tail=80` and fix Reverb boot before re-running
+`woosoo dev --no-pull --no-build --from-step 4`.
+
 ## Handoff
-- Phase in progress: none — COMPLETE.
-- Done so far: `scripts/lib/pipeline-ui.sh`, `scripts/pipeline.sh`, `./run`, `scripts/install.sh` created. One-command dev deploy: `woosoo dev`. DEPLOYMENT_GUIDE §4.1 updated. Case file created.
-- Exact next action (operator): `bash scripts/install.sh` to register `woosoo` command, then `woosoo dev --no-pull --no-build` to test pipeline against already-built images.
-- Working-tree state: all files committed to platform `dev`.
-- Risks / do-not-redo: Do not duplicate `deploy-all.sh` or `dev-docker-bootstrap.sh` — pipeline.sh delegates to them. Do not run `woosoo staging` or `woosoo pi` without `woosoo.env` configured.
+- Phase in progress: symlink fix landed; operator verify pending.
+- Done so far: pipeline runner shipped (a756deb); symlink fix in `run` (uncommitted).
+- Exact next action: operator `git pull` after commit; `woosoo dev --no-pull --no-build`; triage reverb if still unhealthy.
+- Working-tree state: `run` modified; case file updated.
+- Risks / do-not-redo: Do not duplicate `deploy-all.sh` or `dev-docker-bootstrap.sh`.
 
 ## Tier
 2 — operator tooling / dev experience. No app code changes.
@@ -84,7 +100,7 @@ Smart-skip for step 2: skips bootstrap if `.env` has `APP_ENV=local`, `APP_KEY` 
 ## Files Changed
 - `scripts/lib/pipeline-ui.sh` — created
 - `scripts/pipeline.sh` — created
-- `run` — created
+- `run` — created; symlink resolution fix (2026-06-06)
 - `scripts/install.sh` — created
 - `docs/cases/infra-case-005-local-pipeline-runner.md` — this file
 - `docs/deployment/DEPLOYMENT_GUIDE.md` §4.1 — `./run dev` as primary dev path
