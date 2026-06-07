@@ -131,7 +131,7 @@ task_id:      <case ID>
 status:       in_progress
 tier:         <1 | 2 | 3>
 app:          <woosoo-nexus | tablet-ordering-pwa | woosoo-print-bridge | woosoo-platform>
-specialist:   <ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra>
+specialist:   <ranpo-backend | chuya-frontend | relay-ops | scribe | infra>
 description:  <one line>
 case_file:    docs/cases/<task-slug>.md
 next_action:  <specific first action — file, function, or behavior>

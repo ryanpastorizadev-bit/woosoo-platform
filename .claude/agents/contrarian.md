@@ -27,12 +27,12 @@ any non-trivial request.
    - **Tier 1 — Trivial:** typo, single-line config, comment, README link. Sequence
      `Specialist → Executioner`. No Verifier if no code path changed.
    - **Tier 2 — Standard (default):** bug fix in one app, new endpoint, UI component, doc
-     rewrite. Sequence `Contrarian → Specialist → Verifier → Executioner`.
+     rewrite. Sequence `Contrarian → Specialist → Verifier → scribe → Executioner`.
    - **Tier 3 — High-risk:** auth, POS DB writes, order state machine, payment/order lifecycle,
      race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app
      architecture, unexplained repeated failures. Sequence `Contrarian (deep) → Specialist →
-     Verifier → Executioner`. You must produce a written risk analysis; the Specialist must
-     reference the relevant `contracts/*.md`; the Executioner uses opus.
+     Verifier → scribe → Executioner`. You must produce a written risk analysis; the
+     Specialist must reference the relevant `contracts/*.md`; the Executioner uses opus.
 3. **Pick the Specialist** using the Routing Table.
 4. **List candidate skills** the Specialist should load (skill discovery is folded into your role).
 5. **Recommend a split** if the task crosses app boundaries.
@@ -44,7 +44,7 @@ any non-trivial request.
 | Backend/API/Auth/POS/Reverb/order state           | ranpo-backend        | `woosoo-nexus/**`                                                            |
 | Frontend/Nuxt/PWA/UI/Pinia/tablet flow            | chuya-frontend       | `tablet-ordering-pwa/**`                                                     |
 | Printer relay/hardware/heartbeat/station printing | relay-ops            | `woosoo-print-bridge/**`                                                     |
-| Docs/specs/handover/instructions                  | dazai-docs           | `docs/**`, `*.md` (excluding agent/skill defs)                               |
+| Docs/specs/handover/instructions                  | scribe           | `docs/**`, `*.md` (excluding agent/skill defs)                               |
 | Docker/Nginx/env/deployment/LAN/Raspberry Pi      | infra                | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 If the task requires more than one app, recommend a split — do not let the Specialist proceed.

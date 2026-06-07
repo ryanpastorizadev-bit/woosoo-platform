@@ -30,8 +30,8 @@ Read this when you need the routing summary without loading the full AGENTS.md.
 | Tier | What it covers | Agent chain |
 |---|---|---|
 | **1 — Trivial** | Typo, single-line config, comment, README link, label change. No contract/auth/state/payment/print impact. | `Specialist → Executioner` |
-| **2 — Standard** | Bug fix, new endpoint, UI component, doc rewrite, API validation, local refactor. One app per task. | `Contrarian → Specialist → Verifier → Executioner` |
-| **3 — High-risk** | Order state machine, session lifecycle, payment/pricing, printing, auth/token, API contract change, Reverb/broadcasting, queue/scheduler, race conditions, DB migrations, cross-app, production deployment. | `Contrarian (written risk analysis) → Specialist → Verifier → Executioner` |
+| **2 — Standard** | Bug fix, new endpoint, UI component, doc rewrite, API validation, local refactor. One app per task. | `Contrarian → Specialist → Verifier → scribe → Executioner` |
+| **3 — High-risk** | Order state machine, session lifecycle, payment/pricing, printing, auth/token, API contract change, Reverb/broadcasting, queue/scheduler, race conditions, DB migrations, cross-app, production deployment. | `Contrarian (written risk analysis) → Specialist → Verifier → scribe → Executioner` |
 
 **When in doubt, escalate the tier. Never downgrade without written justification.**
 
@@ -63,7 +63,7 @@ If cross-app work is confirmed: return `SPLIT_REQUIRED`. Do not modify app code.
 | Backend / API / Auth / POS / Reverb / order state | ranpo-backend | `woosoo-nexus/**` |
 | Frontend / Nuxt / PWA / UI / Pinia / tablet flow | chuya-frontend | `tablet-ordering-pwa/**` |
 | Printer relay / hardware / heartbeat / station printing | relay-ops | `woosoo-print-bridge/**` |
-| Docs / specs / handover / orchestration | dazai-docs | `docs/**`, `*.md` (excl. agent/skill defs) |
+| Docs / specs / handover / orchestration | scribe | `docs/**`, `*.md` (excl. agent/skill defs) |
 | Docker / Nginx / env / deployment / LAN / Pi | infra | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 ---

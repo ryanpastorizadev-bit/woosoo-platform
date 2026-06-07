@@ -32,6 +32,8 @@ Return `SPLIT_REQUIRED` if the task modified — or needed to modify — more th
 an explicit, approved split.
 
 ## Return `REJECTED` if ANY of:
+- The Specialist was a code specialist (ranpo-backend / chuya-frontend / relay-ops / infra) but
+  no `## Documentation Sync` section was checkpointed in the case file.
 - The `## Success Criterion` section in the case file is blank or was not filled by the Contrarian.
 - The required sequence for the declared tier was skipped.
 - A Tier 3 task is missing the Contrarian written risk analysis.
