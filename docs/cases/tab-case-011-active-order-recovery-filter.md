@@ -24,9 +24,9 @@ scope: tablet-ordering-pwa
 - Queue alias: **TAB-CASE-011** (`state/QUEUE.md`) — display label only; **`task_slug` is the resume key**.
 - Done so far: `ACTIVE_ORDER_RECOVERY_STATUSES` + param aligned to Nexus `scopeActiveOrder`; recovery
   query includes `in_progress` and `served`.
-- Exact next action: Operator — commit tablet changes on `agent/tab-case-011-active-order-recovery-filter`
-  (currently uncommitted on local `dev`); merge PR to tablet `dev`.
-- Working-tree state: `stores/Order.ts`, `tests/active-order-recovery-status-filter.spec.ts` (uncommitted).
+- Exact next action: Operator — review and merge tablet PR #199 to `dev`.
+- Working-tree state: committed `a2644cd` on `agent/tab-case-011-active-order-recovery-filter`; PR
+  https://github.com/tech-artificer/tablet-ordering-pwa/pull/199 (merge pending).
 - Risks / do-not-redo: Do not invent new order states. Do not change the Nexus active scope.
 
 ## Tier
