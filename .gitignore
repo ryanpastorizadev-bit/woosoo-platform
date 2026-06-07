@@ -54,6 +54,10 @@ Thumbs.db
 *.swp
 .idea/
 
+# --- Obsidian (machine-local layout + downloaded plugins; config via scripts/obsidian-bootstrap.ps1) ---
+.obsidian/
+*.canvas
+
 # --- Independent app repos (managed as their own git repos / sibling model) ---
 # The platform repo is the orchestration/governance layer only.
 /woosoo-nexus/

@@ -60,6 +60,12 @@ The platform is split across four repos. Three vault strategies and why platform
 `docs/cases/` is the orchestration layer for all apps. Opening it in Obsidian here gives
 cross-app visibility without breaking Git integration.
 
+**Windows junction repair (required):** Obsidian scans the entire vault at startup — excluded
+folders in `app.json` do **not** prevent crash. Sibling repos may contain Docker/Linux junctions
+(e.g. `woosoo-nexus/public/storage` → `/var/www/html/...`) that cause `EACCES` on Windows.
+`scripts/obsidian-bootstrap.ps1` repairs known junctions before you open the vault. Re-run it
+after Docker dev sessions that recreate Linux paths.
+
 ---
 
 ## Core Features to Use
@@ -79,9 +85,26 @@ cross-app visibility without breaking Git integration.
 
 ---
 
+## Bootstrap (automated)
+
+From the platform root (PowerShell):
+
+```powershell
+.\scripts\obsidian-bootstrap.ps1
+```
+
+This installs six community plugins from GitHub releases, enables them in
+`.obsidian/community-plugins.json`, points Templater at `Templates/`, and sets Obsidian Git to
+**pull on boot** (no auto-push). Re-run after cloning the repo on a new machine.
+
+Then open Obsidian → **Open folder as vault** → `woosoo-platform/`. If prompted about community
+plugins, choose **Enable / Trust**.
+
+---
+
 ## Essential Plugins (Community)
 
-Enable via: Settings → Community Plugins → Browse
+Installed by `obsidian-bootstrap.ps1`. Manual install: Settings → Community Plugins → Browse
 
 | Plugin | Purpose |
 |---|---|
