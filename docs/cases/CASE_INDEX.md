@@ -21,5 +21,7 @@ SORT last_reviewed DESC
 
 ## Setup
 
+**Daily start:** [[OPERATOR_HOME]] (pin in Obsidian).
+
 See [obsidian-setup-guide.md](../obsidian-setup-guide.md) for vault setup, Templater, and Git sync.
 New cases: use `Templates/CASE_FILE.md` (Templater) or copy `docs/cases/_TEMPLATE.md` directly.

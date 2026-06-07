@@ -122,5 +122,12 @@ Install the **Obsidian Git** plugin and point it at this repo. Every save or tim
 auto-commits your vault edits — the same guarantee GitHub gives you, but accessible from
 inside Obsidian.
 
-**Start small:** open the vault, navigate to `docs/cases/`, wire up Dataview and Git first.
-Everything else layers on top.
+**Start small:** open the vault, pin **`docs/cases/OPERATOR_HOME.md`** as your daily landing
+page, wire up Dataview and Git. Everything else layers on top.
+
+### Daily workflow
+
+1. Open **OPERATOR_HOME** — embeds show `state/WORK`, stability priorities, Bucket B queue, KDS blockers
+2. Click through to the active case (`[[plt-case-stability-remediation]]`, etc.)
+3. Edit case files or queue rows as ops progress; commit via Git or Obsidian Git plugin
+4. Start or resume agents from Claude Code — they read the same files you edited
