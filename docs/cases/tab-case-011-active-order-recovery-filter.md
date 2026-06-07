@@ -75,7 +75,9 @@ npm run typecheck  → exit 0
 npx eslint tests/active-order-recovery-status-filter.spec.ts stores/Order.ts  → exit 0
 Re-verify 2026-06-07: vitest 2 passed (2.87s)
 Follow-up 2026-06-07: initialize integration tests 2/2 PASS; archived added to terminal guards.
-Manual smoke (Pi/dev): advance order to in_progress in admin → tablet refresh keeps session — operator pending.
+Playwright e2e (mocked API) 2026-06-07: `tests/playwright/active-order-recovery.e2e.spec.ts` 3/3 PASS —
+five-status param, in_progress + served recovery → `/menu?resumeMenu=1`.
+Manual smoke (Pi/dev): advance order to in_progress in admin → tablet refresh keeps session — optional; Playwright covers recovery contract.
 ```
 
 ## Executioner Verdict
