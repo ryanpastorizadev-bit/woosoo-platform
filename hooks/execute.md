@@ -19,6 +19,24 @@ If any check fails: stop. Report what is missing. Do not implement.
 
 ---
 
+## Specialist gates (mandatory)
+
+### Before first file edit
+
+Load `hooks/pre-edit-gate.md` and complete its output.
+
+- Do not modify any file until the gate is complete.
+- Record in case `## Proposed Fix` (Claude Code) or chat + checkpoint (Cursor).
+
+### After all edits, before Verifier
+
+Load `hooks/post-edit-review.md` and complete its output.
+
+- Include contract check and rollback in case `## Specialist Investigation & Implementation`.
+- Then proceed to **On implementation complete** below.
+
+---
+
 ## Context loading by tier
 
 ### Tier 1 — Trivial (≤ 5 files)

@@ -105,6 +105,11 @@ docs/cases/<slug>.md in the platform repo, and refresh ## Run State:
   status: IN_PROGRESS
   updated: <YYYY-MM-DD>
 If you cannot find the case file: STOP.
+
+PRE_EDIT — before first file edit: complete hooks/pre-edit-gate.md output in chat (files table,
+minimal patch, non-goals, risks). Do not edit until done.
+POST_EDIT — before checkpoint: complete hooks/post-edit-review.md output (behavior diff, contract
+check, rollback).
 ```
 
 ### Step-by-step
@@ -113,8 +118,8 @@ If you cannot find the case file: STOP.
    For Tier 1, run a minimal precheck: slug + case file + Run State — slug/resume discipline is never skipped.
 2. Read the case file's `## Contrarian Review` and `## Handoff` blocks — this is Cursor's brief.
 3. **Cursor:** open **`woosoo-platform.code-workspace`** (multi-root). Confirm branch `agent/<slug>`.
-4. **Cursor:** paste the mandatory session preamble above, filling in the active app boundary.
-   Then paste the Contrarian brief. Implement — editing only the active app's `<app>/**`.
+4. **Cursor:** paste preamble + Contrarian brief. Run **PRE_EDIT_GATE** before first edit. Implement
+   — editing only the active app's `<app>/**`. Run **POST_EDIT_REVIEW** before checkpoint.
 5. **Cursor:** final action — write Specialist checkpoint to `docs/cases/<slug>.md`.
    **Operator confirms the checkpoint is present before continuing.**
 6. **Operator:** `git diff` to review changes; stage specific files by path; commit.

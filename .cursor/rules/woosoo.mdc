@@ -94,6 +94,14 @@ You may run these as self-checks only — they are not a substitute for the Veri
 
 ---
 
+## Before First Edit
+
+Complete **PRE_EDIT_GATE** (`hooks/pre-edit-gate.md`): files table, minimal patch, non-goals, risk
+review. Do not edit until done. After edits, run **POST_EDIT_REVIEW** (`hooks/post-edit-review.md`)
+before the case checkpoint.
+
+---
+
 ## Mandatory Checkpoint (your last action)
 
 When you finish implementing, your **last action** must be to write the Specialist checkpoint to
