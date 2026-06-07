@@ -10,19 +10,19 @@ scope: woosoo-nexus
 - task_slug: nex-case-015-tablet-intent-payload-hardening
 - tier: 2
 - branch: agent/nex-case-015-tablet-intent-payload-hardening
-- status: IN_PROGRESS
-- last_completed_agent: verifier
-- next_agent: executioner
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-07
 
 ## Handoff
-- Phase in progress: Verifier PASS — ready for Executioner.
-- Done so far: Specialist implementation + full-suite verification on `agent/nex-case-015-tablet-intent-payload-hardening`.
-- Exact next action: Executioner verdict; merge [woosoo-nexus PR #178](https://github.com/tech-artificer/woosoo-nexus/pull/178) to `dev` after APPROVED; dazai-docs follow-up on `contracts/tablet-api.contract.md`.
-- Working-tree state: nexus `0ae8192` pushed; PR #178 open. Platform case checkpoint on `dev`.
+- Phase complete: COMPLETE / APPROVED.
+- Done so far: Intent-only whitelist in `StoreDeviceOrderRequest`; 447/447 tests PASS; merged PR #178 (`f3f79d8` on `dev`).
+- Exact next action: dazai-docs follow-up — update `contracts/tablet-api.contract.md` to mark NEX-CASE-015 enforced (separate docs task).
+- Working-tree state: landed nexus `dev` at `f3f79d8` (merge `0ae8192`).
 - Risks / do-not-redo: Do not change intent field names. Do not touch POS pricing/recalculation. Refill path (`RefillOrderRequest`) out of scope for this case.
 
 ## Specialist Investigation & Implementation
@@ -80,3 +80,7 @@ contract enforcement.
 `{ guest_count, package_id, items: [{ menu_id, quantity }] }` on the tablet order-submission
 route. Verified by a feature test sending a payload with extra pricing/modifier fields and
 asserting the extra fields are absent from the persisted `device_orders` row.
+
+## Executioner Verdict
+
+**APPROVED** 2026-06-07. Strip-only intent whitelist; 447/447 suite PASS; no pricing/POS logic touched; merged [PR #178](https://github.com/tech-artificer/woosoo-nexus/pull/178) to `dev` (`f3f79d8`). Contract doc update deferred to dazai-docs.

@@ -67,8 +67,8 @@ Current reality (verified against the working tree + `state/QUEUE.md`, 2026-06-0
 | **P0** | NEX-014 session-419 | **ops verify** (code merged) | re-apply config on Pi; confirm 419 gone |
 | **P1a** | #140 dup-print (NEX-011) | ops verify | Pi: BT-only print, one ticket/order; close #140 |
 | **P1b** | #136 Pi build (INFRA-003) | ops verify | Pi rebuild on wlan0 with merged `.npmrc`; close #136 if green |
-| **P1c** | TAB-CASE-011 | **bug (live UX)** | tablet active-order recovery filter omits `in_progress`/`served` |
-| **P2** | NEX-CASE-015 | contract hygiene | tablet route accepts client-sent `totals`/`prices` — ignore/reject |
+| **P1c** | TAB-CASE-011 | **bug (live UX)** | **COMPLETE** — landed tablet `dev` PR #199 + follow-up PR #201 |
+| **P2** | NEX-CASE-015 | contract hygiene | **COMPLETE** — intent-only strip merged nexus `dev` PR #178 |
 | **P2** | Docs #156 | docs | stale `relay-device/` paths in nexus `AI_ONBOARDING.md` |
 | **P3** | Dependabot safe bumps | hygiene | land on `dev` (not only `main`); test per bump |
 | **Deferred** | KDS #137/#143/#144; admin-display #145–#148; telemetry #152 | feature | after stability + B5 decisions locked |
@@ -134,7 +134,7 @@ Case file: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
 ### P1c — TAB-CASE-011 (tablet active-order recovery) — COMPLETE 2026-06-07
 
 - **Fixed:** `ACTIVE_ORDER_RECOVERY_STATUS_PARAM` now includes all five Nexus non-terminal statuses.
-- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; landed tablet `dev` PR #199.
+- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; landed tablet `dev` PR #199 + #201.
 
 ---
 

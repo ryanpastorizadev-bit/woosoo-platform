@@ -13,7 +13,8 @@ scope: ecosystem
 
 | Case ID | App | Completed | Verification Evidence | Executioner Verdict | Related Dep | Notes |
 |---|---|---|---|---|---|---|
-| TAB-CASE-011 | tablet-ordering-pwa | 2026-06-07 | Recovery filter five-status param; `active-order-recovery-status-filter.spec.ts` 2 PASS; typecheck PASS. Merged tablet PR #199 (`4b50b03` on `dev`). | APPROVED | none | Landed on tablet `dev`; KDS tablet blocker cleared. Pi stability still gates KDS backend. |
+| NEX-CASE-015 | woosoo-nexus | 2026-06-07 | `StoreDeviceOrderRequest` intent-only strip; 447/447 tests PASS. Merged PR #178 (`f3f79d8` on `dev`). | APPROVED | none | Contract doc follow-up: `tablet-api.contract.md` still queued for dazai-docs. |
+| TAB-CASE-011 | tablet-ordering-pwa | 2026-06-07 | Recovery filter five-status param; vitest 4 PASS + Playwright e2e 3 PASS. Merged tablet PR #199 (`4b50b03`) + #201 (`1d8579e` on `dev`). | APPROVED | none | Fully landed on tablet `dev`; KDS tablet blocker cleared. Pi stability still gates KDS backend. |
 | NEX-CASE-016 | woosoo-nexus | 2026-06-07 | `6293bd2` mock KDS UI; `KdsDisplayTest` 3/15 PASS (re-verified 2026-06-07); typecheck/lint/build + pre-merge-check OK per case. Tab A11+ device QA pending. | APPROVED | none | UI-only `/kds` — no backend writes, enum, or Echo. README also in commit (out of case scope). |
 | PLT-CASE-011 | woosoo-platform | 2026-06-07 | `12313ad` PRE_EDIT + POST_EDIT hooks; execute.md gates; USAGE_GUIDE + woosoo.mdc; hook existence re-verified. | APPROVED | none | Phase 1 specialist gates; Phase 2 audit playbooks deferred. |
 | PLT-CASE-ECOSYSTEM-DOCS-ACCURACY | woosoo-platform | 2026-06-07 | Docs-only gate: 8/8 truth checks PASS; stale-phrase scan clean on canonical set; compose 8 services + `NEXUS_PRINT_EVENTS_ENABLED` default false confirmed in source; commit `0574efe` on dev. | APPROVED | none | Ecosystem concept accuracy → `WOOSOO_ECOSYSTEM_OVERVIEW.md`, root README, AI_CONTEXT, sibling READMEs, portal README. |

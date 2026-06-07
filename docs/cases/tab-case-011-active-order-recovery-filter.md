@@ -24,8 +24,8 @@ scope: tablet-ordering-pwa
 - Queue alias: **TAB-CASE-011** (`state/QUEUE.md`) — display label only; **`task_slug` is the resume key**.
 - Done so far: `ACTIVE_ORDER_RECOVERY_STATUSES` + param aligned to Nexus `scopeActiveOrder`; recovery
   query includes `in_progress` and `served`.
-- Exact next action: none — landed on tablet `dev` via PR #199 (`4b50b03`).
-- Working-tree state: merged `a2644cd` → tablet `dev` at `4b50b03` (2026-06-07).
+- Exact next action: none — fully landed on tablet `dev` (PR #199 `4b50b03`, follow-up PR #201 `1d8579e`).
+- Working-tree state: integration + Playwright e2e + `archived` guard on tablet `dev` at `1d8579e`.
 - Risks / do-not-redo: Do not invent new order states. Do not change the Nexus active scope.
 
 ## Tier
