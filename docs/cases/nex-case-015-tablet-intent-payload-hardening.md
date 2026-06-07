@@ -11,18 +11,18 @@ scope: woosoo-nexus
 - tier: 2
 - branch: agent/nex-case-015-tablet-intent-payload-hardening
 - status: IN_PROGRESS
-- last_completed_agent: specialist:ranpo-backend (cursor)
-- next_agent: verifier
+- last_completed_agent: verifier
+- next_agent: executioner
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-07
 
 ## Handoff
-- Phase in progress: Specialist implementation complete; awaiting Verifier full-suite gate.
-- Done so far: `StoreDeviceOrderRequest` whitelists intent-only fields via `prepareForValidation()` + slim rules; tests added/updated.
-- Exact next action: Verifier run `php artisan test` on branch `agent/nex-case-015-tablet-intent-payload-hardening`; dazai-docs follow-up to remove NEX-CASE-015 gap note from `contracts/tablet-api.contract.md`.
-- Working-tree state: committed on `agent/nex-case-015-tablet-intent-payload-hardening` at woosoo-nexus (4 files). Unrelated local edits remain unstaged (`CertificatePathResolver.php`, `certificate.blade.php`).
+- Phase in progress: Verifier PASS — ready for Executioner.
+- Done so far: Specialist implementation + full-suite verification on `agent/nex-case-015-tablet-intent-payload-hardening`.
+- Exact next action: Executioner verdict; merge [woosoo-nexus PR #178](https://github.com/tech-artificer/woosoo-nexus/pull/178) to `dev` after APPROVED; dazai-docs follow-up on `contracts/tablet-api.contract.md`.
+- Working-tree state: nexus `0ae8192` pushed; PR #178 open. Platform case checkpoint on `dev`.
 - Risks / do-not-redo: Do not change intent field names. Do not touch POS pricing/recalculation. Refill path (`RefillOrderRequest`) out of scope for this case.
 
 ## Specialist Investigation & Implementation
@@ -46,6 +46,17 @@ Tests: 16 passed (49 assertions)
 **Branch note:** Committed on `agent/nex-case-015-tablet-intent-payload-hardening` (woosoo-nexus).
 
 **Contract doc:** `contracts/tablet-api.contract.md` still lists NEX-CASE-015 as queued — platform docs update deferred to dazai-docs after Executioner APPROVED.
+
+## Verification
+
+```text
+php artisan test
+Tests: 447 passed (1592 assertions)
+Duration: 165.60s
+Branch: agent/nex-case-015-tablet-intent-payload-hardening @ 0ae8192
+PR: https://github.com/tech-artificer/woosoo-nexus/pull/178
+Result: PASS
+```
 
 ## Tier
 2 — backend validation correctness. No order/print/payment logic; enforces an existing contract property.
