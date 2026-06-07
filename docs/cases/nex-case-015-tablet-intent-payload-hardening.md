@@ -11,19 +11,41 @@ scope: woosoo-nexus
 - tier: 2
 - branch: agent/nex-case-015-tablet-intent-payload-hardening
 - status: IN_PROGRESS
-- last_completed_agent: none
-- next_agent: contrarian
-- active_runner: claude-code
+- last_completed_agent: specialist:ranpo-backend (cursor)
+- next_agent: verifier
+- active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-06
+- updated: 2026-06-07
 
 ## Handoff
-- Phase in progress: none — queued, not started.
-- Done so far: Case registered from dev-branch audit (2026-06-06). Backlog entry in `state/QUEUE.md` (Bucket B-follow).
-- Exact next action: Contrarian to scope the fix — does `StoreDeviceOrderRequest` need explicit rejection rules, or is stripping extra fields in the FormRequest sufficient?
-- Working-tree state: no edits made.
-- Risks / do-not-redo: Do not change the intent-only payload fields (`guest_count`, `package_id`, `items`). Do not touch POS pricing or recalculation logic — that stays server-authoritative regardless.
+- Phase in progress: Specialist implementation complete; awaiting Verifier full-suite gate.
+- Done so far: `StoreDeviceOrderRequest` whitelists intent-only fields via `prepareForValidation()` + slim rules; tests added/updated.
+- Exact next action: Verifier run `php artisan test` on branch `agent/nex-case-015-tablet-intent-payload-hardening`; dazai-docs follow-up to remove NEX-CASE-015 gap note from `contracts/tablet-api.contract.md`.
+- Working-tree state: committed on `agent/nex-case-015-tablet-intent-payload-hardening` at woosoo-nexus (4 files). Unrelated local edits remain unstaged (`CertificatePathResolver.php`, `certificate.blade.php`).
+- Risks / do-not-redo: Do not change intent field names. Do not touch POS pricing/recalculation. Refill path (`RefillOrderRequest`) out of scope for this case.
+
+## Specialist Investigation & Implementation
+
+**Approach:** Strip (not 422-reject) unknown fields in `prepareForValidation()` using `$this->replace()` so only `guest_count`, `package_id`, and `items[{menu_id,quantity}]` reach validation and `$request->validated()`. Removed nullable rules for client pricing/modifier keys — they are no longer accepted at all.
+
+**Files changed (woosoo-nexus):**
+- `app/Http/Requests/StoreDeviceOrderRequest.php` — intent-only whitelist
+- `tests/Feature/DeviceOrderValidationTest.php` — asserts stripped `validated()` output
+- `tests/Feature/DeviceOrderIntentContractTest.php` — strip test added
+- `tests/Feature/DeviceOrderIntentPayloadHardeningTest.php` — HTTP test mocks `OrderService`, asserts expanded payload ignores client tampering and persisted order uses server totals
+
+**Self-check (2026-06-07):**
+```text
+php artisan test --filter="DeviceOrderValidationTest|DeviceOrderIntentContractTest|DeviceOrderIntentPayloadHardeningTest"
+Tests: 16 passed (49 assertions)
+```
+
+**Hygiene:** Deleted accidental untracked file `query` (garbage one-liner).
+
+**Branch note:** Committed on `agent/nex-case-015-tablet-intent-payload-hardening` (woosoo-nexus).
+
+**Contract doc:** `contracts/tablet-api.contract.md` still lists NEX-CASE-015 as queued — platform docs update deferred to dazai-docs after Executioner APPROVED.
 
 ## Tier
 2 — backend validation correctness. No order/print/payment logic; enforces an existing contract property.
