@@ -8,9 +8,8 @@ scope: ecosystem
 
 Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS
 (#137 + #143/#144). Authoritative backlog rows live in `state/QUEUE.md`; this document is the
-human-readable runbook and priority narrative. KDS implementation spec = deferred (see
-`state/QUEUE.md` KDS-EPIC row; Appendices B/C from the 2026-06-07 design session — not
-duplicated here).
+human-readable runbook and priority narrative. KDS implementation spec = deferred — see
+`docs/cases/kds-implementation-plan.md` and `state/QUEUE.md` KDS-EPIC row.
 
 ## Run State
 
@@ -217,3 +216,4 @@ that must read **`served → "Served"`** (Layer 2 kitchen), with the card droppe
 - NEX-014 case: `woosoo-nexus/docs/cases/nex-case-014-session-domain-login-419.md`
 - NEX-011 case: `woosoo-nexus/docs/cases/nex-case-011-duplicate-order-printing.md`
 - INFRA-003 case: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
+- KDS spec (deferred): `docs/cases/kds-implementation-plan.md`

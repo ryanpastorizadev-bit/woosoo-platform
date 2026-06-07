@@ -20,6 +20,10 @@ scope: tablet-ordering-pwa
 
 ## Handoff
 - Phase in progress: none — queued, not started.
+- Blocks: `kds-implementation-plan` (`docs/cases/kds-implementation-plan.md` lists this case in
+  `blocked_by` as `tab-case-011-active-order-recovery-filter`, not `TAB-CASE-011`).
+- Queue alias: **TAB-CASE-011** (`state/QUEUE.md` Bucket B-follow) — display label only;
+  **`task_slug` is the resume key**; never use the queue ID as a case filename or in `blocked_by`.
 - Done so far: Case registered from dev-branch audit (2026-06-06). Backlog entry in `state/QUEUE.md` (Bucket B-follow).
 - Exact next action: Contrarian to confirm the active scope mismatch against `DeviceOrder::scopeActiveOrder()` and scope the fix to `stores/Order.ts` only.
 - Working-tree state: no edits made.
