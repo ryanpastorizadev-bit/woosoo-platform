@@ -57,7 +57,7 @@ agent/<slug>
 ## Verification
 
 ## Documentation Sync
-<!-- Written by dazai-docs after Verifier PASS. States which docs were updated, or explicitly
+<!-- Written by scribe after Verifier PASS. States which docs were updated, or explicitly
      confirms no update was needed with a reason. Mandatory for code-specialist tasks. -->
 
 ## Executioner Verdict
