@@ -98,7 +98,7 @@ The agent **definitions** live only in `.claude/agents/*.md`. A single Claude Co
 each role in turn by invoking the matching subagent in `.claude/agents/<role>.md`.
 
 Role names used in `next_agent`: `contrarian`, `specialist:ranpo-backend`,
-`specialist:chuya-frontend`, `specialist:relay-ops`, `specialist:dazai-docs`,
+`specialist:chuya-frontend`, `specialist:relay-ops`, `specialist:scribe`,
 `specialist:infra`, `verifier`, `executioner`.
 
 A resuming session does not need the original session's chat history — the case file is

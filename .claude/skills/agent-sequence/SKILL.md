@@ -9,9 +9,11 @@ Mandatory order for every non-trivial task:
 
 ```txt
 1. Contrarian   — challenge the request, classify tier, decide path
-2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra)
+2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
 3. Verifier     — prove it works (tests / build / lint / health)
-4. Executioner  — final verdict gate
+4. scribe   — sync affected docs (mandatory when Specialist is a code specialist;
+                  skipped when Specialist IS scribe)
+5. Executioner  — final verdict gate
 ```
 
 First agent is always Contrarian. Last is always Executioner. A task is complete only when the
@@ -21,9 +23,9 @@ Executioner returns `APPROVED`.
 
 - **Tier 1 — Trivial:** `Specialist → Executioner`. Contrarian declares Tier 1 and exits. No
   Verifier if no code path changed.
-- **Tier 2 — Standard (default):** `Contrarian → Specialist → Verifier → Executioner`.
-- **Tier 3 — High-risk:** `Contrarian (deep) → Specialist → Verifier → Executioner`. Written
-  risk analysis required; Specialist references `contracts/*.md`; Executioner uses opus.
+- **Tier 2 — Standard (default):** `Contrarian → Specialist → Verifier → scribe → Executioner`.
+- **Tier 3 — High-risk:** `Contrarian (deep) → Specialist → Verifier → scribe → Executioner`.
+  Written risk analysis required; Specialist references `contracts/*.md`; Executioner uses opus.
 
 ## Branching
 
@@ -57,6 +59,7 @@ Every task must end with this block:
 - Contrarian:
 - Specialist:
 - Verifier:
+- Docs Sync:
 - Executioner:
 
 ## Files Changed

@@ -42,7 +42,7 @@ Every task flows through a **4-agent chain** (Contrarian → Specialist → Veri
 | Backend / API / Auth / POS / Reverb / order state | `ranpo-backend` (sonnet) | `woosoo-nexus/**` |
 | Frontend / Nuxt / PWA / UI / Pinia / tablet flow | `chuya-frontend` (sonnet) | `tablet-ordering-pwa/**` |
 | Printer relay / hardware / heartbeat / station | `relay-ops` (sonnet) | `woosoo-print-bridge/**` |
-| Docs / specs / handover / instructions | `dazai-docs` (haiku) | `docs/**`, root `*.md` |
+| Docs / specs / handover / instructions | `scribe` (haiku) | `docs/**`, root `*.md` |
 | Docker / Nginx / env / deployment / LAN / Pi | `infra` (sonnet) | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 **Hard limits enforced on every Specialist:**
@@ -291,7 +291,7 @@ yes / no — <which contract if yes>
 6. **Escalate Tier 3 proactively** — auth, POS DB writes, order state, payment, race conditions, prod deploy
 7. **Checkpoint before handing off** — every agent writes Run State to case file before control passes
 8. **Branch naming:** Tier 2/3 = `agent/<slug>`; never merge until `APPROVED`
-9. **Model policy is automatic** — haiku for Contrarian/Verifier/Dazai; sonnet for Specialists; opus for Executioner; escalate Specialist to opus only for security/race/payment
+9. **Model policy is automatic** — haiku for Contrarian/Verifier/Scribe; sonnet for Specialists; opus for Executioner; escalate Specialist to opus only for security/race/payment
 10. **Case file beats everything** — chat history, `state/WORK.md`, memory — all secondary to `docs/cases/<slug>.md`
 
 ---
@@ -314,7 +314,7 @@ inbox/RAW.md                        — untriaged raw issues
 .claude/agents/ranpo-backend.md     — Backend Specialist definition
 .claude/agents/chuya-frontend.md    — Frontend Specialist definition
 .claude/agents/relay-ops.md         — Print Bridge Specialist definition
-.claude/agents/dazai-docs.md        — Docs Specialist definition
+.claude/agents/scribe.md        — Docs Specialist definition
 .claude/agents/infra.md             — Infrastructure Specialist definition
 .claude/agents/verifier.md          — Verifier agent definition
 .claude/agents/executioner.md       — Executioner agent definition

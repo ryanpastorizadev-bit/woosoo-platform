@@ -161,7 +161,7 @@ not rot:
   before handing off. No checkpoint = the phase did not happen.
 - **Handover + `state/DONE.md`** — completion is recorded; knowledge is captured, not lost.
 - **Regression Lock** — a fixed defect gets a test, so it cannot silently return.
-- **Documentation-truth gate** — `dazai-docs` + `documentation-truth-audit` + the Executioner
+- **Documentation-truth gate** — `scribe` + `documentation-truth-audit` + the Executioner
   **reject** a task whose docs claim things the code doesn't do, link to missing files, or leave
   the case file unupdated. (This is what catches stale inventories and dead links.)
 - **Evidence-derived rules** — when a new failure mode appears, add a rule to the *Extended Rules

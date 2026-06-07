@@ -37,7 +37,7 @@ Woosoo is a **3-repository sibling model**, NOT a monorepo. Each app is independ
 | **woosoo-nexus** | `tech-artificer/woosoo-nexus` | Laravel 12 backend: admin UI, API, POS integration, Reverb broadcasting, print event orchestration | ranpo-backend specialist |
 | **Tablet Ordering PWA** | `tech-artificer/tablet-ordering-pwa` | Nuxt 3 SPA/PWA: customer-facing ordering, session recovery, Echo/Reverb client | chuya-frontend specialist |
 | **Print Bridge** | `woosoo-print-bridge/` | Flutter Android relay: WebSocket/polling intake, Bluetooth printer dispatch, ACK lifecycle | relay-ops specialist |
-| **woosoo-platform** | `ryanpastorizadev-bit/woosoo-platform` | Docker orchestration, cross-app contracts, AI agent OS, documentation authority, pre-merge gates | infra specialist / dazai-docs specialist |
+| **woosoo-platform** | `ryanpastorizadev-bit/woosoo-platform` | Docker orchestration, cross-app contracts, AI agent OS, documentation authority, pre-merge gates | infra specialist / scribe specialist |
 
 ### Deployment Topology
 
@@ -145,7 +145,7 @@ Provides a 4-agent workflow (run on Claude Code) that governs all code changes a
 
 ```
 1. Contrarian   ← Challenges the request, classifies risk/tier, decides path
-2. Specialist   ← Implements (ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra)
+2. Specialist   ← Implements (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
 3. Verifier     ← Runs tests, lint, build, and validates contract compliance
 4. Executioner  ← Final verdict gate (APPROVED | REJECTED | SPLIT_REQUIRED)
 ```
@@ -157,7 +157,7 @@ Provides a 4-agent workflow (run on Claude Code) that governs all code changes a
 | Backend/API/Auth/POS | ranpo-backend | `woosoo-nexus/**` | sonnet |
 | Frontend/Nuxt/UI | chuya-frontend | `tablet-ordering-pwa/**` | sonnet |
 | Printer relay/hardware | relay-ops | `woosoo-print-bridge/**` | sonnet |
-| Docs/specs/governance | dazai-docs | `docs/**`, `*.md` | haiku |
+| Docs/specs/governance | scribe | `docs/**`, `*.md` | haiku |
 | Docker/Nginx/deployment | infra | `docker/**`, `nginx/**`, `scripts/**`, `compose.yaml` | sonnet |
 
 **Triage tiers:**
@@ -400,7 +400,7 @@ These scripts wrap per-app validation commands and fail the merge gate if any te
 - **Docker Compose orchestration** — 8 services (Nginx, app, queue, scheduler, Reverb, MySQL, Redis, Tablet PWA), multi-port routing (80/443/4443)
 - **Nginx reverse proxy** — TLS termination, multi-host routing, CA certificate bootstrap endpoint, security headers
 - **Cross-app contract governance** — 5 canonical contract files (order-state, tablet-api, printer-relay, pos-db, auth-session), enforced in code review
-- **Lite 4-agent AI operating system** — Contrarian → Specialist → Verifier → Executioner; runs on Claude Code; 5 specialist roles (ranpo-backend, chuya-frontend, relay-ops, dazai-docs, infra)
+- **Lite 4-agent AI operating system** — Contrarian → Specialist → Verifier → Executioner; runs on Claude Code; 5 specialist roles (ranpo-backend, chuya-frontend, relay-ops, scribe, infra)
 - **9 workflow hooks** — work, status, intake, triage, execute, verify, review, unlock, handover
 - **Pre-merge validation gates** — `scripts/pre-merge-check.sh --app <name>` wraps per-app test/lint/build; blocks merge if any step fails
 - **Per-task case file system** — durable resume state (`docs/cases/<task-slug>.md`); survives interruption across sessions
@@ -445,4 +445,4 @@ Together, the Nexus BRD + this supplement provide the complete technical scope o
 
 **Document version:** 1.0  
 **Last updated:** 2026-05-27  
-**Reviewed by:** dazai-docs specialist (Haiku 4.5)
+**Reviewed by:** scribe specialist (Haiku 4.5)

@@ -56,6 +56,10 @@ agent/<slug>
 
 ## Verification
 
+## Documentation Sync
+<!-- Written by scribe after Verifier PASS. States which docs were updated, or explicitly
+     confirms no update was needed with a reason. Mandatory for code-specialist tasks. -->
+
 ## Executioner Verdict
 
 ## Remaining Risks
