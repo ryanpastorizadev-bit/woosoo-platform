@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-07
 scope: ecosystem
 ---
 
@@ -15,13 +15,13 @@ config surfaces, and harden WSL/Pi preflight messaging so `.env` changes are app
 - task_slug: infra-case-008-deployment-env-audit
 - tier: 2
 - branch: dev
-- status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-06
+- updated: 2026-06-07
 
 ## Specialist Investigation & Implementation
 
@@ -41,6 +41,8 @@ config surfaces, and harden WSL/Pi preflight messaging so `.env` changes are app
 
 ### Implementation
 
+Committed on `dev` as `9ec1502` (11 files):
+
 1. **`switch-network.sh`** — resolve `./woosoo.env` then `/etc/woosoo/woosoo.env` (match apply)
 2. **`init-woosoo-env.sh`** — prompt/write `HOME_DB_POS_*` and `RESTO_DB_POS_*`
 3. **`woosoo.env.example`** — document resto port 2121 vs home 3308
@@ -55,16 +57,41 @@ config surfaces, and harden WSL/Pi preflight messaging so `.env` changes are app
 
 Bundled with infra-case-007 POS host fixes (bootstrap, preflight probe, §4.1.2 initial doc).
 
+## Verifier Result
+
+**PASS** — 2026-06-07
+
+- `bash -n` clean on all 7 shell scripts: `switch-network.sh`, `init-woosoo-env.sh`,
+  `host-network.sh`, `dev-preflight.sh`, `check.sh`, `pipeline.sh`, `dev-docker-bootstrap.sh`
+- All 8 implementation claims (3a–3h) cross-checked against code at specific line refs
+- App-scoped `pre-merge-check` correctly N/A (platform scripts/docs only; no app-repo changes)
+
+## Executioner Verdict
+
+**APPROVED** — 2026-06-07
+
+Independent line-level re-verification of all 8 claims; scope, correctness, and security
+boundaries pass (chmod 600 secrets, password redaction in `init-woosoo-env.sh`, no auth
+weakening). Docs honest — `PUBLIC_HOST` tension between `apply` and `switch-network` documented,
+not over-claimed as automated.
+
 ## Handoff
 
 - Platform scripts/docs only; no app-repo changes
 - Pi `PUBLIC_HOST` policy (apply hostname vs switch-network LAN IP) documented — not automated
 - Nexus Tier 3 follow-up: queue/scheduler `system_settings` POS alignment (out of scope)
 
+### Non-blocking follow-ups (do not gate this case)
+
+- Operator: populate `HOME_DB_POS_PASSWORD` / `RESTO_DB_POS_PASSWORD` in live `woosoo.env`
+  before `switch-network.sh` on Pi (empty placeholders in example → `require_secret` abort)
+- Pi ops carry-forward: clear `SESSION_DOMAIN` + set `WOOSOO_ENV=production` in live `.env`
+  (nex-case-014); nexus Tier-3 queue/scheduler `system_settings` POS alignment
+
 ## Run State (checkpoint)
 
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
-- status: IN_PROGRESS
-- updated: 2026-06-06
+- status: COMPLETE
+- updated: 2026-06-07

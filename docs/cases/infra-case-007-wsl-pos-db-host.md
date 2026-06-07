@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-07
 scope: ecosystem
 ---
 
@@ -14,13 +14,13 @@ WSL dev admin POS pages fail with `Connection refused` on `pos` DB connection be
 - task_slug: infra-case-007-wsl-pos-db-host
 - tier: 2
 - branch: dev
-- status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-06
+- updated: 2026-06-07
 
 ## Problem
 
@@ -97,15 +97,31 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
 
 Windows: confirm Krypton listening — `netstat -an | findstr ":3308"`
 
+## Verifier Result
+
+**PASS** — 2026-06-07 (verified with infra-case-008 gate; shared commit `9ec1502`)
+
+- `dev-docker-bootstrap.sh`, `host-network.sh`, `dev-preflight.sh`, `pipeline.sh`, `check.sh`:
+  `bash -n` clean; POS host auto-fix and TCP probe claims verified at line refs
+- Operator WSL session confirmed POS TCP + Laravel PDO probe OK after `.env` align + recreate
+
+## Executioner Verdict
+
+**APPROVED** — 2026-06-07
+
+WSL `DB_POS_HOST` defaults and preflight auto-fix correct; no nexus code change; docs §4.1.2
+accurate. Operator manual steps (password, recreate, admin POS override check) documented.
+
 ## Handoff
 
 - Platform scripts/docs only; no `woosoo-nexus` code change
 - Nexus graceful "POS offline" on all admin routes remains out of scope (separate Tier 3 case)
+- Extended by infra-case-008 (deployment env audit) in same commit `9ec1502`
 
 ## Run State (checkpoint)
 
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
-- status: IN_PROGRESS
-- updated: 2026-06-06
+- status: COMPLETE
+- updated: 2026-06-07
