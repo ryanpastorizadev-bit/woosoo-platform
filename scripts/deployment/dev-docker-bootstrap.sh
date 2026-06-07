@@ -49,8 +49,11 @@ DEV_PUBLIC_SCHEME="${DEV_PUBLIC_SCHEME:-https}"
 DEV_SERVER_IP="${DEV_SERVER_IP:-$DEV_PUBLIC_HOST}"
 DEV_TIMEZONE="${DEV_TIMEZONE:-Asia/Manila}"
 
-# POS DB connection (krypton_woosoo on the same dev PC).
-DEV_POS_HOST="${DEV_POS_HOST:-host.docker.internal}"   # reach Windows host from container
+# POS DB connection (krypton_woosoo on the Windows host when using WSL2 Docker Engine).
+# WSL2 Docker Engine: host.docker.internal resolves to the WSL VM, not Windows — use the
+# detected Windows LAN IP (same as PUBLIC_HOST) so containers reach Krypton on :3308.
+# Docker Desktop on Windows: override with DEV_POS_HOST=host.docker.internal if that works.
+DEV_POS_HOST="${DEV_POS_HOST:-$DEV_PUBLIC_HOST}"
 DEV_POS_PORT="${DEV_POS_PORT:-3308}"
 DEV_POS_DATABASE="${DEV_POS_DATABASE:-krypton_woosoo}"
 DEV_POS_USERNAME="${DEV_POS_USERNAME:-krypton_readonly}"
@@ -204,7 +207,7 @@ set_env "DB_USERNAME"       "$DEV_DB_USERNAME"
 set_env "DB_PASSWORD"       "$DEV_DB_PASSWORD"
 set_env "DB_ROOT_PASSWORD"  "$DEV_DB_ROOT_PASSWORD"
 
-# POS DB (krypton_woosoo) — reach Windows host from container
+# POS DB (krypton_woosoo) — Windows LAN IP for WSL2 Docker Engine; override for Docker Desktop
 set_env "DB_POS_HOST"     "$DEV_POS_HOST"
 set_env "DB_POS_PORT"     "$DEV_POS_PORT"
 set_env "DB_POS_DATABASE" "$DEV_POS_DATABASE"

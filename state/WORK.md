@@ -8,27 +8,28 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-06-03 — Bucket A EMPTY; all stabilization gates cleared and merged to dev. -->
-<!-- Platform PR #36 (dev→staging) open; deploy docs and contract drift corrected. -->
+<!-- Last updated: 2026-06-07 — stability remediation runbook persisted; Pi Bucket B is the gate. -->
+<!-- Bucket A EMPTY; promotion unblocked. Active orchestration = plt-case-stability-remediation. -->
 
 ---
 
 ## Current Task
 
 ```yaml
-task_id:      promote-staging-main
+task_id:      plt-case-stability-remediation
 status:       in_progress
-tier:         3
-app:          ecosystem (governance / release)
-specialist:   claude-code (orchestration)
-branch:       dev → staging → main
-description:  Bucket A CLEAR — NEX-CASE-013 (+PR #160 detail-refresh), TAB-CASE-010, TAB-CASE-009,
-              INFRA-CASE-003 all APPROVED + merged to dev. Promote dev→staging→main across all repos.
-case_file:    (release) state/QUEUE.md is the authoritative backlog; no per-task case file
-next_action:  Platform: merge PR #36 (dev→staging) once review threads resolved; then staging→main.
-              App repos (nexus/tablet/print-bridge) are content-equivalent across dev/staging/main already.
-              Bucket B Pi ops are the remaining restaurant-rollout gate — see state/QUEUE.md.
-last_agent:   claude-code — 2026-06-03 — fixed runbook branch risk, contract drift, WORK.md stale gates.
+tier:         2
+app:          ecosystem (orchestration + Pi ops)
+specialist:   operator (Pi) | per-case specialists
+branch:       n/a (see sibling case branches in state/QUEUE.md)
+description:  Stabilize before KDS — Pi verify NEX-014/NEX-011/INFRA-003; then TAB-CASE-011,
+              NEX-CASE-015, docs #156. KDS deferred until gates green.
+case_file:    docs/cases/plt-case-stability-remediation.md
+next_action:  P0 Pi: NEX-014 re-apply config + verify 419 gone (code already on dev).
+              P1a/b Pi: NEX-011 BT-only smoke + INFRA-003 wlan0 rebuild; close #140/#136 if green.
+              Then schedule TAB-CASE-011 (tablet). Backlog rows: state/QUEUE.md.
+              KDS spec (deferred): docs/cases/kds-implementation-plan.md
+last_agent:   cursor — 2026-06-07 — Part A plan review + case file persistence.
 ```
 
 ## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->
@@ -56,11 +57,10 @@ none
 ## Last Agent
 
 ```
-role:         claude-code — 2026-06-03 — doc/governance fixes (this commit)
-left_off:     All Bucket A gates merged to dev. TAB-CASE-010 APPROVED (tablet PR #196, 2026-06-02).
-              NEX-CASE-013 APPROVED + merged (nexus PR #160 included). Platform PR #36 open (dev→staging).
-              Runbook WOOSOO_DEPLOY_BRANCH risk fixed. Contract drift for order.details.updated fixed.
-files_open:   state/QUEUE.md (Bucket B Pi ops pending)
+role:         cursor — 2026-06-07 — stability plan + KDS spec persisted to docs/cases/
+left_off:     plt-case-stability-remediation.md + kds-implementation-plan.md written; WORK.md
+              updated. Next = Pi operator P0 (NEX-014 verify).
+files_open:   docs/cases/plt-case-stability-remediation.md, docs/cases/kds-implementation-plan.md
 ```
 
 ## On Completion of Next Task

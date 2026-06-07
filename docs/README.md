@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-18
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -11,8 +11,9 @@ This is the canonical entry point for all Woosoo platform documentation. Only do
 ## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
+- [WOOSOO_ECOSYSTEM_OVERVIEW.md](WOOSOO_ECOSYSTEM_OVERVIEW.md) — **ecosystem map**: all five components, delivered vs prototype, flows, naming
 - [AI_CONTEXT.md](AI_CONTEXT.md) — Business and architecture context
-- [WOOSOO_DOCUMENT_CONTEXT.md](WOOSOO_DOCUMENT_CONTEXT.md) — Concise context for the platform, Nexus, Tablet PWA, and Print Bridge
+- [WOOSOO_DOCUMENT_CONTEXT.md](WOOSOO_DOCUMENT_CONTEXT.md) — Concise context for the platform, Nexus, Tablet PWA, Print Bridge, and Portal
 
 ## Agent operating system (Lite, 4-agent)
 
@@ -46,6 +47,7 @@ Authoritative cross-app contracts. Implementation must be verified against actua
 - [printer-relay.contract.md](../contracts/printer-relay.contract.md) — heartbeat & print idempotency
 - [pos-db.contract.md](../contracts/pos-db.contract.md) — POS DB access safety
 - [auth-session.contract.md](../contracts/auth-session.contract.md) — Sanctum/device auth boundaries
+- [websocket-events.contract.md](../contracts/websocket-events.contract.md) — Reverb channels and `broadcastAs` event map
 
 ## Business Requirements Documents
 
@@ -79,7 +81,20 @@ claim against live source and contracts before relying on those older audit file
 
 ## Deployment
 
-Docker orchestration authority is the **platform repo root** (3-repo sibling model).
+## Ecosystem components (5 repos)
+
+Production runs as sibling repos orchestrated from this platform root. See
+[WOOSOO_ECOSYSTEM_OVERVIEW.md](WOOSOO_ECOSYSTEM_OVERVIEW.md) for delivery status and flows.
+
+| Component | Path / repo |
+| --- | --- |
+| Platform (this repo) | `ryanpastorizadev-bit/woosoo-platform` |
+| Nexus | `woosoo-nexus/` → `tech-artificer/woosoo-nexus` |
+| Tablet PWA | `tablet-ordering-pwa/` → `tech-artificer/tablet-ordering-pwa` |
+| Print Bridge | `woosoo-print-bridge/` → `tech-artificer/woosoo-print-bridge` |
+| Owner portal | `ryanpastorizadev-bit/woosoo-portal` (UI prototype; local dev often `woosoo-cloud-portal`) |
+
+Docker orchestration authority is the **platform repo root** (sibling model — not a monorepo).
 
 - [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state

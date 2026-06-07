@@ -64,7 +64,7 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
-| P2 | TAB-CASE-011 | tablet-ordering-pwa | Active-order recovery filter (`stores/Order.ts` ~line 807) only includes `pending,confirmed,ready` — missing `in_progress` and `served` which Nexus includes as non-terminal (`DeviceOrder.php` active scope). Fix: include all backend non-terminal states + add recovery test | 2 | none | queued | — |
+| P2 | TAB-CASE-011 | tablet-ordering-pwa | Active-order recovery filter (`stores/Order.ts` ~line 807) only includes `pending,confirmed,ready` — missing `in_progress` and `served` which Nexus includes as non-terminal (`DeviceOrder.php` active scope). Fix: include all backend non-terminal states + add recovery test. Case: `tab-case-011-active-order-recovery-filter.md` | 2 | none | queued | — |
 | P2 | NEX-CASE-015 | woosoo-nexus | `StoreDeviceOrderRequest` accepts client-sent `totals`, `prices`, `discounts`, `ordered_menu_id`, and modifier fields. Tablet sends intent-only payload; backend should ignore or reject these fields for the tablet route to enforce POS-authoritative pricing | 2 | none | queued | — |
 
 ### Bucket C — Deferred (post-stabilization features; do NOT gate any promotion)
@@ -72,7 +72,7 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
 | P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration — **deferred by priority, not dep-blocked** (DEP-001/002/003 all `confirmed`) | 3 | none (deps confirmed) | deferred | — |
-| P3 | KDS-EPIC | woosoo-nexus | Kitchen Display System v1.0 (PR-0A…PR-7) | 3 | none | deferred | #137,#143,#144,#145,#146,#147,#148 |
+| P3 | KDS-EPIC | woosoo-nexus | Kitchen Display System v1.0 (PR-0A…PR-7). Spec: `docs/cases/kds-implementation-plan.md`. Gate: complete plt-case-stability-remediation Pi ops first | 3 | none | deferred | #137,#143,#144,#145,#146,#147,#148 |
 | P3 | — | woosoo-nexus | Device telemetry feature (battery/online detail) | 2 | none | deferred | #152 |
 | P3 | — | tablet-ordering-pwa | POS→tablet discount sync & active-order hydration | 2 | none | deferred | #184 |
 | P4 | — | woosoo-print-bridge | Exclude side items from print; larger receipt text | 2 | none | deferred | #30 |

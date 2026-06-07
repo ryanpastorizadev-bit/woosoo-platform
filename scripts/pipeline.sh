@@ -128,6 +128,12 @@ _dev_bootstrap_needed() {
   # SESSION_DOMAIN must be empty
   local sd; sd="$(grep -E '^SESSION_DOMAIN=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || echo '')"
   [[ -n "$sd" ]] && return 0
+  # WSL: host.docker.internal does not reach Krypton on Windows — re-bootstrap POS host
+  if grep -qiE 'microsoft|WSL' /proc/version 2>/dev/null || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+    if grep -qE '^DB_POS_HOST=.*host\.docker\.internal' "$_env_file" 2>/dev/null; then
+      return 0
+    fi
+  fi
   return 1  # all checks passed — skip bootstrap
 }
 
@@ -251,6 +257,22 @@ _dev_health() {
     fi
   elif [[ -z "$pub_host" ]]; then
     echo -e "  ${_C_YELLOW}⚠${_C_RESET}  PUBLIC_HOST unset — using localhost only. Run: woosoo network"
+    _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+  fi
+
+  # POS DB TCP probe (WARN only — admin POS pages need Krypton on Windows :3308)
+  # shellcheck source=scripts/lib/host-network.sh
+  source "$SCRIPT_DIR/lib/host-network.sh"
+  export HOST_NETWORK_NEXUS_ENV="$_env_file"
+  export WOOSOO_POS_DC_CMD="$DC"
+  local pos_host pos_port
+  pos_host="$(grep -E '^DB_POS_HOST=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+  pos_port="$(grep -E '^DB_POS_PORT=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+  pos_port="${pos_port:-3308}"
+  if woosoo_check_pos_db_connectivity; then
+    echo -e "  ${_C_GREEN}✓${_C_RESET}  POS DB reachable (${pos_host:-?}:${pos_port})"
+  else
+    echo -e "  ${_C_YELLOW}⚠${_C_RESET}  POS DB not reachable — admin POS pages will fail. See DEPLOYMENT_GUIDE §4.1.2"
     _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
   fi
 

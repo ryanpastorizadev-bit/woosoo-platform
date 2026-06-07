@@ -257,17 +257,19 @@ echo
 
 # ── Step 6: Warm Laravel caches ──────────────────────────────────────────────
 echo ">>> [7/7] Warming Laravel caches ..."
-echo "  Waiting for $APP_SERVICE to be ready (up to 60s) ..."
+DEPLOY_READY_ATTEMPTS=90
+DEPLOY_READY_DELAY=2
+echo "  Waiting for $APP_SERVICE to be ready (up to $((DEPLOY_READY_ATTEMPTS * DEPLOY_READY_DELAY))s) ..."
 _app_ready=0
-for _i in $(seq 1 30); do
+for _i in $(seq 1 "$DEPLOY_READY_ATTEMPTS"); do
   if $COMPOSE_CMD exec -T "$APP_SERVICE" php artisan --version >/dev/null 2>&1; then
     _app_ready=1
     break
   fi
-  sleep 2
+  sleep "$DEPLOY_READY_DELAY"
 done
 if [[ "$_app_ready" -ne 1 ]]; then
-  echo "ERROR: $APP_SERVICE is not ready after 60s; aborting deploy." >&2
+  echo "ERROR: $APP_SERVICE is not ready after $((DEPLOY_READY_ATTEMPTS * DEPLOY_READY_DELAY))s; aborting deploy." >&2
   $COMPOSE_CMD logs --tail=200 "$APP_SERVICE" || true
   exit 1
 fi
