@@ -120,6 +120,8 @@ Documents in `docs/archive/` and per-app `docs/archive/` directories are histori
 
 ## Tooling
 
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: open this repo as vault root;
+  `docs/cases/CASE_INDEX.md` (Dataview), `Templates/CASE_FILE.md` (Templater)
 - `scripts/pre-merge-check.sh` — Bash pre-merge validation
 - `scripts/pre-merge-check.ps1` — PowerShell wrapper for Windows
 - `scripts/case-status.sh` / `scripts/case-status.ps1` — print/update the `## Run State` block

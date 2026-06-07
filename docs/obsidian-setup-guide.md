@@ -96,81 +96,23 @@ Enable via: Settings → Community Plugins → Browse
 
 ## Dataview Example
 
-Case file frontmatter uses `status`, `last_reviewed`, and `scope`. Paste this in any note
-for a live index of recently-reviewed cases:
-
-````
-```dataview
-TABLE last_reviewed, scope
-FROM "docs/cases"
-WHERE status = "canonical"
-SORT last_reviewed DESC
-```
-````
+Open `docs/cases/CASE_INDEX.md` for a live Dataview index of canonical cases. Case file
+frontmatter uses `status`, `last_reviewed`, and `scope`.
 
 > Note: task-level run state (IN_PROGRESS, BLOCKED, COMPLETE) lives in the `## Run State`
 > body section of each case file, not in YAML frontmatter. Dataview cannot query it directly.
-> Use the `status` view in `state/WORK.md` for live run state.
+> Use `state/WORK.md` and `state/QUEUE.md` for live orchestration status.
 
 ---
 
 ## Templater — Case File Template
 
-Create `Templates/CASE_FILE.md`. This mirrors `docs/cases/_TEMPLATE.md` so Obsidian-created
-cases are immediately compatible with the agent chain:
+`Templates/CASE_FILE.md` is committed in this repo. It mirrors `docs/cases/_TEMPLATE.md` so
+Obsidian-created cases are immediately compatible with the agent chain. In Templater settings,
+set the templates folder to `Templates/` at the vault root.
 
-```markdown
----
-status: canonical
-last_reviewed: <% tp.date.now("YYYY-MM-DD") %>
-scope: ecosystem
----
-
-# CASE: <slug>
-
-## Run State
-- task_slug:
-- tier:
-- branch:
-- status: IN_PROGRESS
-- last_completed_agent: none
-- next_agent: contrarian
-- active_runner: claude-code
-- interrupted: false
-- interrupt_reason: none
-- updated: <% tp.date.now("YYYY-MM-DD HH:mm") %>
-
-## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state:
-- Risks / do-not-redo:
-
-## Tier
-
-## Branch
-
-## Problem
-
-## Contrarian Review
-
-## Success Criterion
-
-## Investigation
-
-## Root Cause
-
-## Proposed Fix
-
-## Files Changed
-
-## Verification
-
-## Executioner Verdict
-
-## Remaining Risks
-```
+To create a new case from Obsidian: Templater → Create new note from template → `CASE_FILE.md`,
+then save as `docs/cases/<task-slug>.md`.
 
 ---
 
