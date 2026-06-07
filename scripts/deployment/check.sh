@@ -182,8 +182,13 @@ elif [[ -f /etc/woosoo/woosoo.env ]]; then
   _cfg="/etc/woosoo/woosoo.env"
   pass "woosoo.env found: /etc/woosoo/woosoo.env"
 else
-  fail "woosoo.env not found (neither $ROOT/woosoo.env nor /etc/woosoo/woosoo.env)"
-  fix "bash $ROOT/scripts/deployment/init-woosoo-env.sh"
+  if [[ "$_is_wsl" == "true" ]]; then
+    warn "woosoo.env not found — optional on WSL2 dev (uses woosoo-nexus/.env from dev-docker-bootstrap)"
+    info "For staging-parity on WSL: bash $ROOT/scripts/deployment/init-woosoo-env.sh"
+  else
+    fail "woosoo.env not found (neither $ROOT/woosoo.env nor /etc/woosoo/woosoo.env)"
+    fix "bash $ROOT/scripts/deployment/init-woosoo-env.sh"
+  fi
 fi
 
 # Check for placeholder credentials in woosoo.env
@@ -217,8 +222,14 @@ if [[ -f "$ROOT/woosoo-nexus/.env" ]]; then
   if [[ "$_appkey" == base64:* ]] && [[ ${#_appkey} -gt 30 ]]; then
     pass "APP_KEY is set"
   else
-    fail "APP_KEY is missing or not a base64 key"
-    fix "After containers are up: docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec -T app php artisan key:generate --force"
+    _app_env="$(grep -E '^APP_ENV=' "$ROOT/woosoo-nexus/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+    if [[ "$_is_wsl" == "true" && "$_app_env" == "local" ]]; then
+      warn "APP_KEY missing — normal before first woosoo dev (pipeline generates it)"
+      fix "woosoo dev   (or: docker compose ... exec -T app php artisan key:generate --force)"
+    else
+      fail "APP_KEY is missing or not a base64 key"
+      fix "After containers are up: docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec -T app php artisan key:generate --force"
+    fi
   fi
 else
   fail "woosoo-nexus/.env missing"
@@ -275,7 +286,11 @@ if [[ -n "$_running" ]]; then
   pass "running: $_running"
 else
   info "no containers running"
-  info "To start: WOOSOO_ALLOW_NON_PI=true sudo -E bash $ROOT/scripts/deployment/deploy-all.sh"
+  if [[ "$_is_wsl" == "true" ]]; then
+    fix "woosoo dev   (WSL daily dev — no sudo)"
+  else
+    info "To start: WOOSOO_ALLOW_NON_PI=true sudo -E bash $ROOT/scripts/deployment/deploy-all.sh"
+  fi
 fi
 
 # ── 10. Port conflicts ────────────────────────────────────────────────────────
@@ -296,8 +311,9 @@ done
 if [[ "$_is_wsl" == "true" ]]; then
   section "WSL2 notes"
   info "Pi-specific checks (static IP, dnsmasq, systemd, nmcli) are skipped on WSL2."
-  info "To deploy on WSL2: WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/deploy-all.sh"
-  info "To deploy on Pi:   sudo bash scripts/deployment/deploy-all.sh"
+  info "Daily WSL dev: woosoo dev   (bootstrap + build + migrate + health)"
+  info "Staging-parity on WSL: WOOSOO_ALLOW_NON_PI=true sudo -E bash scripts/deployment/deploy-all.sh"
+  info "Production Pi: sudo bash scripts/deployment/deploy-all.sh"
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────

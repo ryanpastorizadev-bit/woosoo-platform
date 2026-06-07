@@ -4,8 +4,9 @@
 # =============================================================================
 # Sourced by dev-preflight.sh, pipeline.sh (woosoo network), dev-docker-bootstrap.
 #
-# Passive (woosoo dev):  woosoo_check_public_host_drift, woosoo_check_tls_san
+# Passive (woosoo dev):  woosoo_check_public_host_drift, woosoo_check_tls_san, woosoo_check_pos_db_host
 # Active (woosoo network): woosoo_sync_public_host, woosoo_ensure_lan_access, woosoo_verify_lan_reachability
+# Health (woosoo health): woosoo_check_pos_db_connectivity (WARN-only TCP probe via WOOSOO_POS_DC_CMD)
 # Opt-in auto-sync:       WOOSOO_AUTO_SYNC=1 in dev-preflight
 #
 # WSL ↔ Windows boundary: read woosoo-nexus/.env only on the WSL/bash side.
@@ -44,6 +45,12 @@ _hn_info() {
 
 _hn_sync_log() {
   printf '[SYNC] %s\n' "$*" >&2
+}
+
+# Print operator steps after woosoo-nexus/.env mutation (env_file baked at container create).
+woosoo_print_nexus_env_reload_steps() {
+  printf '       Recreate: docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d --force-recreate app queue scheduler reverb\n' >&2
+  printf '       Clear cache: docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec -T app php artisan optimize:clear\n' >&2
 }
 
 # ── woosoo_detect_runtime ─────────────────────────────────────────────────────
@@ -233,6 +240,7 @@ woosoo_sync_public_host() {
     _hn_env_set REVERB_ALLOWED_ORIGINS "$new_ip"
   fi
 
+  woosoo_print_nexus_env_reload_steps
   return 0
 }
 
@@ -320,6 +328,113 @@ woosoo_verify_lan_reachability() {
   fi
 
   return $ok
+}
+
+# ── woosoo_recommended_pos_db_host ─────────────────────────────────────────────
+# Dev default for DB_POS_HOST. WSL → Windows LAN IP; native/Docker Desktop → host.docker.internal.
+woosoo_recommended_pos_db_host() {
+  local runtime ip
+  runtime="$(woosoo_detect_runtime)"
+  case "$runtime" in
+    wsl)
+      ip="$(_hn_env_get PUBLIC_HOST)"
+      if [[ -z "$ip" ]]; then
+        ip="$(woosoo_detect_lan_ip 2>/dev/null || true)"
+      fi
+      echo "$ip"
+      ;;
+    *)
+      echo "host.docker.internal"
+      ;;
+  esac
+}
+
+# ── woosoo_check_pos_db_host ───────────────────────────────────────────────────
+# WARN or auto-fix DB_POS_HOST=host.docker.internal on WSL (wrong target for Krypton on Windows).
+# Set HOST_NETWORK_DRY_RUN=1 to skip writes. Returns 0 if OK, 1 if drift remains.
+woosoo_check_pos_db_host() {
+  local current recommended runtime dry
+  current="$(_hn_env_get DB_POS_HOST)"
+  runtime="$(woosoo_detect_runtime)"
+  dry="${HOST_NETWORK_DRY_RUN:-0}"
+
+  if [[ "$runtime" != "wsl" ]]; then
+    return 0
+  fi
+
+  recommended="$(woosoo_recommended_pos_db_host)"
+  if [[ -z "$recommended" ]]; then
+    _hn_warn "Cannot recommend DB_POS_HOST — PUBLIC_HOST and LAN IP detection both failed"
+    return 1
+  fi
+
+  if [[ "$current" == "$recommended" ]]; then
+    return 0
+  fi
+
+  if [[ "$current" == "host.docker.internal" || -z "$current" ]]; then
+    _hn_warn "DB_POS_HOST=${current:-empty} — WSL dev must use Windows LAN IP ($recommended), not host.docker.internal"
+    if [[ "$dry" == "1" ]]; then
+      _hn_info "DRY-RUN: would set DB_POS_HOST=$recommended in woosoo-nexus/.env"
+      return 1
+    fi
+    if grep -qE '^DB_POS_HOST=' "$_NEXUS_ENV" 2>/dev/null; then
+      sed -i "s|^DB_POS_HOST=.*|DB_POS_HOST=\"${recommended}\"|" "$_NEXUS_ENV"
+    else
+      printf 'DB_POS_HOST="%s"\n' "$recommended" >> "$_NEXUS_ENV"
+    fi
+    _hn_sync_log "DB_POS_HOST → $recommended (Krypton on Windows host)"
+    woosoo_print_nexus_env_reload_steps
+    return 0
+  fi
+
+  _hn_warn "DB_POS_HOST=$current — expected $recommended for WSL dev (Krypton on Windows :3308)"
+  return 1
+}
+
+# ── woosoo_check_pos_db_connectivity ───────────────────────────────────────────
+# WARN-only TCP probe from the app container. Requires WOOSOO_POS_DC_CMD (docker compose string).
+# Returns 0 if reachable, 1 otherwise.
+woosoo_check_pos_db_connectivity() {
+  local pos_host pos_port dc
+  pos_host="$(_hn_env_get DB_POS_HOST)"
+  pos_port="$(_hn_env_get DB_POS_PORT)"
+  pos_port="${pos_port:-3308}"
+  dc="${WOOSOO_POS_DC_CMD:-}"
+
+  if [[ -z "$pos_host" ]]; then
+    _hn_warn "DB_POS_HOST unset — skipping POS DB connectivity probe"
+    return 1
+  fi
+
+  if [[ -z "$dc" ]]; then
+    _hn_warn "WOOSOO_POS_DC_CMD unset — skipping POS DB connectivity probe"
+    return 1
+  fi
+
+  # shellcheck disable=SC2086
+  if ! $dc ps app 2>/dev/null | grep -qiE '(up|running|healthy)'; then
+    _hn_warn "app container not running — skipping POS DB connectivity probe"
+    return 1
+  fi
+
+  # shellcheck disable=SC2086
+  if $dc exec -T app sh -c "nc -z -w 3 '${pos_host}' '${pos_port}'" 2>/dev/null; then
+    _hn_info "POS DB reachable: ${pos_host}:${pos_port}"
+    return 0
+  fi
+
+  _hn_warn "POS DB not reachable from app container: ${pos_host}:${pos_port}"
+  if [[ "$pos_host" == "host.docker.internal" ]]; then
+    printf '       WSL dev: set DB_POS_HOST to your Windows LAN IP (same as PUBLIC_HOST), not host.docker.internal\n' >&2
+  else
+    printf '       Ensure Krypton/MariaDB is listening on Windows port %s (netstat -an | findstr \":%s\")\n' "$pos_port" "$pos_port" >&2
+    printf '       If listening but probe fails, allow inbound TCP %s from the WSL subnet in Windows Firewall\n' "$pos_port" >&2
+  fi
+  if [[ -z "$(_hn_env_get DB_POS_PASSWORD)" ]]; then
+    printf '       DB_POS_PASSWORD is empty — set it from Krypton POS admin after TCP connects\n' >&2
+  fi
+  return 1
 }
 
 # ── woosoo_regen_dev_certs ────────────────────────────────────────────────────

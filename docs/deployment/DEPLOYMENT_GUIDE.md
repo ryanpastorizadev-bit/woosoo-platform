@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-27
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -97,8 +97,12 @@ list with comments.
 | `WOOSOO_SCHEME`             | `https`                  |                                        |
 | `WOOSOO_PLATFORM_PATH`      | `/opt/woosoo/woosoo-platform` |                                  |
 | `WOOSOO_NEXUS_PATH`         | `/opt/woosoo/woosoo-platform/woosoo-nexus` |                     |
-| `WOOSOO_POS_HOST`           | `192.168.1.32`           | **Static IP per AGENTS.md**            |
-| `WOOSOO_POS_PORT`           | `3308`                   |                                        |
+| `WOOSOO_POS_HOST`           | `192.168.1.32`           | **Static IP per AGENTS.md** (resto LAN) |
+| `WOOSOO_POS_PORT`           | `2121`                   | Resto POS; home uses `3308` via `switch-network.sh` |
+| `HOME_DB_POS_USERNAME`      | `woosoo_pos`             | Required for `switch-network.sh home` |
+| `HOME_DB_POS_PASSWORD`      | _(from POS admin)_       | Home network `192.168.100.7:3308`       |
+| `RESTO_DB_POS_USERNAME`     | `user_1`                 | Required for `switch-network.sh resto` |
+| `RESTO_DB_POS_PASSWORD`     | _(from POS admin)_       | Resto network `192.168.1.32:2121`       |
 | `WOOSOO_POS_DATABASE`       | `krypton_woosoo`         |                                        |
 | `WOOSOO_POS_USERNAME`       | `krypton_readonly`       |                                        |
 | `WOOSOO_POS_PASSWORD`       | _(from POS admin)_       |                                        |
@@ -176,6 +180,46 @@ That's it. `deploy-all.sh` handles the rest, including pulling the app repos
 ```bash
 sudo bash scripts/deployment/pi-reboot-health.sh
 ```
+
+### 3.6 Pi: home ↔ resto network switch
+
+When the Pi moves between the home lab (`192.168.100.0/24`) and the restaurant LAN
+(`192.168.1.0/24`), use `switch-network.sh` — not a full `deploy-all` — to rewrite
+`DB_POS_*`, `PUBLIC_HOST`, and related URL vars in `woosoo-nexus/.env`.
+
+```bash
+cd /opt/woosoo/woosoo-platform
+# Operator config: ./woosoo.env first, else /etc/woosoo/woosoo.env (same as deploy-all)
+sudo bash scripts/deployment/switch-network.sh home    # 192.168.100.7:3308
+sudo bash scripts/deployment/switch-network.sh resto   # 192.168.1.32:2121
+```
+
+**Required in `woosoo.env`:** `HOME_DB_POS_*` and `RESTO_DB_POS_*` (seeded by
+`init-woosoo-env.sh`). Resto POS listens on port **2121**, not 3308.
+
+**After any switch**, containers must be recreated (`.env` is baked via `env_file` at
+create time — restart is not enough):
+
+```bash
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  up -d --force-recreate app queue scheduler reverb
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  exec -T app php artisan optimize:clear
+```
+
+**`PUBLIC_HOST` policy:** `switch-network.sh` sets `PUBLIC_HOST` to the Pi's **LAN IP**
+(tablet/CORS/Reverb). A later `deploy-all` runs `apply-woosoo-config.sh`, which sets
+`PUBLIC_HOST` from `WOOSOO_HOST` (e.g. `woosoo.local`). Avoid running `deploy-all`
+immediately after a network switch unless you intend to restore the hostname model. If
+`PUBLIC_HOST` changed, rebuild the tablet image:
+
+```bash
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml build tablet-pwa
+```
+
+**Admin DB override:** If `system_settings` contains `pos.host` / `pos.port` (copied from
+another network's MySQL volume), web `/pos` can still hit the wrong host even after
+`switch-network.sh`. Clear or re-save POS Connection in admin after a switch.
 
 ---
 
@@ -261,6 +305,100 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
 install, systemd-resolved disable, apt packages, /etc/hosts edits. It only
 writes `woosoo-nexus/.env` (and optionally `tablet-ordering-pwa/.env`)
 with dev defaults.
+
+### 4.1.2 POS database (Krypton) on WSL2 dev
+
+Admin pages (Dashboard, POS sections, and any view backed by Krypton models) query the
+**third-party POS database** via Laravel's `pos` connection (`krypton_woosoo`). This is
+separate from the containerised `mysql` service used for Woosoo's own data.
+
+**Prerequisite:** Krypton POS / MariaDB must be **running on the Windows host** and listening
+on port **3308** (home dev; production Pi uses `switch-network.sh` values — see
+[`scripts/deployment/switch-network.sh`](../../scripts/deployment/switch-network.sh) `home`
+mode: `192.168.100.7:3308`).
+
+**WSL2 Docker Engine host mapping:** `host.docker.internal` inside containers resolves to the
+**WSL VM**, not Windows. Krypton on Windows is **not** reachable that way. Dev bootstrap and
+preflight set `DB_POS_HOST` to the detected **Windows LAN IP** (same as `PUBLIC_HOST`, e.g.
+`192.168.100.7`). Override only if you use Docker Desktop on Windows and
+`host.docker.internal` works for your setup:
+
+```bash
+DEV_POS_HOST=host.docker.internal bash scripts/deployment/dev-docker-bootstrap.sh
+```
+
+**Required `.env` values** (`woosoo-nexus/.env`):
+
+| Key | Dev default | Notes |
+| --- | ----------- | ----- |
+| `DB_POS_HOST` | Windows LAN IP | Not `host.docker.internal` on WSL2 Docker Engine |
+| `DB_POS_PORT` | `3308` | Home dev; Pi resto uses `2121` |
+| `DB_POS_DATABASE` | `krypton_woosoo` | |
+| `DB_POS_USERNAME` | `krypton_readonly` | |
+| `DB_POS_PASSWORD` | _(from POS admin)_ | Empty → auth error after TCP connects |
+
+**Verify Krypton is listening (Windows PowerShell):**
+
+```powershell
+netstat -an | findstr ":3308"
+```
+
+**Verify from the app container (WSL):**
+
+```bash
+POS_HOST=$(grep -E '^DB_POS_HOST=' woosoo-nexus/.env | head -1 | cut -d= -f2- | tr -d '"')
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  exec -T app sh -c "nc -zv ${POS_HOST} 3308"
+```
+
+**After changing `DB_POS_*` or any `woosoo-nexus/.env` value**, recreate app services and
+clear Laravel config cache (`.env` is baked via `env_file` at container **create**; restart
+alone leaves stale env; `config:cache` can serve old Reverb/CORS until cleared):
+
+```bash
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  up -d --force-recreate app queue scheduler reverb
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
+  exec -T app php artisan optimize:clear
+```
+
+`dev-preflight.sh` prints these commands after auto-fixing `DB_POS_HOST`, `SESSION_DOMAIN`,
+or Reverb alignment. `woosoo network` / `WOOSOO_AUTO_SYNC=1` likewise require recreate +
+clear after `PUBLIC_HOST` sync.
+
+### 4.1.3 Three POS / Reverb configuration surfaces
+
+Laravel and Docker do **not** read a single file. Misconfiguration often comes from fixing
+one surface while another still points elsewhere.
+
+| Surface | File / store | Who reads it | POS behaviour |
+| ------- | ------------ | ------------ | ------------- |
+| **Primary `.env`** | `woosoo-nexus/.env` | All containers via `env_file`; artisan on `app` | `DB_POS_*` default for every process |
+| **Admin override** | `system_settings` (`pos.host`, `pos.port`, …) | **Web requests only** via `PosConnectionService` | Overrides `.env` on admin `/pos` and Krypton-backed pages |
+| **Queue overlay** | `woosoo-nexus/.env.docker` | **`queue` and `scheduler` only** (`compose.yaml`) | Can drift from `.env` — background jobs use `.env.docker` values for keys present there |
+
+**Implications:**
+
+- Fixing `.env` alone does not fix admin `/pos` if `system_settings` still has a stale
+  `pos.host` — check Configuration → POS Connection or clear those keys in MySQL.
+- Queue workers and the scheduler **ignore** `system_settings` POS override; they always use
+  `.env` (+ `.env.docker` overlay). Intentional split today; align `.env.docker` with `.env`
+  or remove it. `dev-preflight.sh` **WARN**s when `SESSION_DOMAIN` or `REVERB_BROADCAST_HOST`
+  drift between the two files.
+- **Tablet PWA** bakes `PUBLIC_HOST` and `REVERB_APP_KEY` at **image build** time. After
+  changing those in `.env`, run `docker compose build tablet-pwa` (not only `force-recreate`).
+
+**WSL note:** Edit `woosoo-nexus/.env` on the **WSL path** Docker uses (e.g.
+`~/projects/woosoo-platform/woosoo-nexus/.env`), not a separate Windows copy unless it is
+the same bind mount.
+
+`woosoo dev` and `woosoo health` **WARN** (do not fail) when the POS TCP probe fails — the
+tablet PWA and non-POS admin paths can still run. `dev-preflight.sh` auto-fixes
+`DB_POS_HOST=host.docker.internal` on WSL to the detected LAN IP.
+
+If Windows `netstat` shows `LISTENING` on `:3308` but the container probe fails, allow
+inbound TCP **3308** from the WSL subnet in Windows Firewall (same pattern as `woosoo network`
+portproxy for ports 80/443/4443).
 
 ### 4.2 Dev: update existing checkout after `git pull`
 

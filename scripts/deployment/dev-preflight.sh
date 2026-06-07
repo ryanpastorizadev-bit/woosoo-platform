@@ -26,8 +26,11 @@
 #   [CHECK]    Secrets are non-placeholder
 #   [CHECK]    Ports 80/443/4443/8080/3306/6379 not conflicted by external processes
 #   [CHECK]    vendor/autoload.php present (bind-mount target)
+#   [AUTO-FIX] DB_POS_HOST=host.docker.internal on WSL → Windows LAN IP (PUBLIC_HOST)
 #   [WARN]     PUBLIC_HOST drift vs detected LAN IP (no auto-write unless WOOSOO_AUTO_SYNC=1)
 #   [WARN]     TLS cert SAN mismatch vs PUBLIC_HOST
+#   [WARN]     DB_POS_PASSWORD unset (Krypton readonly creds)
+#   [WARN]     .env.docker SESSION_DOMAIN / REVERB_BROADCAST_HOST drift vs .env
 # =============================================================================
 set -uo pipefail
 
@@ -158,6 +161,61 @@ if [[ "${WOOSOO_AUTO_SYNC:-0}" == "1" ]]; then
     else
       _warn "WOOSOO_AUTO_SYNC=1: sync failed — run: woosoo network"
     fi
+  fi
+fi
+
+# =============================================================================
+# 1c. POS DB host (WSL → Windows LAN IP for Krypton on :3308)
+# =============================================================================
+_sec "POS DB host (DB_POS_HOST)"
+
+_pos_before="$(env_get DB_POS_HOST "$NEXUS_ENV")"
+_pos_port="$(env_get DB_POS_PORT "$NEXUS_ENV")"
+_pos_port="${_pos_port:-3308}"
+
+if woosoo_check_pos_db_host; then
+  _pos_after="$(env_get DB_POS_HOST "$NEXUS_ENV")"
+  if [[ "$_pos_before" != "$_pos_after" ]]; then
+    _fix "DB_POS_HOST: \"${_pos_before:-empty}\" → \"${_pos_after}\" (WSL → Windows LAN)"
+    woosoo_print_nexus_env_reload_steps
+  else
+    _pass "DB_POS_HOST=${_pos_after:-unset}"
+  fi
+else
+  _warn "DB_POS_HOST=${_pos_before:-unset} — expected Windows LAN IP for WSL dev (Krypton :${_pos_port})"
+  printf "       Run: woosoo check  (auto-fixes host.docker.internal) or set DB_POS_HOST in woosoo-nexus/.env\n"
+fi
+
+_pos_pwd="$(env_get DB_POS_PASSWORD "$NEXUS_ENV")"
+if [[ -z "$_pos_pwd" ]]; then
+  _warn "DB_POS_PASSWORD unset — admin POS pages need Krypton readonly password after TCP connects"
+  printf "       Set DB_POS_PASSWORD in woosoo-nexus/.env from Krypton POS admin\n"
+else
+  _pass "DB_POS_PASSWORD is set"
+fi
+
+# =============================================================================
+# 1d. .env.docker drift (queue + scheduler overlay only)
+# =============================================================================
+_sec ".env.docker drift (queue + scheduler)"
+
+ENV_DOCKER="$PLATFORM_ROOT/woosoo-nexus/.env.docker"
+if [[ ! -f "$ENV_DOCKER" ]]; then
+  _pass ".env.docker absent (queue/scheduler use .env only)"
+else
+  _docker_drift=0
+  for _dk in SESSION_DOMAIN REVERB_BROADCAST_HOST; do
+    _main_val="$(env_get "$_dk" "$NEXUS_ENV")"
+    _dock_val="$(env_get "$_dk" "$ENV_DOCKER")"
+    if [[ -n "$_dock_val" && "$_main_val" != "$_dock_val" ]]; then
+      _warn ".env.docker ${_dk}=\"${_dock_val}\" drifts from .env (\"${_main_val:-empty}\") — queue/scheduler may hit wrong host/session"
+      _docker_drift=1
+    fi
+  done
+  if (( _docker_drift == 0 )); then
+    _pass ".env.docker SESSION_DOMAIN and REVERB_BROADCAST_HOST align with .env"
+  else
+    printf "       Align keys in woosoo-nexus/.env.docker or remove the file; then force-recreate queue scheduler\n"
   fi
 fi
 
@@ -363,7 +421,12 @@ if (( FAIL > 0 )); then
   exit 1
 elif (( FIXED > 0 )); then
   printf "${C}${B}  Preflight PASSED (${FIXED} auto-fixed)${NC}  pass:${PASS} warn:${WARN}\n"
-  (( DRY_RUN )) && printf "${Y}  No changes written (dry-run)${NC}\n"
+  if (( ! DRY_RUN )); then
+    printf "\n${Y}  .env was modified — apply before testing:${NC}\n"
+    woosoo_print_nexus_env_reload_steps
+  else
+    printf "${Y}  No changes written (dry-run)${NC}\n"
+  fi
 else
   printf "${G}${B}  Preflight PASSED${NC}  pass:${PASS} warn:${WARN}\n"
 fi
