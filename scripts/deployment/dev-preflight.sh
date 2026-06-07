@@ -17,7 +17,7 @@
 #   [AUTO-FIX] REVERB host vars (VITE, NUXT_PUBLIC, APP_RUNTIME) out of sync
 #              with PUBLIC_HOST in nexus .env
 #   [AUTO-FIX] REVERB_APP_KEY variants out of sync with canonical REVERB_APP_KEY
-#   [AUTO-FIX] REVERB_ALLOWED_ORIGINS missing PUBLIC_HOST
+#   [AUTO-FIX] REVERB_ALLOWED_ORIGINS synced to PUBLIC_HOST (stale IPs pruned)
 #   [AUTO-FIX] SESSION_DOMAIN pinned to an IP/hostname (causes 419s)
 #   [AUTO-FIX] API URL vars (NUXT_PUBLIC_API_BASE_URL, etc.) pointing to wrong host
 #   [CHECK]    Docker daemon running
@@ -316,13 +316,14 @@ else
     fi
   done
 
-  # ── 4c. REVERB_ALLOWED_ORIGINS must include PUBLIC_HOST ─────────────────────
+  # ── 4c. REVERB_ALLOWED_ORIGINS must include PUBLIC_HOST (prune stale IPs) ───
   _allowed="$(env_get REVERB_ALLOWED_ORIGINS "$NEXUS_ENV")"
-  if echo "$_allowed" | grep -qF "$_pub_host"; then
+  _expected="$(woosoo_reverb_allowed_origins_sync "$_pub_host" "$_allowed" "")"
+  if [[ "$_allowed" == "$_expected" ]]; then
     _pass "REVERB_ALLOWED_ORIGINS includes $_pub_host"
   else
-    _fix "REVERB_ALLOWED_ORIGINS missing $_pub_host — appending"
-    env_list_append REVERB_ALLOWED_ORIGINS "$_pub_host" "$NEXUS_ENV"
+    _fix "REVERB_ALLOWED_ORIGINS → \"${_expected}\" (synced; stale IPs pruned)"
+    env_set REVERB_ALLOWED_ORIGINS "$_expected" "$NEXUS_ENV"
   fi
 
   # ── 4d. tablet-ordering-pwa/.env (used by Nuxt dev server / tablet-pwa-dev) ─

@@ -20,8 +20,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Resolve operator config (same order as apply-woosoo-config.sh / doctor.sh).
-PLATFORM_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+PLATFORM_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CONFIG_FILE=""
 if [[ -f "$PLATFORM_DIR/woosoo.env" ]]; then
   CONFIG_FILE="$PLATFORM_DIR/woosoo.env"
@@ -34,6 +36,10 @@ else
   exit 1
 fi
 echo "Using operator config: $CONFIG_FILE"
+
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 # shellcheck source=/dev/null
 source "$CONFIG_FILE"

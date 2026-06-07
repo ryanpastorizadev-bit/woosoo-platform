@@ -47,6 +47,67 @@ _hn_sync_log() {
   printf '[SYNC] %s\n' "$*" >&2
 }
 
+# Sync REVERB_ALLOWED_ORIGINS for active LAN IP.
+# With old_ip: remove old_ip, ensure active_ip, preserve other entries (Pi dual-network).
+# Without old_ip: active_ip + hostname + non-IPv4 only; prune other stale IPv4s (dev preflight).
+woosoo_reverb_allowed_origins_sync() {
+  local active_ip="$1"
+  local existing="${2:-}"
+  local old_ip="${3:-}"
+  local -a entries=()
+  local -a result=()
+  local -a seen=()
+  local entry hostname woosoo_env dup e s out
+
+  if [[ -n "$existing" ]]; then
+    IFS=',' read -ra entries <<< "$existing"
+    for entry in "${entries[@]}"; do
+      entry="${entry// /}"
+      [[ -z "$entry" ]] && continue
+      if [[ -n "$old_ip" && "$entry" == "$old_ip" ]]; then
+        continue
+      fi
+      if [[ -z "$old_ip" && "$entry" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ && "$entry" != "$active_ip" ]]; then
+        continue
+      fi
+      result+=("$entry")
+    done
+  fi
+
+  woosoo_env=""
+  if [[ -f "$_HOST_NETWORK_ROOT/woosoo.env" ]]; then
+    woosoo_env="$_HOST_NETWORK_ROOT/woosoo.env"
+  elif [[ -f /etc/woosoo/woosoo.env ]]; then
+    woosoo_env="/etc/woosoo/woosoo.env"
+  fi
+  if [[ -n "$woosoo_env" ]]; then
+    hostname="$(grep -E '^WOOSOO_HOST=' "$woosoo_env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
+    if [[ -n "$hostname" ]]; then
+      result+=("$hostname")
+    fi
+  fi
+  result+=("$active_ip")
+
+  out=""
+  for e in "${result[@]}"; do
+    dup=0
+    for s in "${seen[@]:-}"; do
+      if [[ "$s" == "$e" ]]; then
+        dup=1
+        break
+      fi
+    done
+    if [[ "$dup" -eq 0 ]]; then
+      seen+=("$e")
+      if [[ -n "$out" ]]; then
+        out+=","
+      fi
+      out+="$e"
+    fi
+  done
+  printf '%s' "$out"
+}
+
 # Print operator steps after woosoo-nexus/.env mutation (env_file baked at container create).
 woosoo_print_nexus_env_reload_steps() {
   printf '       Recreate: docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d --force-recreate app queue scheduler reverb\n' >&2
@@ -232,13 +293,10 @@ woosoo_sync_public_host() {
   _hn_env_set SANCTUM_STATEFUL_DOMAINS "${new_ip},${new_ip}:443,${new_ip}:4443,localhost,localhost:443,localhost:4443"
   _hn_env_set CORS_ALLOWED_ORIGINS "${scheme}://${new_ip},${scheme}://${new_ip}:4443,https://localhost,https://localhost:4443"
 
-  local allowed
+  local allowed origins
   allowed="$(_hn_env_get REVERB_ALLOWED_ORIGINS)"
-  if [[ -n "$allowed" ]] && ! echo "$allowed" | grep -qF "$new_ip"; then
-    _hn_env_set REVERB_ALLOWED_ORIGINS "${allowed},${new_ip}"
-  elif [[ -z "$allowed" ]]; then
-    _hn_env_set REVERB_ALLOWED_ORIGINS "$new_ip"
-  fi
+  origins="$(woosoo_reverb_allowed_origins_sync "$new_ip" "$allowed" "$old_ip")"
+  _hn_env_set REVERB_ALLOWED_ORIGINS "$origins"
 
   woosoo_print_nexus_env_reload_steps
   return 0

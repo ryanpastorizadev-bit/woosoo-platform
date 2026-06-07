@@ -1,0 +1,108 @@
+---
+status: canonical
+last_reviewed: 2026-06-07
+scope: ecosystem
+---
+
+# CASE: infra-case-009-deploy-script-hardening
+
+Post-audit hardening for Pi deployment scripts: config guard parity, deploy readiness
+timeout alignment, Reverb origin dedupe, production HTTPS enforcement.
+
+## Run State
+
+- task_slug: infra-case-009-deploy-script-hardening
+- tier: 2
+- branch: dev
+- status: IN_PROGRESS
+- last_completed_agent: specialist:cursor
+- next_agent: verifier
+- active_runner: cursor
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-07
+
+## Problem
+
+Deployment script audit (2026-06-07) confirmed four actionable gaps:
+
+1. `switch-network.sh` sources `./woosoo.env` as root without `woosoo_assert_safe_config`
+2. `deploy.sh` cache-warm readiness loop aborts at 60s while `rollback-client.sh` allows 180s
+3. `host-network.sh` / `dev-preflight.sh` append to `REVERB_ALLOWED_ORIGINS` without pruning stale IPs
+4. `apply-woosoo-config.sh` allows `WOOSOO_SCHEME=http` under `WOOSOO_ENV=production`
+
+Two prior hypotheses were refuted (check.sh ordering, WOOSOO_FORCE_VITE_BUILD).
+
+## Success Criterion
+
+All four confirmed findings patched in platform scripts; `bash -n` clean; no app-repo changes.
+
+## Specialist Investigation & Implementation
+
+### PRE_EDIT_GATE
+
+| File | Repo / app | Reason | Risk |
+| ---- | ---------- | ------ | ---- |
+| `scripts/deployment/switch-network.sh` | platform | Add `_config-guard.sh` before source | Low |
+| `scripts/deployment/deploy.sh` | platform | Align readiness wait to 180s | Low |
+| `scripts/lib/host-network.sh` | platform | Dedupe Reverb origins helper | Medium — WS trust surface |
+| `scripts/deployment/dev-preflight.sh` | platform | Use helper instead of append | Low |
+| `scripts/deployment/apply-woosoo-config.sh` | platform | Fail production + http scheme | Low |
+
+**Pattern:** Match `deploy.sh` / `apply-woosoo-config.sh` guard sourcing; match
+`rollback-client.sh` 90×2s wait; canonical origin rebuild like `apply-woosoo-config.sh:463`.
+
+**Non-goals:** compose healthcheck changes, app code, `.env` secrets, volume ops.
+
+### Changes
+
+1. **`switch-network.sh`** — `SCRIPT_DIR`; `source _config-guard.sh`;
+   `woosoo_assert_safe_config "$CONFIG_FILE" || exit 1` before sourcing operator config.
+
+2. **`deploy.sh`** — readiness loop `DEPLOY_READY_ATTEMPTS=90`, `DEPLOY_READY_DELAY=2`
+   (180s total, matches `rollback-client.sh`).
+
+3. **`host-network.sh`** — new `woosoo_reverb_allowed_origins_sync active_ip existing [old_ip]`:
+   with `old_ip`: swap stale IP, preserve dual-network entries; without: prune stray IPv4s.
+   `woosoo_sync_public_host` uses sync instead of append.
+
+4. **`dev-preflight.sh`** — section 4c uses helper; prunes stale IPs on auto-fix.
+
+5. **`apply-woosoo-config.sh`** — abort when `WOOSOO_ENV=production` and
+   `WOOSOO_SCHEME != https`.
+
+## Files Changed
+
+- `scripts/deployment/switch-network.sh`
+- `scripts/deployment/deploy.sh`
+- `scripts/lib/host-network.sh`
+- `scripts/deployment/dev-preflight.sh`
+- `scripts/deployment/apply-woosoo-config.sh`
+- `docs/cases/infra-case-009-deploy-script-hardening.md` (this file)
+
+## Verification
+
+```text
+bash -n scripts/deployment/switch-network.sh scripts/deployment/deploy.sh \
+  scripts/deployment/apply-woosoo-config.sh scripts/lib/host-network.sh \
+  scripts/deployment/dev-preflight.sh  → exit 0
+```
+
+App pre-merge gates N/A (platform scripts only).
+
+## Branch
+
+Operator confirmed working tree is on **`dev`** (same pattern as infra-case-008). Stage and
+commit on `dev`; no `agent/*` branch required for this platform-scripts-only change.
+
+## Rollback
+
+Revert the five script files; no migrations or volumes affected.
+
+## Run State (checkpoint)
+
+- last_completed_agent: specialist:cursor
+- next_agent: verifier
+- active_runner: cursor
+- status: IN_PROGRESS
+- updated: 2026-06-07

@@ -130,6 +130,11 @@ case "$WOOSOO_ENV" in
     ;;
 esac
 
+if [[ "$WOOSOO_ENV" == "production" && "${WOOSOO_SCHEME}" != "https" ]]; then
+  echo "ERROR: WOOSOO_ENV=production requires WOOSOO_SCHEME=https (http would disable SESSION_SECURE_COOKIE)." >&2
+  exit 1
+fi
+
 # SESSION_SECURE_COOKIE is derived from WOOSOO_SCHEME, not from WOOSOO_ENV.
 # https → true so the Secure flag is set; http → false for local dev over plain HTTP.
 if [[ "${WOOSOO_SCHEME}" == "https" ]]; then
