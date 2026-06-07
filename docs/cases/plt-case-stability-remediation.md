@@ -131,16 +131,10 @@ Case file: `woosoo-nexus/docs/cases/nex-case-011-duplicate-order-printing.md`
 
 Case file: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
 
-### P1c — TAB-CASE-011 (tablet active-order recovery)
+### P1c — TAB-CASE-011 (tablet active-order recovery) — COMPLETE 2026-06-07
 
-- **Bug:** recovery filter in `stores/Order.ts` (~line 807) includes only
-  `pending,confirmed,ready` — missing `in_progress` and `served`, which Nexus counts as
-  non-terminal (`DeviceOrder.php` active scope). On reload mid-meal the tablet can lose an active
-  order.
-- **Fix:** include all backend non-terminal states + add a recovery test. Tablet repo
-  (`chuya-frontend`). Real live-ordering stability item — keep in the stability pass.
-
-Tracked in: `state/QUEUE.md` Bucket B-follow.
+- **Fixed:** `ACTIVE_ORDER_RECOVERY_STATUS_PARAM` now includes all five Nexus non-terminal statuses.
+- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; merge on tablet `dev`.
 
 ---
 

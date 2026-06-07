@@ -9,9 +9,8 @@ scope: woosoo-nexus
 Kitchen Display System (KDS) implementation spec for `woosoo-nexus`. **Deferred** until
 blocker case files are `COMPLETE`:
 
-- `docs/cases/plt-case-stability-remediation.md` — Pi ops gates (P0–P1b)
-- `docs/cases/tab-case-011-active-order-recovery-filter.md` — tablet recovery filter (queue ID
-  **TAB-CASE-011** in `state/QUEUE.md`)
+- `docs/cases/plt-case-stability-remediation.md` — Pi ops gates (P0–P1b) **(open)**
+- `docs/cases/tab-case-011-active-order-recovery-filter.md` — tablet recovery filter **(COMPLETE 2026-06-07; code uncommitted on local tablet `dev` — merge pending)**
 
 Also requires Tier-3 decisions in § B5 locked. GitHub: #137, #143, #144, #145–#148.
 
@@ -35,7 +34,7 @@ only in git history / design chat — do not implement from it.
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-07
-- blocked_by: plt-case-stability-remediation, tab-case-011-active-order-recovery-filter
+- blocked_by: plt-case-stability-remediation
 
 ## Blockers (resume protocol)
 
@@ -43,18 +42,21 @@ only in git history / design chat — do not implement from it.
 Queue row IDs (e.g. **TAB-CASE-011**) are human labels in `state/QUEUE.md`; **never** put them in
 `blocked_by` or the resolver cannot match a case file.
 
-| task_slug (use in `blocked_by`) | case file | queue alias |
-|---|---|---|
-| `plt-case-stability-remediation` | `docs/cases/plt-case-stability-remediation.md` | — |
-| `tab-case-011-active-order-recovery-filter` | `docs/cases/tab-case-011-active-order-recovery-filter.md` | TAB-CASE-011 |
+| task_slug (use in `blocked_by`) | case file | status | queue alias |
+|---|---|---|---|
+| `plt-case-stability-remediation` | `docs/cases/plt-case-stability-remediation.md` | IN_PROGRESS | — |
+| `tab-case-011-active-order-recovery-filter` | `docs/cases/tab-case-011-active-order-recovery-filter.md` | **COMPLETE** (merge pending) | TAB-CASE-011 |
 
-Unblock when **both** blocker case files have `status: COMPLETE`.
+Unblock when all rows with `status` ≠ COMPLETE are cleared (currently: Pi ops only). Tablet
+recovery fix is APPROVED but not yet merged to tablet `dev` — KDS planning may proceed; Pi rollout
+should wait for tablet PR merge.
 
 ## Handoff
 
 - Blockers — resolve via `task_slug` → case file (see table above):
-  - `plt-case-stability-remediation` — Pi operator verification P0–P1b
-  - `tab-case-011-active-order-recovery-filter` — tablet recovery filter (queue row **TAB-CASE-011**)
+  - `plt-case-stability-remediation` — Pi operator verification P0–P1b (**remaining**)
+  - `tab-case-011-active-order-recovery-filter` — **COMPLETE** (was queue row TAB-CASE-011; tablet
+    branch uncommitted — operator merge pending)
 - Exact next action when unblocked: Rebase branch; implement Phase 0 read-only board (no writes,
   no migration). Resolve B5 #1 before Phase 2 (recall).
 - Do-not-redo: Do not conflate kitchen **Served** with payment **Completed** (see § C).
@@ -62,7 +64,8 @@ Unblock when **both** blocker case files have `status: COMPLETE`.
 ## Mock UI review (2026-06-07)
 
 Uncommitted mock KDS on `woosoo-nexus` `dev`: `/kds` route, `KDS/Display.vue` + components, mock
-data only (no backend/Echo). Review findings and fixes applied:
+data only (no backend/Echo). **Committed** on nexus `dev` as `6293bd2` ("Kitchen Display ui mockup").
+Review findings and fixes applied:
 
 | Finding | Resolution |
 |---|---|

@@ -27,9 +27,9 @@ description:  Stabilize before KDS — Pi verify NEX-014/NEX-011/INFRA-003; then
 case_file:    docs/cases/plt-case-stability-remediation.md
 next_action:  P0 Pi: NEX-014 re-apply config + verify 419 gone (code already on dev).
               P1a/b Pi: NEX-011 BT-only smoke + INFRA-003 wlan0 rebuild; close #140/#136 if green.
-              Then schedule TAB-CASE-011 (tablet). Backlog rows: state/QUEUE.md.
-              KDS spec (deferred): docs/cases/kds-implementation-plan.md
-last_agent:   cursor — 2026-06-07 — Part A plan review + case file persistence.
+              P2: NEX-CASE-015 + docs #156. TAB-CASE-011 code COMPLETE — merge tablet branch.
+              KDS spec (deferred): docs/cases/kds-implementation-plan.md — one blocker cleared.
+last_agent:   cursor — 2026-06-07 — TAB-CASE-011 recovery filter fix; plt-case-011 gates APPROVED.
 ```
 
 ## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->
