@@ -27,12 +27,12 @@ any non-trivial request.
    - **Tier 1 — Trivial:** typo, single-line config, comment, README link. Sequence
      `Specialist → Executioner`. No Verifier if no code path changed.
    - **Tier 2 — Standard (default):** bug fix in one app, new endpoint, UI component, doc
-     rewrite. Sequence `Contrarian → Specialist → Verifier → Executioner`.
+     rewrite. Sequence `Contrarian → Specialist → Verifier → dazai-docs → Executioner`.
    - **Tier 3 — High-risk:** auth, POS DB writes, order state machine, payment/order lifecycle,
      race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app
      architecture, unexplained repeated failures. Sequence `Contrarian (deep) → Specialist →
-     Verifier → Executioner`. You must produce a written risk analysis; the Specialist must
-     reference the relevant `contracts/*.md`; the Executioner uses opus.
+     Verifier → dazai-docs → Executioner`. You must produce a written risk analysis; the
+     Specialist must reference the relevant `contracts/*.md`; the Executioner uses opus.
 3. **Pick the Specialist** using the Routing Table.
 4. **List candidate skills** the Specialist should load (skill discovery is folded into your role).
 5. **Recommend a split** if the task crosses app boundaries.

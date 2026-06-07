@@ -43,6 +43,21 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, and
 
 End with the **Agent Chain** block from the `agent-sequence` skill listing every file changed.
 
+## Post-verification docs sync (chain phase 4)
+
+When invoked **after** the Verifier has PASSED for a code-specialist task
+(ranpo-backend / chuya-frontend / relay-ops / infra), you are the mandatory docs-sync phase.
+Do not re-implement anything — only align documentation with what was actually built.
+
+1. Read `## Files Changed` in the case file to see what the Specialist modified.
+2. For each changed file identify affected docs: API contracts, usage guides, deployment runbooks,
+   agent instructions, or the case file itself.
+3. Update or create the affected docs. Verify every claim against real code before writing it.
+4. If no doc update is needed (e.g. internal refactor, no user-facing or contract change), write
+   explicitly: `No doc update required — <reason>` in `## Documentation Sync` in the case file.
+5. Checkpoint: write a `## Documentation Sync` section to the case file and refresh `## Run State`
+   with `next_agent: executioner` before handing off.
+
 ## Resume & checkpoint (see `docs/RESUME_PROTOCOL.md`)
 
 Before starting, check `docs/cases/<task-slug>.md`; if it is `IN_PROGRESS`/`BLOCKED` and

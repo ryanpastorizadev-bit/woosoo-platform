@@ -170,25 +170,30 @@ any chat history — the case file is authoritative.
 Tier, branch, one-app scope, and contract obligations recorded at triage are binding on every
 subsequent runner. A resuming runner must not widen scope or skip a gate to "catch up".
 
-## The 4 Agents
+## The Chain
 
 ```txt
 1. Contrarian   — challenge the request, classify risk, decide path
 2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra)
 3. Verifier     — prove it works by running tests/build/lint/health
-4. Executioner  — final verdict gate
+4. dazai-docs   — sync affected docs (mandatory when Specialist is a code specialist)
+5. Executioner  — final verdict gate
 ```
 
 First agent is always the Contrarian. Last is always the Executioner. A task is complete only
 when the Executioner returns `APPROVED`.
+
+The dazai-docs docs-sync phase (step 4) is **mandatory for code-specialist tasks**
+(ranpo-backend, chuya-frontend, relay-ops, infra) after the Verifier PASS. It is **skipped**
+when the Specialist is already dazai-docs.
 
 ## Triage Tiers
 
 | Tier | Examples | Sequence |
 | ---- | -------- | -------- |
 | **1 — Trivial** | typo, single-line config, comment, README link | `Specialist → Executioner` (no Verifier if no code path changed) |
-| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → Verifier → Executioner` |
-| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → Verifier → Executioner` |
+| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → Verifier → dazai-docs → Executioner` |
+| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → Verifier → dazai-docs → Executioner` |
 
 For Tier 3 the Specialist must reference the relevant `contracts/*.md` file and the Executioner
 uses the strongest model (opus).
