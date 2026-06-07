@@ -21,7 +21,7 @@ scope: woosoo-nexus
 ## Handoff
 - Phase complete: COMPLETE / APPROVED.
 - Done so far: Intent-only whitelist in `StoreDeviceOrderRequest`; 447/447 tests PASS; merged PR #178 (`f3f79d8` on `dev`).
-- Exact next action: dazai-docs follow-up — update `contracts/tablet-api.contract.md` to mark NEX-CASE-015 enforced (separate docs task).
+- Exact next action: none — `contracts/tablet-api.contract.md` updated 2026-06-07 (platform docs-sync).
 - Working-tree state: landed nexus `dev` at `f3f79d8` (merge `0ae8192`).
 - Risks / do-not-redo: Do not change intent field names. Do not touch POS pricing/recalculation. Refill path (`RefillOrderRequest`) out of scope for this case.
 
@@ -45,7 +45,12 @@ Tests: 16 passed (49 assertions)
 
 **Branch note:** Committed on `agent/nex-case-015-tablet-intent-payload-hardening` (woosoo-nexus).
 
-**Contract doc:** `contracts/tablet-api.contract.md` still lists NEX-CASE-015 as queued — platform docs update deferred to dazai-docs after Executioner APPROVED.
+**Contract doc:** `contracts/tablet-api.contract.md` updated — enforcement section documents `prepareForValidation()` strip behaviour (2026-06-07).
+
+## Documentation Sync
+
+- `contracts/tablet-api.contract.md` — replaced "Backend enforcement gap" with enforced strip behaviour; `last_reviewed: 2026-06-07`.
+- `woosoo-nexus/docs/AI_ONBOARDING.md` — docs #156: `relay-device/` → `woosoo-print-bridge/` paths and Print Bridge structure aligned to live repo (`lib/state/`, `lib/ui/screens/`).
 
 ## Verification
 
