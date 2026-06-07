@@ -69,7 +69,7 @@ Current reality (verified against the working tree + `state/QUEUE.md`, 2026-06-0
 | **P1b** | #136 Pi build (INFRA-003) | ops verify | Pi rebuild on wlan0 with merged `.npmrc`; close #136 if green |
 | **P1c** | TAB-CASE-011 | **bug (live UX)** | **COMPLETE** — landed tablet `dev` PR #199 + follow-up PR #201 |
 | **P2** | NEX-CASE-015 | contract hygiene | **COMPLETE** — intent-only strip merged nexus `dev` PR #178 |
-| **P2** | Docs #156 | docs | stale `relay-device/` paths in nexus `AI_ONBOARDING.md` |
+| **P2** | Docs #156 | docs | **COMPLETE** — `AI_ONBOARDING.md` uses `woosoo-print-bridge`, `dev` branch context |
 | **P3** | Dependabot safe bumps | hygiene | land on `dev` (not only `main`); test per bump |
 | **Deferred** | KDS #137/#143/#144; admin-display #145–#148; telemetry #152 | feature | after stability + B5 decisions locked |
 
@@ -148,12 +148,11 @@ Tracked in: `state/QUEUE.md` Bucket B-follow.
 
 ---
 
-## P2 — Docs accuracy (#156)
+## P2 — Docs accuracy (#156) — COMPLETE 2026-06-07
 
-`docs/AI_ONBOARDING.md` (nexus): replace stale `relay-device/` references with
-`woosoo-print-bridge` sibling-repo framing; fix branch context to `dev`; verify
-`print-service/index.js` vs `woosoo-print-bridge` production route before editing. Run the docs
-gate. Low risk — after Pi verification.
+`docs/AI_ONBOARDING.md` (nexus): `relay-device/` → `woosoo-print-bridge` sibling-repo framing;
+`dev` branch context; `print-service` marked legacy/local-only. Platform
+`contracts/tablet-api.contract.md` marks NEX-CASE-015 enforced.
 
 ---
 
