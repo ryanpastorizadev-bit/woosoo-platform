@@ -10,7 +10,7 @@ Kitchen Display System (KDS) implementation spec for `woosoo-nexus`. **Deferred*
 blocker case files are `COMPLETE`:
 
 - `docs/cases/plt-case-stability-remediation.md` — Pi ops gates (P0–P1b) **(open)**
-- `docs/cases/tab-case-011-active-order-recovery-filter.md` — tablet recovery filter **(COMPLETE 2026-06-07; tablet PR #199 merge pending)**
+- `docs/cases/tab-case-011-active-order-recovery-filter.md` — tablet recovery filter **(COMPLETE 2026-06-07; landed tablet `dev` PR #199)**
 
 Also requires Tier-3 decisions in § B5 locked. GitHub: #137, #143, #144, #145–#148.
 
@@ -45,18 +45,15 @@ Queue row IDs (e.g. **TAB-CASE-011**) are human labels in `state/QUEUE.md`; **ne
 | task_slug (use in `blocked_by`) | case file | status | queue alias |
 |---|---|---|---|
 | `plt-case-stability-remediation` | `docs/cases/plt-case-stability-remediation.md` | IN_PROGRESS | — |
-| `tab-case-011-active-order-recovery-filter` | `docs/cases/tab-case-011-active-order-recovery-filter.md` | **COMPLETE** (PR #199 merge pending) | TAB-CASE-011 |
+| `tab-case-011-active-order-recovery-filter` | `docs/cases/tab-case-011-active-order-recovery-filter.md` | **COMPLETE** | TAB-CASE-011 |
 
-Unblock when all rows with `status` ≠ COMPLETE are cleared (currently: Pi ops only). Tablet
-recovery fix is APPROVED (PR #199) but not yet merged to tablet `dev` — KDS planning may proceed;
-Pi rollout should wait for tablet PR merge.
+Unblock when all rows with `status` ≠ COMPLETE are cleared (currently: Pi ops only).
 
 ## Handoff
 
 - Blockers — resolve via `task_slug` → case file (see table above):
   - `plt-case-stability-remediation` — Pi operator verification P0–P1b (**remaining**)
-  - `tab-case-011-active-order-recovery-filter` — **COMPLETE** (was queue row TAB-CASE-011; PR #199
-    merge pending)
+  - `tab-case-011-active-order-recovery-filter` — **COMPLETE** (landed tablet `dev` PR #199)
 - Exact next action when unblocked: Rebase branch; implement Phase 0 read-only board (no writes,
   no migration). Resolve B5 #1 before Phase 2 (recall).
 - Do-not-redo: Do not conflate kitchen **Served** with payment **Completed** (see § C).
