@@ -26,7 +26,7 @@ openssl req -x509 -nodes -newkey rsa:2048 \
 # For a self-signed cert the server cert IS the CA root.
 # Nginx serves rootCA.crt over HTTP so devices can bootstrap trust before
 # they have a valid HTTPS connection (see docker/nginx/default.conf).
-cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/rootCA.crt"
+cp -f "$CERT_DIR/fullchain.pem" "$CERT_DIR/rootCA.crt"
 
 echo ""
 echo "Done."

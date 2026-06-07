@@ -21,6 +21,7 @@ function Test-Rfc1918Ipv4 {
     if ($Ip -notmatch '^\d+\.\d+\.\d+\.\d+$') { return $false }
     $octets = $Ip.Split('.')
     if ($octets[0] -eq '10') { return $true }
+    if ($octets[0] -eq '172' -and [int]$octets[1] -ge 16 -and [int]$octets[1] -le 31) { return $true }
     if ($octets[0] -eq '192' -and $octets[1] -eq '168') { return $true }
     return $false
 }

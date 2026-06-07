@@ -205,6 +205,14 @@ if [[ -n "$WOOSOO_PLATFORM_PATH" ]]; then
   # fullchain.pem; in production it is the mkcert CA root.
   if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" ]]; then
     pass "docker/certs/rootCA.crt exists (bootstrap endpoint will resolve)"
+    if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" ]] && command -v openssl >/dev/null 2>&1; then
+      root_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" -noout -fingerprint -sha256 2>/dev/null || true)"
+      chain_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" -noout -fingerprint -sha256 2>/dev/null || true)"
+      if [[ -n "$root_fp" && -n "$chain_fp" && "$root_fp" != "$chain_fp" ]]; then
+        warn "rootCA.crt fingerprint differs from fullchain.pem — tablets install the wrong cert and HTTPS stays untrusted"
+        warn "Fix: cp docker/certs/fullchain.pem docker/certs/rootCA.crt && reload nginx"
+      fi
+    fi
   else
     fail "docker/certs/rootCA.crt missing — /woosoo-ca.crt will 404. Run docker/certs/generate-dev-certs.sh or copy the mkcert CA."
   fi

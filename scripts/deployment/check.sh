@@ -120,6 +120,12 @@ check_tool openssl "sudo apt install openssl"
 
 # Docker must be reachable (not just installed)
 if command -v docker >/dev/null 2>&1; then
+  if docker compose version >/dev/null 2>&1; then
+    pass "docker compose plugin available"
+  else
+    fail "docker compose plugin missing"
+    fix "Install Docker Compose v2 plugin (docker compose, not docker-compose)"
+  fi
   if docker info >/dev/null 2>&1; then
     _dver="$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo '?')"
     pass "Docker Engine running (v$_dver)"
@@ -131,6 +137,9 @@ if command -v docker >/dev/null 2>&1; then
       fix "sudo systemctl start docker"
     fi
   fi
+else
+  fail "docker not installed"
+  fix "Install Docker Engine: https://docs.docker.com/engine/install/"
 fi
 
 # ── 4. TLS certificates ───────────────────────────────────────────────────────
@@ -249,12 +258,16 @@ section "Docker compose"
 
 if [[ -f "$ROOT/compose.yaml" ]]; then
   cd "$ROOT"
-  if docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --quiet 2>/dev/null; then
+  _compose_err=""
+  if _compose_err="$(docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --quiet 2>&1)"; then
     pass "compose.yaml parses cleanly"
     _svcs="$(docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config --services 2>/dev/null | tr '\n' ' ')"
     info "services: $_svcs"
   else
     fail "compose.yaml failed validation"
+    if [[ -n "$_compose_err" ]]; then
+      info "$_compose_err"
+    fi
     fix "docker compose --env-file ./woosoo-nexus/.env -f compose.yaml config   (see errors above)"
   fi
 fi

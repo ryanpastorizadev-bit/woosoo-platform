@@ -20,13 +20,21 @@ INSTALL_PATH="$INSTALL_DIR/$CMD_NAME"
 
 # ── Uninstall ─────────────────────────────────────────────────────────────────
 if [[ "${1:-}" == "--uninstall" ]]; then
-  if [[ -L "$INSTALL_PATH" || -f "$INSTALL_PATH" ]]; then
+  if [[ -L "$INSTALL_PATH" ]]; then
+    current_target="$(readlink "$INSTALL_PATH")"
+    if [[ "$current_target" != "$RUN_SCRIPT" ]]; then
+      echo "ERROR: $INSTALL_PATH points to $current_target — refusing to remove a foreign symlink." >&2
+      exit 1
+    fi
     if [[ -w "$INSTALL_DIR" ]]; then
       rm "$INSTALL_PATH"
     else
       sudo rm "$INSTALL_PATH"
     fi
     echo "Removed: $INSTALL_PATH"
+  elif [[ -f "$INSTALL_PATH" ]]; then
+    echo "ERROR: $INSTALL_PATH is a regular file — refusing to remove." >&2
+    exit 1
   else
     echo "Not installed: $INSTALL_PATH"
   fi
@@ -38,23 +46,25 @@ chmod +x "$RUN_SCRIPT"
 echo "Made executable: $RUN_SCRIPT"
 
 # ── Create symlink ────────────────────────────────────────────────────────────
+if [[ -f "$INSTALL_PATH" && ! -L "$INSTALL_PATH" ]]; then
+  echo "ERROR: $INSTALL_PATH exists and is not a symlink — refusing to overwrite." >&2
+  exit 1
+fi
+
 if [[ -L "$INSTALL_PATH" ]]; then
   current_target="$(readlink "$INSTALL_PATH")"
   if [[ "$current_target" == "$RUN_SCRIPT" ]]; then
     echo "Already installed: $INSTALL_PATH -> $RUN_SCRIPT"
     _already_installed=1
   else
-    echo "Updating: $INSTALL_PATH (was -> $current_target)"
-    _already_installed=0
+    echo "ERROR: $INSTALL_PATH already points to $current_target — refusing to overwrite." >&2
+    exit 1
   fi
 else
   _already_installed=0
 fi
 
 if [[ "${_already_installed:-0}" == "0" ]]; then
-  if [[ -L "$INSTALL_PATH" || -f "$INSTALL_PATH" ]]; then
-    [[ -w "$INSTALL_DIR" ]] && rm "$INSTALL_PATH" || sudo rm "$INSTALL_PATH"
-  fi
   if [[ -w "$INSTALL_DIR" ]]; then
     ln -s "$RUN_SCRIPT" "$INSTALL_PATH"
   else

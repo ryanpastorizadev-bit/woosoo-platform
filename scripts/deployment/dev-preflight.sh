@@ -77,9 +77,9 @@ env_set() {
   # Quote value and escape internal double-quotes
   local quoted; quoted="\"$(printf '%s' "$value" | sed 's/"/\\"/g')\""
   if grep -qE "^${escaped_key}=" "$file" 2>/dev/null; then
-    sed -i "s|^${escaped_key}=.*|${key}=${quoted}|" "$file"
+    sed -i "s|^${escaped_key}=.*|${key}=${quoted}|" "$file" || return 1
   else
-    printf '%s=%s\n' "$key" "$quoted" >> "$file"
+    printf '%s=%s\n' "$key" "$quoted" >> "$file" || return 1
   fi
 }
 
@@ -240,8 +240,11 @@ _sec "SESSION_DOMAIN (must be empty to avoid 419s on multi-host dev)"
 
 _sd="$(env_get SESSION_DOMAIN "$NEXUS_ENV")"
 if [[ -n "$_sd" ]]; then
-  _fix "SESSION_DOMAIN was \"${_sd}\" — clearing to empty"
-  env_set SESSION_DOMAIN "" "$NEXUS_ENV"
+  if env_set SESSION_DOMAIN "" "$NEXUS_ENV"; then
+    _fix "SESSION_DOMAIN was \"${_sd}\" — clearing to empty"
+  else
+    _fail "failed to clear SESSION_DOMAIN in woosoo-nexus/.env"
+  fi
 else
   _pass "SESSION_DOMAIN is empty"
 fi
@@ -259,11 +262,9 @@ _scheme="${_scheme:-https}"
 if [[ -z "$_pub_host" ]]; then
   _fail "PUBLIC_HOST is not set in nexus .env — cannot align Reverb vars"
   printf "       FIX: re-run dev-docker-bootstrap.sh\n"
-  FAIL=$(( FAIL+1 ))
 elif [[ -z "$_reverb_key" || "$_reverb_key" == "REVERB_APP_KEY_REQUIRED" || "$_reverb_key" == "change_this_reverb_key" ]]; then
   _fail "REVERB_APP_KEY is unset or placeholder (\"${_reverb_key:-empty}\") — compose will inject REVERB_APP_KEY_REQUIRED into tablet"
   printf "       FIX: set REVERB_APP_KEY to a unique value in woosoo-nexus/.env\n"
-  FAIL=$(( FAIL+1 ))
 else
   _pass "PUBLIC_HOST=$_pub_host  REVERB_APP_KEY=${_reverb_key:0:20}..."
 
@@ -281,8 +282,11 @@ else
     _expected="${_host_checks[$_k]}"
     _current="$(env_get "$_k" "$NEXUS_ENV")"
     if [[ "$_current" != "$_expected" ]]; then
-      _fix "${_k}: \"${_current}\" → \"${_expected}\""
-      env_set "$_k" "$_expected" "$NEXUS_ENV"
+      if env_set "$_k" "$_expected" "$NEXUS_ENV"; then
+        _fix "${_k}: \"${_current}\" → \"${_expected}\""
+      else
+        _fail "failed to write ${_k} to woosoo-nexus/.env"
+      fi
     else
       _pass "${_k}=${_current}"
     fi
@@ -298,8 +302,11 @@ else
     _expected="${_url_checks[$_k]}"
     _current="$(env_get "$_k" "$NEXUS_ENV")"
     if [[ "$_current" != "$_expected" ]]; then
-      _fix "${_k}: \"${_current}\" → \"${_expected}\""
-      env_set "$_k" "$_expected" "$NEXUS_ENV"
+      if env_set "$_k" "$_expected" "$NEXUS_ENV"; then
+        _fix "${_k}: \"${_current}\" → \"${_expected}\""
+      else
+        _fail "failed to write ${_k} to woosoo-nexus/.env"
+      fi
     else
       _pass "${_k}=${_current}"
     fi
@@ -309,8 +316,11 @@ else
   for _k in VITE_REVERB_APP_KEY NUXT_PUBLIC_REVERB_APP_KEY APP_RUNTIME_REVERB_APP_KEY NUXT_PUBLIC_PUSHER_KEY; do
     _current="$(env_get "$_k" "$NEXUS_ENV")"
     if [[ "$_current" != "$_reverb_key" ]]; then
-      _fix "${_k}: \"${_current}\" → \"${_reverb_key:0:20}...\""
-      env_set "$_k" "$_reverb_key" "$NEXUS_ENV"
+      if env_set "$_k" "$_reverb_key" "$NEXUS_ENV"; then
+        _fix "${_k}: \"${_current}\" → \"${_reverb_key:0:20}...\""
+      else
+        _fail "failed to write ${_k} to woosoo-nexus/.env"
+      fi
     else
       _pass "${_k} matches REVERB_APP_KEY"
     fi
@@ -322,8 +332,11 @@ else
   if [[ "$_allowed" == "$_expected" ]]; then
     _pass "REVERB_ALLOWED_ORIGINS includes $_pub_host"
   else
-    _fix "REVERB_ALLOWED_ORIGINS → \"${_expected}\" (synced; stale IPs pruned)"
-    env_set REVERB_ALLOWED_ORIGINS "$_expected" "$NEXUS_ENV"
+    if env_set REVERB_ALLOWED_ORIGINS "$_expected" "$NEXUS_ENV"; then
+      _fix "REVERB_ALLOWED_ORIGINS → \"${_expected}\" (synced; stale IPs pruned)"
+    else
+      _fail "failed to write REVERB_ALLOWED_ORIGINS to woosoo-nexus/.env"
+    fi
   fi
 
   # ── 4d. tablet-ordering-pwa/.env (used by Nuxt dev server / tablet-pwa-dev) ─
@@ -331,20 +344,29 @@ else
     _t_key="$(env_get NUXT_PUBLIC_REVERB_APP_KEY "$TABLET_ENV")"
     _t_host="$(env_get NUXT_PUBLIC_REVERB_HOST "$TABLET_ENV")"
     if [[ -n "$_t_key" && "$_t_key" != "$_reverb_key" ]]; then
-      _fix "tablet/.env NUXT_PUBLIC_REVERB_APP_KEY out of sync — aligning"
-      env_set NUXT_PUBLIC_REVERB_APP_KEY "$_reverb_key" "$TABLET_ENV"
+      if env_set NUXT_PUBLIC_REVERB_APP_KEY "$_reverb_key" "$TABLET_ENV"; then
+        _fix "tablet/.env NUXT_PUBLIC_REVERB_APP_KEY out of sync — aligning"
+      else
+        _fail "failed to write NUXT_PUBLIC_REVERB_APP_KEY to tablet-ordering-pwa/.env"
+      fi
     fi
     if [[ -n "$_t_host" && "$_t_host" != "$_pub_host" ]]; then
-      _fix "tablet/.env NUXT_PUBLIC_REVERB_HOST: \"${_t_host}\" → \"${_pub_host}\""
-      env_set NUXT_PUBLIC_REVERB_HOST "$_pub_host" "$TABLET_ENV"
+      if env_set NUXT_PUBLIC_REVERB_HOST "$_pub_host" "$TABLET_ENV"; then
+        _fix "tablet/.env NUXT_PUBLIC_REVERB_HOST: \"${_t_host}\" → \"${_pub_host}\""
+      else
+        _fail "failed to write NUXT_PUBLIC_REVERB_HOST to tablet-ordering-pwa/.env"
+      fi
     fi
     for _k in NUXT_PUBLIC_API_BASE_URL APP_RUNTIME_API_BASE_URL MAIN_API_URL; do
       _t_url="$(env_get "$_k" "$TABLET_ENV")"
       _expected_url="${_scheme}://${_pub_host}$(echo "$_t_url" | grep -o '/api$' || true)"
       if [[ -n "$_t_url" && "$_t_url" != *"$_pub_host"* ]]; then
         _new_url="${_scheme}://${_pub_host}$(echo "$_t_url" | sed "s|https\?://[^/]*||")"
-        _fix "tablet/.env ${_k}: updating host to $_pub_host"
-        env_set "$_k" "$_new_url" "$TABLET_ENV"
+        if env_set "$_k" "$_new_url" "$TABLET_ENV"; then
+          _fix "tablet/.env ${_k}: updating host to $_pub_host"
+        else
+          _fail "failed to write ${_k} to tablet-ordering-pwa/.env"
+        fi
       fi
     done
   fi

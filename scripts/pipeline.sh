@@ -152,9 +152,7 @@ _dev_start_migrate() {
   $DC up -d --remove-orphans || {
     local rc=$?
     # Check if only reverb is unhealthy (common on dev first run)
-    local unhealthy; unhealthy="$($DC ps --format '{{.Service}}\t{{.Status}}' 2>/dev/null \
-      | grep -v "healthy" | grep -v "running" | awk '{print $1}' | tr '\n' ' ' || true)"
-    if [[ "$unhealthy" == "reverb " || "$unhealthy" == " reverb" ]]; then
+    if $DC ps reverb 2>/dev/null | grep -qi 'unhealthy'; then
       echo "  Reverb unhealthy on first start — restarting once..."
       $DC restart reverb
       local waited=0
@@ -166,6 +164,10 @@ _dev_start_migrate() {
         fi
         echo "  Waiting for Reverb... (${waited}s)"
       done
+      if ! $DC ps reverb 2>/dev/null | grep -qiE "(healthy|running)"; then
+        echo "  ERROR: Reverb did not recover after 60s" >&2
+        return 1
+      fi
     else
       return $rc
     fi

@@ -556,6 +556,7 @@ Automatically block production deployments during freeze windows:
 ```python
 #!/usr/bin/env python3
 # scripts/check-freeze-window.py
+import os
 import sys
 from datetime import datetime, timezone
 

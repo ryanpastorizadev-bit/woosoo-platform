@@ -147,7 +147,7 @@ hdr "Device auth"
 ask WOOSOO_DEVICE_AUTH_PASSCODE "WOOSOO_DEVICE_AUTH_PASSCODE" "$WOOSOO_DEVICE_AUTH_PASSCODE"
 
 # ── Write ./woosoo.env ────────────────────────────────────────────────────────
-q() { local v="${1//\\/\\\\}"; v="${v//\"/\\\"}"; printf '"%s"' "$v"; }
+q() { local v="${1//\\/\\\\}"; v="${v//\"/\\\"}"; v="${v//\$/\\$}"; printf '"%s"' "$v"; }
 
 cat > "$OUT" <<ENVEOF
 # Woosoo Operator Config — generated $(date -u +"%Y-%m-%dT%H:%M:%SZ")
