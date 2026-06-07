@@ -206,11 +206,18 @@ if [[ -n "$WOOSOO_PLATFORM_PATH" ]]; then
   if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" ]]; then
     pass "docker/certs/rootCA.crt exists (bootstrap endpoint will resolve)"
     if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" ]] && command -v openssl >/dev/null 2>&1; then
+      # A device installs rootCA.crt as its trust anchor; nginx serves fullchain.pem.
+      # Trust holds in two valid topologies: dev self-signed (rootCA is a byte copy of
+      # fullchain) and production mkcert (rootCA is the CA that signed fullchain). Only
+      # warn when rootCA is NEITHER — e.g. a stale dev copy left after regenerating
+      # fullchain. Fingerprint equality alone would false-positive on the prod CA root.
       root_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" -noout -fingerprint -sha256 2>/dev/null || true)"
       chain_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" -noout -fingerprint -sha256 2>/dev/null || true)"
-      if [[ -n "$root_fp" && -n "$chain_fp" && "$root_fp" != "$chain_fp" ]]; then
-        warn "rootCA.crt fingerprint differs from fullchain.pem — tablets install the wrong cert and HTTPS stays untrusted"
-        warn "Fix: cp docker/certs/fullchain.pem docker/certs/rootCA.crt && reload nginx"
+      if [[ "$root_fp" != "$chain_fp" ]] \
+         && ! openssl verify -CAfile "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" \
+              "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" >/dev/null 2>&1; then
+        warn "rootCA.crt neither matches nor signed fullchain.pem — devices that install the CA will still distrust HTTPS"
+        warn "Dev: re-run docker/certs/generate-dev-certs.sh. Prod: ensure rootCA.crt is the CA that issued fullchain.pem."
       fi
     fi
   else
