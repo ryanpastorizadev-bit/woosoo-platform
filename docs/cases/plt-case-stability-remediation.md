@@ -30,7 +30,7 @@ human-readable runbook and priority narrative. KDS implementation spec = deferre
 - Done so far: Part A revised against working tree + `state/QUEUE.md`; NEX-014 confirmed
   code-complete on `dev`; TAB-CASE-011 and NEX-CASE-015 added; legacy script paths corrected.
 - Exact next action: Rebase `claude/happy-cannon-2nR48` onto `origin/dev`; run P0 Pi checklist
-  (NEX-014); Pi smoke for NEX-011 + INFRA-003; then schedule TAB-CASE-011.
+  (NEX-014); Pi smoke for NEX-011 + INFRA-003. TAB-CASE-011 landed (tablet dev PR #199).
 - Working-tree state: `docs/cases/plt-case-stability-remediation.md` (this file).
 - Risks / do-not-redo: Do **not** re-implement NEX-014 script changes — already merged. Do not
   start KDS until P0–P2 Pi gates green and KDS B5 Tier-3 decisions locked.
@@ -134,7 +134,7 @@ Case file: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
 ### P1c — TAB-CASE-011 (tablet active-order recovery) — COMPLETE 2026-06-07
 
 - **Fixed:** `ACTIVE_ORDER_RECOVERY_STATUS_PARAM` now includes all five Nexus non-terminal statuses.
-- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; merge on tablet `dev`.
+- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; landed tablet `dev` PR #199.
 
 ---
 
@@ -187,7 +187,7 @@ that must read **`served → "Served"`** (Layer 2 kitchen), with the card droppe
 1. **Rebase** `claude/happy-cannon-2nR48` onto `origin/dev`.
 2. **Do not code P0** — run the NEX-014 Pi operator checklist above; close the case in ops.
 3. **Pi smoke pass** for NEX-011 + INFRA-003; close #140 and #136 if green.
-4. Schedule **TAB-CASE-011** into the stability pass.
+4. ~~Schedule TAB-CASE-011~~ — **done** (tablet dev PR #199).
 5. Only then schedule KDS Phase 0 (with B5 #1 decided before Phase 2).
 
 ---

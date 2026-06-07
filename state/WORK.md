@@ -22,8 +22,8 @@ tier:         2
 app:          ecosystem (orchestration + Pi ops)
 specialist:   operator (Pi) | per-case specialists
 branch:       n/a (see sibling case branches in state/QUEUE.md)
-description:  Stabilize before KDS — Pi verify NEX-014/NEX-011/INFRA-003; then TAB-CASE-011,
-              NEX-CASE-015, docs #156. KDS deferred until gates green.
+description:  Stabilize before KDS — Pi verify NEX-014/NEX-011/INFRA-003; then NEX-CASE-015,
+              docs #156. TAB-CASE-011 landed (tablet dev PR #199). KDS deferred until gates green.
 case_file:    docs/cases/plt-case-stability-remediation.md
 next_action:  P0 Pi: NEX-014 re-apply config + verify 419 gone (code already on dev).
               P1a/b Pi: NEX-011 BT-only smoke + INFRA-003 wlan0 rebuild; close #140/#136 if green.

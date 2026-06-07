@@ -70,9 +70,12 @@ Fix: named constants exported for testability; query uses full five-status param
 
 ```text
 npm run test:run -- tests/active-order-recovery-status-filter.spec.ts  → 2 passed
+npm run test:run -- tests/active-order-recovery-initialize.spec.ts  → 2 passed (integration)
 npm run typecheck  → exit 0
 npx eslint tests/active-order-recovery-status-filter.spec.ts stores/Order.ts  → exit 0
 Re-verify 2026-06-07: vitest 2 passed (2.87s)
+Follow-up 2026-06-07: initialize integration tests 2/2 PASS; archived added to terminal guards.
+Manual smoke (Pi/dev): advance order to in_progress in admin → tablet refresh keeps session — operator pending.
 ```
 
 ## Executioner Verdict
