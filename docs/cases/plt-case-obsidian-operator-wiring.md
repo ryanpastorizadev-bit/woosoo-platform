@@ -31,20 +31,25 @@ Wire Obsidian into the agent boot layer as the operator UI (same files, richer n
 - ✅ `skills-lock.json` key renamed `"Obsidian Automation"` → `"obsidian-automation"` to match slug convention
 - ✅ `AGENTS.md` Skill Discovery table: +7 Obsidian trigger rows (Contrarian now recommends these skills)
 - ✅ `.cursor/rules/woosoo.mdc`: added `## Obsidian Skills Reference` section with skill→file routing table and mandatory checkpoint rules for Cursor specialist mode
-- ⚠️ `.claude/agents/scribe.md` `skills:` addition blocked by harness classifier — requires manual edit or operator permission grant (see below)
+- ✅ `.claude/agents/scribe.md` `skills:` block now carries `obsidian-markdown` + `obsidian-vault`
+  (lines 11–16) — the previously-blocked manual edit is in place; harness loads them
 
-**Pending (manual):** Add to `.claude/agents/scribe.md` `skills:` block:
-```yaml
-  - obsidian-markdown
-  - obsidian-vault
-```
+## Executioner
+
+**APPROVED 2026-06-08.** Re-verified all wiring claims against the files:
+- `VAULT_INDEX` referenced across boot layers (`AGENTS.md`, `.cursor/rules/woosoo.mdc`,
+  `contrarian`/`infra`/`scribe` agents, `RESUME_PROTOCOL`, `AI_CONTEXT`, `AGENT_DEFAULT_INSTRUCTIONS`)
+- 7 skill symlinks live in `.claude/skills/`; scribe `skills:` block confirmed
+- `scripts/obsidian-lint.ps1` → 0 case orphans; the one actionable docs orphan
+  (`architecture/pld-cli-decision.md`) linked from `DOCS_HUB` during close-out
+- No pending manual items remain. Case complete.
 
 ## Run State
 
 ```
-- last_completed_agent: verifier
-- next_agent: executioner
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: cursor
-- status: IN_PROGRESS
+- status: COMPLETE
 - updated: 2026-06-08
 ```

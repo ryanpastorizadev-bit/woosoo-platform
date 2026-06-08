@@ -29,6 +29,10 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14]]
 - [[WOOSOO_ROADMAP_REVIEW]]
 
+## Architecture
+
+- [[architecture/pld-cli-decision]] — ADR: Palisade CLI (`pld`) command base + Bash migration
+
 ## Deployment
 
 - [[deployment/DEPLOYMENT_GUIDE]]
