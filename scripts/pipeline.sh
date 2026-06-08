@@ -565,7 +565,7 @@ target_rebuild() {
 
   # Precondition: app container must be running before any rebuild action.
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
-    _app_id="$(docker compose --env-file "$_env_file" -f "$PLATFORM_ROOT/compose.yaml" ps -q app 2>/dev/null || true)"
+    local _app_id; _app_id="$($DC ps -q app 2>/dev/null || true)"
     if [[ -z "$_app_id" ]]; then
       echo
       echo -e "  ${_C_RED}✗${_C_RESET}  app container not running — run ${_C_YELLOW}pld sync${_C_RESET} first"

@@ -118,6 +118,22 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Evidence: `scripts/obsidian-bootstrap.ps1:42` (2026-06-08; fix verified exit 0, ~24s).
 - Promoted: no — ledger only.
 
+### L-010 — Self-signed cert generation can write a half-pair if openssl fails mid-stream
+- Tags: #infra #scripts #docker
+- Symptom: `pld certs` succeeds but nginx won't start; `SSL_ERROR_BAD_CERT_DOMAIN` or cert/key mismatch when device connects.
+- Root cause: cert generation writes `privkey.pem` + `fullchain.pem` directly to live paths in a single `openssl req` call. If the call is interrupted or openssl fails after the first file, the pair is incomplete — the second file may be missing or corrupted, leaving nginx with a half-written cert.
+- Guard: write to `.tmp` files first. After both files are written, extract public keys from both and compare them (keypair verification). **Only after verification succeeds**, back up the old certs to `.bak` and atomically promote `.tmp` → live with `mv`. On any failure, clean up `.tmp` and exit non-zero. Live certs are never touched unless the new pair is valid.
+- Evidence: `pld-cli-hardening` case — F1 fix, `docker/certs/generate-dev-certs.sh` (2026-06-08).
+- Promoted: no — ledger only (may promote to lint rule if `.env` / script-generation patterns grow).
+
+### L-011 — `sed s|...|...| ` breaks when RHS contains `|` or `&` (unescaped metacharacters)
+- Tags: #infra #scripts #bash
+- Symptom: env vars containing `|` (pipe), `&` (ampersand), or other sed metacharacters corrupt `.env` files: `API_URL="http://a|b"` becomes `API_URL="http://a.bERROR"` or similar.
+- Root cause: `sed s|delimiter|replacement|` treats the delimiter and **RHS replacement characters as literal metacharacters**. A bare `|` in the value is interpreted as sed's end-of-pattern, and `&` in the RHS means "original matched text", breaking the line.
+- Guard: avoid using a **delimiter that can appear in the value**. For arbitrary key=value pairs, use `awk` (or `perl`) to match and rewrite lines — no metacharacter interpretation. If using sed, choose a delimiter that is **impossible in the values** (e.g. NUL byte, or a multi-char sentinel) and **escape all RHS special chars** (`&`, `\`). Safest: use awk with `-v key=... -v val=...` and string-match on `$0 ~ "^" key "="`.
+- Evidence: `pld-cli-hardening` case — F2 fix, `scripts/deployment/dev-preflight.sh:env_set()` (2026-06-08).
+- Promoted: no — ledger only (test-gate script-env changes if pattern recurs).
+
 ---
 
 ## Promotion candidates (watchlist)
