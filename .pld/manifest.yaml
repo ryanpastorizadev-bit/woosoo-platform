@@ -1,0 +1,21 @@
+# Palisade platform manifest (Phase 1 — declarative; pld Go binary reads this in Phase 2)
+version: 1
+brand: palisade
+root: .
+modules:
+  nexus:
+    path: woosoo-nexus
+    default_branch: dev
+  tablet:
+    path: tablet-ordering-pwa
+    default_branch: dev
+profiles:
+  dev:
+    compose_file: compose.yaml
+    env_file: woosoo-nexus/.env
+  pi:
+    config_file: woosoo.env
+cli:
+  deprecated_aliases:
+    - woosoo
+  entry: run

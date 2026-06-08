@@ -19,20 +19,20 @@ Formalise `code-simplifier` as a checkpointed chain phase; `dead-code-cleanup` r
 - tier: 2
 - branch: agent/plt-case-hygiene-gates
 - status: IN_PROGRESS
-- last_completed_agent: specialist:scribe
-- next_agent: verifier
-- active_runner: cursor
+- last_completed_agent: verifier
+- next_agent: executioner
+- active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-08
 
 ## Handoff
 
-- Phase in progress: none — awaiting Verifier.
-- Done so far: code-simplifier agent created; chain docs and Specialist handoffs updated.
-- Exact next action: Verifier runs governance-doc grep checks; Executioner approves.
+- Phase in progress: none — awaiting Executioner.
+- Done so far: all files updated; woosoo.mdc hygiene section confirmed present; Verifier grep checks passed.
+- Exact next action: Executioner reviews and returns APPROVED or REJECTED.
 - Working-tree state: see ## Files Changed.
-- Risks / do-not-redo: `.cursor/rules/woosoo.mdc` hygiene section pending (plan mode blocked `.mdc` edits).
+- Risks / do-not-redo: none. woosoo.mdc is complete.
 
 ## Tier
 
@@ -73,10 +73,7 @@ Inserted `code-simplifier` as step 3 in the agent chain (between Specialist and 
 - `docs/USAGE_GUIDE.md` — skills §4, Cursor preamble, step-by-step
 - `docs/AGENT_USAGE_GUIDE.md` — chain sections, Scenario B flow, skills table
 - `.agents/skills/dead-code-cleanup/SKILL.md` — ordering note (mirror)
-
-**Pending (plan mode blocked `.mdc`):**
-
-- `.cursor/rules/woosoo.mdc` — hygiene gates section + checkpoint update (operator or agent-mode follow-up)
+- `.cursor/rules/woosoo.mdc` — hygiene gates section + three-section checkpoint
 
 ## Code Simplification
 
@@ -104,16 +101,17 @@ Inserted `code-simplifier` as step 3 in the agent chain (between Specialist and 
 
 ## Verification
 
-```powershell
-# Pending full run after woosoo.mdc sync
-Select-String -Path ".claude/agents/ranpo-backend.md", ".claude/agents/chuya-frontend.md", ".claude/agents/relay-ops.md", ".claude/agents/infra.md" -Pattern "next_agent"
-Select-String -Path ".claude/agents/code-simplifier.md" -Pattern "next_agent"
-```
+**Verifier: PASS** (structural grep on commit `97cd055`, 16 files)
+
+- Specialists checkpoint `next_agent: code-simplifier` on Tier 2–3
+- `code-simplifier` checkpoints `next_agent: verifier`
+- Single-node chain in `AGENTS.md`, `agent-sequence`, `RESUME_PROTOCOL`, `_TEMPLATE`, `woosoo.mdc`
+- `dead-code-cleanup` documented as internal sub-step of `code-simplifier`
 
 ## Remaining Risks
 
-- **Filed-not-blocking:** Executioner should reject when `Code Simplifier` or `Hygiene` audit lines are missing/skipped without documented reason — defer to follow-up PR on `executioner.md`.
-- **`.cursor/rules/woosoo.mdc`** not yet synced — Cursor hybrid sessions lack hygiene-gate rules until that file is patched.
+- **Filed-not-blocking:** `executioner.md` does not yet enforce missing `Code Simplifier` / `Hygiene` audit lines.
+- **Optional follow-up:** `hooks/execute.md` and `PROTOCOL.md` still show old 4-step chain (reference docs, not routing logic).
 
 ## Executioner Verdict
 

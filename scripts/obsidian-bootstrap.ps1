@@ -39,7 +39,9 @@ function Repair-Junction {
     if (Test-Path $LinkPath) {
         $item = Get-Item $LinkPath -Force
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-            Remove-Item $LinkPath -Force
+            # Remove-Item -Force throws NullReferenceException on directory junctions in
+            # PS 5.1; rmdir removes only the link and never follows into the target.
+            cmd /c rmdir "$LinkPath" | Out-Null
         } else {
             Write-Host "    skip $LinkPath (exists and is not a junction)" -ForegroundColor DarkYellow
             return

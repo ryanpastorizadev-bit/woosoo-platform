@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
-# scripts/install.sh — Install the `woosoo` CLI command
+# scripts/install.sh — Install Palisade `pld` + legacy `woosoo` CLI commands
 # =============================================================================
-# Creates /usr/local/bin/woosoo -> <platform_root>/run
+# Creates symlinks in /usr/local/bin:
+#   pld    -> <platform_root>/run   (preferred — Palisade CLI)
+#   woosoo -> <platform_root>/run   (deprecated alias)
+#
 # Works on WSL2, Pi, or any Linux/macOS.
 #
 # Usage:
-#   bash scripts/install.sh             # install
-#   bash scripts/install.sh --uninstall # remove
+#   bash scripts/install.sh             # install both
+#   bash scripts/install.sh --uninstall # remove both
+#   bash scripts/install.sh --woosoo-only   # legacy: woosoo only
 # =============================================================================
 set -euo pipefail
 
@@ -15,29 +19,68 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLATFORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 RUN_SCRIPT="$PLATFORM_ROOT/run"
 INSTALL_DIR="/usr/local/bin"
-CMD_NAME="woosoo"
-INSTALL_PATH="$INSTALL_DIR/$CMD_NAME"
+CMDS=(pld woosoo)
+WOOSOO_ONLY=0
 
-# ── Uninstall ─────────────────────────────────────────────────────────────────
-if [[ "${1:-}" == "--uninstall" ]]; then
-  if [[ -L "$INSTALL_PATH" ]]; then
-    current_target="$(readlink "$INSTALL_PATH")"
+if [[ "${1:-}" == "--woosoo-only" ]]; then
+  WOOSOO_ONLY=1
+  CMDS=(woosoo)
+  shift
+fi
+
+_install_one() {
+  local name="$1"
+  local path="$INSTALL_DIR/$name"
+  if [[ -f "$path" && ! -L "$path" ]]; then
+    echo "ERROR: $path exists and is not a symlink — refusing to overwrite." >&2
+    exit 1
+  fi
+  if [[ -L "$path" ]]; then
+    local current_target
+    current_target="$(readlink "$path")"
+    if [[ "$current_target" == "$RUN_SCRIPT" ]]; then
+      echo "Already installed: $path -> $RUN_SCRIPT"
+      return 0
+    fi
+    echo "ERROR: $path already points to $current_target — refusing to overwrite." >&2
+    exit 1
+  fi
+  if [[ -w "$INSTALL_DIR" ]]; then
+    ln -s "$RUN_SCRIPT" "$path"
+  else
+    sudo ln -s "$RUN_SCRIPT" "$path"
+  fi
+  echo "Installed: $path -> $RUN_SCRIPT"
+}
+
+_uninstall_one() {
+  local name="$1"
+  local path="$INSTALL_DIR/$name"
+  if [[ -L "$path" ]]; then
+    local current_target
+    current_target="$(readlink "$path")"
     if [[ "$current_target" != "$RUN_SCRIPT" ]]; then
-      echo "ERROR: $INSTALL_PATH points to $current_target — refusing to remove a foreign symlink." >&2
+      echo "ERROR: $path points to $current_target — refusing to remove a foreign symlink." >&2
       exit 1
     fi
     if [[ -w "$INSTALL_DIR" ]]; then
-      rm "$INSTALL_PATH"
+      rm "$path"
     else
-      sudo rm "$INSTALL_PATH"
+      sudo rm "$path"
     fi
-    echo "Removed: $INSTALL_PATH"
-  elif [[ -f "$INSTALL_PATH" ]]; then
-    echo "ERROR: $INSTALL_PATH is a regular file — refusing to remove." >&2
+    echo "Removed: $path"
+  elif [[ -f "$path" ]]; then
+    echo "ERROR: $path is a regular file — refusing to remove." >&2
     exit 1
   else
-    echo "Not installed: $INSTALL_PATH"
+    echo "Not installed: $path"
   fi
+}
+
+# ── Uninstall ─────────────────────────────────────────────────────────────────
+if [[ "${1:-}" == "--uninstall" ]]; then
+  _uninstall_one pld
+  _uninstall_one woosoo
   exit 0
 fi
 
@@ -45,40 +88,22 @@ fi
 chmod +x "$RUN_SCRIPT"
 echo "Made executable: $RUN_SCRIPT"
 
-# ── Create symlink ────────────────────────────────────────────────────────────
-if [[ -f "$INSTALL_PATH" && ! -L "$INSTALL_PATH" ]]; then
-  echo "ERROR: $INSTALL_PATH exists and is not a symlink — refusing to overwrite." >&2
-  exit 1
+# ── Create symlinks ───────────────────────────────────────────────────────────
+if (( WOOSOO_ONLY )); then
+  echo "NOTE: --woosoo-only skips pld; prefer: bash scripts/install.sh (installs both)"
 fi
 
-if [[ -L "$INSTALL_PATH" ]]; then
-  current_target="$(readlink "$INSTALL_PATH")"
-  if [[ "$current_target" == "$RUN_SCRIPT" ]]; then
-    echo "Already installed: $INSTALL_PATH -> $RUN_SCRIPT"
-    _already_installed=1
-  else
-    echo "ERROR: $INSTALL_PATH already points to $current_target — refusing to overwrite." >&2
-    exit 1
-  fi
-else
-  _already_installed=0
-fi
-
-if [[ "${_already_installed:-0}" == "0" ]]; then
-  if [[ -w "$INSTALL_DIR" ]]; then
-    ln -s "$RUN_SCRIPT" "$INSTALL_PATH"
-  else
-    sudo ln -s "$RUN_SCRIPT" "$INSTALL_PATH"
-  fi
-  echo "Installed: $INSTALL_PATH -> $RUN_SCRIPT"
-fi
+for cmd in "${CMDS[@]}"; do
+  _install_one "$cmd"
+done
 
 # ── Verify ────────────────────────────────────────────────────────────────────
-if command -v woosoo >/dev/null 2>&1; then
-  echo
-  echo "✓ woosoo command is available"
+echo
+if command -v pld >/dev/null 2>&1; then
+  echo "✓ pld command is available (preferred)"
+elif command -v woosoo >/dev/null 2>&1; then
+  echo "✓ woosoo command is available (deprecated — re-run install for pld)"
 else
-  echo
   echo "NOTE: $INSTALL_DIR is not in your PATH."
   echo "Add to ~/.bashrc or ~/.bash_profile:"
   echo '  export PATH="/usr/local/bin:$PATH"'
@@ -87,15 +112,16 @@ fi
 
 # ── Usage ─────────────────────────────────────────────────────────────────────
 echo
-echo "Usage:"
-echo "  woosoo dev            # dev test deploy"
-echo "  woosoo staging        # staging-parity (requires woosoo.env)"
-echo "  woosoo pi             # Pi production deploy (requires root)"
-echo "  woosoo health         # health check"
-echo "  woosoo logs           # tail logs"
-echo "  woosoo check          # preflight check"
-echo "  woosoo dev --no-pull  # skip git pull"
-echo "  woosoo dev --no-build # skip docker compose build"
-echo "  woosoo dev --dry-run  # print steps without executing"
+echo "Usage (Palisade CLI — pld):"
+echo "  pld sync              # post-push fast path (WSL after Windows push)"
+echo "  pld sync --full       # full dev deploy"
+echo "  pld rebuild           # Vite rebuild in Docker"
+echo "  pld certs             # regenerate TLS certs"
+echo "  pld dev               # full pipeline"
+echo "  pld network           # LAN / PUBLIC_HOST sync"
+echo "  pld help"
+echo
+echo "Legacy alias: woosoo (same commands; deprecation notice shown)"
+echo "Windows: .\\pld.ps1 sync  or  pld.cmd sync  (WSL required for stack)"
 echo
 echo "To uninstall: bash scripts/install.sh --uninstall"

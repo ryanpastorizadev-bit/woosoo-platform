@@ -110,6 +110,14 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Evidence: `APPLICATION_MATERIALS.md` (2026-06-08, flagged not fixed — personal doc).
 - Promoted: yes — `AGENT_DEFAULT_INSTRUCTIONS.md` (Documentation Truth) + `AGENTS.md § Documentation Truth`.
 
+### L-009 — `Remove-Item -Force` throws `NullReferenceException` on directory junctions (PS 5.1)
+- Tags: #env/powershell #env/windows #tooling
+- Symptom: `Remove-Item : Object reference not set to an instance of an object.` on a reparse-point dir; with `$ErrorActionPreference = "Stop"` the script then hangs instead of exiting (one run sat ~4.7h until killed).
+- Root cause: PS 5.1 `Remove-Item` mishandles directory junctions (tries to follow/recurse the reparse point). Distinct from L-006 (which is about *broken* junctions crashing Obsidian) — this is the *removal* during repair.
+- Guard: delete junctions with `cmd /c rmdir "$LinkPath"` (removes only the link, never the target); never `Remove-Item` a reparse point. Always bound long script runs with a timeout when launching in background.
+- Evidence: `scripts/obsidian-bootstrap.ps1:42` (2026-06-08; fix verified exit 0, ~24s).
+- Promoted: no — ledger only.
+
 ---
 
 ## Promotion candidates (watchlist)
@@ -117,3 +125,4 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 Entries that will become enforced rules if they recur once more:
 
 - L-001 / L-002 — PowerShell encoding. If a third encoding bug lands, add a `scripts/` authoring rule + a CI ASCII-lint for `*.ps1`.
+- L-003 / L-009 — PowerShell filesystem/syntax footguns. Pattern building: consider a short "PS 5.1 gotchas" block in `scripts/`-authoring guidance if one more lands.

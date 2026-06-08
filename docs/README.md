@@ -89,8 +89,6 @@ claim against live source and contracts before relying on those older audit file
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 
-## Deployment
-
 ## Ecosystem components (5 repos)
 
 Production runs as sibling repos orchestrated from this platform root. See
@@ -106,6 +104,7 @@ Production runs as sibling repos orchestrated from this platform root. See
 
 Docker orchestration authority is the **platform repo root** (sibling model — not a monorepo).
 
+- [architecture/pld-cli-decision.md](architecture/pld-cli-decision.md) — **ADR (canonical)**: Palisade `pld` CLI vs Woosoo Bash, multi-OS strategy, migration phases
 - [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
 - `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)

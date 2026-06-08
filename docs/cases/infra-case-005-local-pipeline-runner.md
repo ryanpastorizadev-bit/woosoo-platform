@@ -113,4 +113,15 @@ woosoo dev                                                 # full dev deploy
 woosoo dev --no-pull --no-build                           # fast path (already built)
 woosoo health                                              # standalone health check
 woosoo check                                               # preflight only
+pld sync                                                   # Phase 0 post-push (2026-06-08)
+bash scripts/install.sh && pld help                        # Phase 1 alias (2026-06-08)
 ```
+
+## Palisade `pld` extension (2026-06-08)
+
+Phase 0–1 shipped per [pld-cli-decision.md](../architecture/pld-cli-decision.md):
+
+- **Phase 0:** `sync`, `rebuild`, `certs` targets; bootstrap no longer wipes `.env` for missing APP_KEY alone.
+- **Phase 1:** `pld` + `woosoo` symlinks via `install.sh`; `.pld/manifest.yaml`; Windows `pld.ps1`/`pld.cmd`; `woosoo` deprecation notice in pipeline.
+
+Canonical operator flow: `pld sync` from `~/projects/woosoo-platform` after Windows push.

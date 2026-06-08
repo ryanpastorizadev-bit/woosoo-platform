@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -225,6 +225,23 @@ another network's MySQL volume), web `/pos` can still hit the wrong host even af
 
 ## 4. Path B — Dev deploy on WSL2 / Docker Desktop / dev Linux
 
+> **Operator entry point:** Windows edit → WSL Docker test loop, agent anti-patterns, and browser
+> URL conventions live in [`docs/USAGE_GUIDE.md § 6`](../USAGE_GUIDE.md#6-wsl-dev-test-windows-edit--docker-run).
+
+### 4.0 Windows → WSL iteration (operator)
+
+1. **Windows:** edit in `E:\Projects\woosoo-platform\`, commit, `git push` (per app repo, e.g. `dev`).
+2. **WSL:** `cd ~/projects/woosoo-platform` — **platform root**, not `/mnt/e/Projects/...`.
+3. **WSL:** `pld sync` — pull nexus, preflight, up, APP_KEY/cache fix (canonical post-push).
+4. **WSL:** `woosoo sync --full` or `woosoo dev` when deps/Dockerfile changed; `woosoo sync --build` for image rebuild only.
+5. **Browser:** `https://<PUBLIC_HOST>/…` — home lab example **`https://192.168.100.7`**; run
+   `woosoo network` or `woosoo certs` if TLS/LAN breaks after `wsl --shutdown`.
+
+**Do not** run host `composer dev`, `composer install`, or `npm run dev` inside `woosoo-nexus` on
+the WSL shell — there is no native PHP; use `woosoo sync` / `woosoo dev` or `woosoo rebuild`.
+
+Future Palisade names: `pld sync`, `pld net certs` — [pld-cli-decision.md](../architecture/pld-cli-decision.md).
+
 ### 4.1 First-time dev setup
 
 ```bash
@@ -235,11 +252,12 @@ cd woosoo-platform
 git clone https://github.com/tech-artificer/woosoo-nexus.git
 git clone https://github.com/tech-artificer/tablet-ordering-pwa.git
 
-# 2. Install the woosoo CLI command (once — creates /usr/local/bin/woosoo)
+# 2. Install the Palisade CLI (pld) + legacy woosoo alias (once)
 bash scripts/install.sh
 
 # 3. Run the full dev pipeline (bootstrap + build + up + migrate + warm + health)
-woosoo dev
+pld dev
+# legacy: woosoo dev
 ```
 
 `woosoo dev` handles everything: writes `woosoo-nexus/.env` (if needed), builds images,
@@ -248,7 +266,10 @@ starts the stack, migrates, warms caches, and prints a health summary. First bui
 
 **Fast iteration after the first build:**
 ```bash
-woosoo dev --no-pull --no-build   # skip pull + build (source changes only)
+woosoo sync                       # pull nexus + up + APP_KEY/cache (typical after Windows push)
+woosoo dev --no-pull --no-build   # legacy: skip pull + build when already pulled
+woosoo rebuild                    # Vue/KDS Vite rebuild in container
+woosoo certs                      # regenerate docker/certs for PUBLIC_HOST
 woosoo dev --from-step 4          # resume from a specific step
 woosoo health                     # health check only
 woosoo logs                       # tail logs
@@ -256,8 +277,9 @@ woosoo logs                       # tail logs
 
 ### 4.1.1 LAN access and `PUBLIC_HOST` (WSL2)
 
-On WSL2, Docker binds ports inside the WSL VM. `localhost` works from Windows and WSL;
-the physical LAN IP (`PUBLIC_HOST`) requires a Windows portproxy bridge.
+On WSL2, Docker binds ports inside the WSL VM. `localhost` works from the same machine for
+quick checks; **LAN/tablet parity testing** uses `https://<PUBLIC_HOST>` (home example:
+`https://192.168.100.7`). The physical LAN IP requires a Windows portproxy bridge.
 
 | Mode | Command | What it does |
 | ---- | ------- | ------------ |
@@ -403,25 +425,31 @@ portproxy for ports 80/443/4443).
 ### 4.2 Dev: update existing checkout after `git pull`
 
 The stack uses **bind-mounts** for `woosoo-nexus/` and `tablet-ordering-pwa/`,
-so PHP and JS source edits are visible immediately inside running containers
-with no rebuild. You only rebuild when:
+so PHP and JS source edits are visible inside running containers after a WSL pull
+(with no rebuild for source-only changes). You only rebuild when:
 
 | Changed                                  | Action                                                |
 | ---------------------------------------- | ----------------------------------------------------- |
-| PHP / Blade / JS / Vue source only       | nothing; bind-mount picks it up                       |
+| PHP / Blade / JS / Vue source only       | `woosoo sync` (or legacy `woosoo dev --no-pull --no-build`) |
+| Vue/KDS assets not reflecting in browser | `woosoo rebuild` (see USAGE_GUIDE § 6) |
 | `composer.json` / `package.json`         | rebuild the affected service                          |
 | `Dockerfile`                             | rebuild the affected service                          |
 | `compose.yaml`                           | `up -d` to apply (Docker recreates only what changed) |
 | `woosoo-nexus/.env`                      | `up -d --force-recreate <service>`                    |
 | Migrations                               | `exec app php artisan migrate`                        |
 
-Pattern: pull, then run only what changed.
+Pattern: pull on WSL (after Windows push), then run only what changed.
 
 ```bash
 cd ~/projects/woosoo-platform
-git pull origin main
-cd woosoo-nexus && git pull && cd ..
-cd tablet-ordering-pwa && git pull && cd ..
+git -C woosoo-nexus pull origin dev          # match your integration branch
+git -C tablet-ordering-pwa pull origin dev   # when tablet changed
+
+# Fast path — source-only (typical after Windows push):
+woosoo sync
+
+# Legacy equivalent:
+woosoo dev --no-pull --no-build
 
 # If composer / package / Dockerfile changed:
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml build
@@ -435,6 +463,9 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   exec -T app php artisan migrate
 ```
+
+> **Two-clone note:** If you also keep a checkout under `/mnt/e/Projects/...`, that is a separate
+> working tree from `~/projects/woosoo-platform`. Docker on WSL must bind-mount the tree you pulled.
 
 ### 4.3 Testing the deploy pipeline on WSL2 (staging-parity)
 
@@ -470,7 +501,7 @@ no bind-mount. For instant hot-reload use the profile-gated dev service:
 ```bash
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   --profile dev up tablet-pwa-dev
-# open http://localhost:3000 — edits in ./tablet-ordering-pwa hot-reload
+# open http://localhost:3000 on the dev host — tablet hot-reload only (not nexus admin URL)
 ```
 
 ---

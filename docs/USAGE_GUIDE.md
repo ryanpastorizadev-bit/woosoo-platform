@@ -175,18 +175,37 @@ WSL path — use `~/projects/woosoo-platform/`.
 
 ### Stack
 
-Docker Compose runs from **platform root**, never host Laravel on the WSL shell:
+Docker Compose runs from **platform root**, never host Laravel on the WSL shell.
+
+**Canonical post-push flow** (after Windows `git push` in `woosoo-nexus`):
 
 ```bash
 cd ~
 cd projects/woosoo-platform          # platform root — NOT woosoo-nexus/
 
-git -C woosoo-nexus pull origin dev  # after Windows push
-
-./run dev --no-pull                  # same as woosoo dev --no-pull
+pld sync                             # Palisade CLI (preferred)
+# legacy: woosoo sync
 ```
 
-First-time setup: `bash scripts/install.sh` then `woosoo dev` — see DEPLOYMENT_GUIDE § 4.1.
+Install CLI on WSL: `bash scripts/install.sh` (creates `/usr/local/bin/pld` + deprecated `woosoo`).
+
+Windows (WSL required for stack): `.\pld.cmd sync` from platform root — see [pld-cli-decision.md](architecture/pld-cli-decision.md).
+
+| Command | When |
+| ------- | ---- |
+| `pld sync` | Daily: after Windows push, source-only changes |
+| `pld sync --full` | First run, deps/Dockerfile change |
+| `pld sync --build` | Sync + `docker compose build` |
+| `pld rebuild` | Vue/KDS frontend — Vite rebuild in container |
+| `pld rebuild --php` | `composer install` in app container |
+| `pld certs` | Missing `docker/certs/fullchain.pem` or TLS drift |
+| `pld network` | LAN / PUBLIC_HOST / portproxy after WSL restart |
+
+`woosoo *` is a deprecated alias (same commands).
+
+Legacy equivalent: `git -C woosoo-nexus pull origin dev` then `./run dev --no-pull --no-build`.
+
+First-time setup: `bash scripts/install.sh` then `woosoo dev` or `woosoo sync --full` — see DEPLOYMENT_GUIDE § 4.1.
 
 ### Browser URL
 
@@ -201,7 +220,7 @@ parity testing. Run `woosoo network` if LAN access fails after a WSL restart.
 
 | Wrong | Right |
 | ----- | ----- |
-| `cd woosoo-nexus` then host `composer dev` / `composer install` | `./run dev` from platform root |
+| `cd woosoo-nexus` then host `composer dev` / `composer install` | `pld sync` from platform root |
 | Host `npm run dev` inside `woosoo-nexus` | Rebuild in Docker (below) or bind-mount picks up PHP/Vue |
 | `http://localhost:8000` as primary test URL | **`https://192.168.100.7`** (home example) or `$PUBLIC_HOST` |
 | `/mnt/e/Projects/woosoo-platform` as canonical WSL path | `~/projects/woosoo-platform` |
@@ -218,6 +237,12 @@ docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec app npm run b
 
 ```bash
 cd ~/projects/woosoo-platform
+woosoo rebuild
+```
+
+Manual escape hatch:
+
+```bash
 WOOSOO_FORCE_VITE_BUILD=true docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d --build app
 ```
 

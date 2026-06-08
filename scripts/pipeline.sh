@@ -5,9 +5,14 @@
 # Usage:
 #   bash scripts/pipeline.sh <target> [flags]
 #   ./run <target> [flags]          # via root entry point
-#   woosoo <target> [flags]         # after: bash scripts/install.sh
+#   pld <target> [flags]            # preferred (Palisade CLI)
+#   woosoo <target> [flags]         # deprecated alias
+#   ./run <target> [flags]
 #
 # Targets:
+#   sync      Post-push fast path (nexus pull → up → APP_KEY fix → optimize:clear)
+#   rebuild   Frontend Vite rebuild in Docker (--php for composer install)
+#   certs     Regenerate dev TLS certs + restart nginx (alias: network --regen-certs)
 #   dev       Local Docker dev deploy (pull → bootstrap → build → up → migrate → warm → health)
 #   staging   Staging-parity on WSL/dev host (requires woosoo.env; uses WOOSOO_ALLOW_NON_PI)
 #   pi        Production Pi deploy (requires root + woosoo.env)
@@ -40,6 +45,9 @@ NO_BUILD=0
 FROM_STEP=1
 DRY_RUN=0
 REGEN_CERTS=0
+SYNC_FULL=0
+SYNC_BUILD=0
+REBUILD_PHP=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -47,12 +55,15 @@ while [[ $# -gt 0 ]]; do
     --no-build)      NO_BUILD=1 ;;
     --dry-run)       DRY_RUN=1 ;;
     --regen-certs)   REGEN_CERTS=1 ;;
+    --full)          SYNC_FULL=1 ;;
+    --build)         SYNC_BUILD=1 ;;
+    --php)           REBUILD_PHP=1 ;;
     --from-step)   FROM_STEP="${2:?--from-step requires a step number}"; shift ;;
     --from-step=*) FROM_STEP="${1#*=}" ;;
     -h|--help)     TARGET="help" ;;
     *)
       echo "Unknown flag: $1" >&2
-      echo "Run 'woosoo help' for usage." >&2
+      echo "Run 'pld help' for usage." >&2
       exit 1
       ;;
   esac
@@ -60,6 +71,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 export DRY_RUN
+
+# ── CLI name (pld vs deprecated woosoo) ───────────────────────────────────────
+CLI_NAME="${WOOSOO_CLI_INVOKED_AS:-run}"
+CLI_NAME="${CLI_NAME%.exe}"
+export CLI_NAME
+
+if [[ "$CLI_NAME" == "woosoo" && "$TARGET" != "help" && "$TARGET" != "-h" && "$TARGET" != "--help" ]]; then
+  echo -e "${_C_YELLOW}Note:${_C_RESET} 'woosoo' is deprecated — use 'pld' instead (Palisade CLI). See docs/architecture/pld-cli-decision.md" >&2
+  echo >&2
+fi
 
 # ── Compose helper ────────────────────────────────────────────────────────────
 _env_file="$PLATFORM_ROOT/woosoo-nexus/.env"
@@ -120,11 +141,25 @@ _dev_pull() {
   done
 }
 
+_dev_pull_nexus() {
+  local branch="${WOOSOO_DEPLOY_BRANCH:-dev}"
+  local dir="$PLATFORM_ROOT/woosoo-nexus"
+  if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$dir" fetch origin "$branch" --quiet 2>/dev/null || true
+    git -C "$dir" checkout "$branch" --quiet 2>/dev/null
+    git -C "$dir" pull origin "$branch" --quiet
+    local sha; sha="$(git -C "$dir" rev-parse --short HEAD)"
+    echo "  nexus    ${sha}  (${branch})"
+  else
+    echo "  nexus    (not a git repo — skipping pull)"
+  fi
+}
+
 _dev_bootstrap_needed() {
   # Returns 0 (true) if bootstrap should run; 1 (false) if already configured.
+  # Missing APP_KEY alone does NOT trigger bootstrap — use _dev_ensure_app_key after stack is up.
   [[ ! -f "$_env_file" ]] && return 0
   grep -qE '^APP_ENV="?local"?' "$_env_file" || return 0
-  grep -qE '^APP_KEY=base64:' "$_env_file"    || return 0
   # SESSION_DOMAIN must be empty
   local sd; sd="$(grep -E '^SESSION_DOMAIN=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || echo '')"
   [[ -n "$sd" ]] && return 0
@@ -135,6 +170,52 @@ _dev_bootstrap_needed() {
     fi
   fi
   return 1  # all checks passed — skip bootstrap
+}
+
+_dev_app_key_ok() {
+  local val len
+  [[ -f "$_env_file" ]] || return 1
+  val="$(grep -E '^APP_KEY=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+  [[ "$val" == base64:* ]] || return 1
+  len="${#val}"
+  (( len >= 40 && len <= 80 ))
+}
+
+_dev_ensure_app_key() {
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "  (dry-run) would ensure APP_KEY via php artisan key:generate --force"
+    return 0
+  fi
+  if _dev_app_key_ok; then
+    echo "  APP_KEY OK"
+    return 0
+  fi
+  echo "  APP_KEY missing or invalid — generating..."
+  $DC exec -T app php artisan key:generate --force
+}
+
+_dev_optimize_clear() {
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "  (dry-run) would run php artisan optimize:clear"
+    return 0
+  fi
+  $DC exec -T app php artisan optimize:clear
+}
+
+_print_dev_urls() {
+  local pub_host scheme
+  pub_host="$(grep -E '^PUBLIC_HOST=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true)"
+  scheme="$(grep -E '^PUBLIC_SCHEME=' "$_env_file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || echo 'https')"
+  scheme="${scheme:-https}"
+  if [[ -n "$pub_host" ]]; then
+    echo
+    echo -e "${_C_GREEN}Admin URL:${_C_RESET}  ${scheme}://${pub_host}/"
+    echo -e "${_C_GREEN}Tablet URL:${_C_RESET} ${scheme}://${pub_host}:4443"
+  fi
+  if [[ ! -f "$PLATFORM_ROOT/docker/certs/fullchain.pem" ]]; then
+    echo
+    echo -e "${_C_YELLOW}⚠${_C_RESET}  TLS cert missing (docker/certs/fullchain.pem). Run: pld certs"
+  fi
 }
 
 _dev_build() {
@@ -173,8 +254,8 @@ _dev_start_migrate() {
     fi
   }
   # Generate APP_KEY if missing (first run)
-  if ! grep -qE '^APP_KEY=base64:' "$_env_file" 2>/dev/null; then
-    echo "  APP_KEY missing — generating..."
+  if ! _dev_app_key_ok; then
+    echo "  APP_KEY missing or invalid — generating..."
     $DC exec -T app php artisan key:generate --force
   fi
   $DC exec -T app php artisan migrate --force
@@ -294,16 +375,28 @@ _dev_health() {
 target_help() {
   cat <<'EOF'
 
-  woosoo <target> [flags]
+  pld <target> [flags]          Palisade CLI (preferred)
+  woosoo <target> [flags]       deprecated alias — same commands
 
   Targets:
-    dev       Local Docker dev deploy
+    sync      Post-push fast path (nexus pull, up, APP_KEY, optimize:clear)
+    rebuild   Vite rebuild in Docker (--php for composer install)
+    certs     Regenerate dev TLS certs + restart nginx
+    dev       Full local Docker dev deploy
     staging   Staging-parity (requires woosoo.env; uses WOOSOO_ALLOW_NON_PI)
     pi        Production Pi deploy (requires root + woosoo.env)
     health    Dev health check
     network   Sync PUBLIC_HOST + LAN bridge + verify
     logs      Tail all service logs
     check     Preflight + env alignment check (auto-fixes config drift)
+
+  Sync flags:
+    --full          Full deploy (same as woosoo dev)
+    --build         Build images during sync (default: skip build)
+    --no-pull       Skip git pull
+
+  Rebuild flags:
+    --php           composer install in app container (default: Vite rebuild)
 
   Network flags:
     --dry-run       Preview changes without writes
@@ -316,13 +409,18 @@ target_help() {
     --dry-run        Print without executing
 
   Examples:
-    woosoo dev
-    woosoo dev --no-pull --no-build
-    woosoo dev --from-step 4
-    woosoo health
-    woosoo network
-    woosoo network --regen-certs
-    woosoo logs
+    pld sync
+    pld sync --full
+    pld rebuild
+    pld certs
+    pld dev --no-pull --no-build
+    pld network --regen-certs
+    pld health
+    pld logs
+
+  woosoo * commands are identical but deprecated.
+
+  Docs: docs/architecture/pld-cli-decision.md
 
 EOF
 }
@@ -394,6 +492,81 @@ target_network() {
   (( net_fail == 0 ))
 }
 
+target_sync() {
+  cd "$PLATFORM_ROOT"
+
+  if (( SYNC_FULL )); then
+    target_dev
+    return
+  fi
+
+  local total=5
+  pipeline_banner "sync"
+
+  echo
+  echo -e "${_C_BOLD}[0/${total}]${_C_RESET} ${_C_CYAN}Preflight check + auto-fix${_C_RESET}"
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    bash "$SCRIPT_DIR/deployment/dev-preflight.sh" --dry-run
+  else
+    bash "$SCRIPT_DIR/deployment/dev-preflight.sh"
+  fi
+  echo
+
+  if (( NO_PULL )); then
+    pipeline_skip 1 $total "Pull woosoo-nexus" "--no-pull flag set"
+  else
+    _step 1 $total "Pull woosoo-nexus" _dev_pull_nexus
+  fi
+
+  if _dev_bootstrap_needed; then
+    pipeline_step 2 $total "Bootstrap .env" \
+      env WOOSOO_DEV_CONFIRM=yes bash "$SCRIPT_DIR/deployment/dev-docker-bootstrap.sh"
+  else
+    pipeline_skip 2 $total "Bootstrap .env" "already configured"
+  fi
+
+  if (( SYNC_BUILD )); then
+    _step 3 $total "Build images" _dev_build
+  else
+    pipeline_skip 3 $total "Build images" "use --build to include"
+  fi
+
+  _step 4 $total "Start stack + migrate" _dev_start_migrate
+
+  pipeline_step 5 $total "Clear config cache" _dev_optimize_clear
+
+  _print_dev_urls
+  pipeline_summary
+  (( _PIPELINE_FAIL == 0 ))
+}
+
+target_rebuild() {
+  cd "$PLATFORM_ROOT"
+  pipeline_banner "rebuild"
+
+  if (( REBUILD_PHP )); then
+    echo
+    pipeline_step 1 1 "Composer install (app container)" \
+      $DC exec -T app composer install --no-interaction --prefer-dist
+  else
+    echo
+    if [[ "${DRY_RUN:-0}" == "1" ]]; then
+      pipeline_skip 1 1 "Vite rebuild (app)" "dry-run: WOOSOO_FORCE_VITE_BUILD=true docker compose up -d --build app"
+    else
+      pipeline_step 1 1 "Vite rebuild (app)" \
+        env WOOSOO_FORCE_VITE_BUILD=true $DC up -d --build app
+    fi
+  fi
+
+  _print_dev_urls
+  pipeline_summary
+}
+
+target_certs() {
+  REGEN_CERTS=1
+  target_network
+}
+
 target_dev() {
   cd "$PLATFORM_ROOT"
   local total=8
@@ -425,7 +598,7 @@ target_dev() {
     pipeline_step 2 $total "Bootstrap .env" \
       env WOOSOO_DEV_CONFIRM=yes bash "$SCRIPT_DIR/deployment/dev-docker-bootstrap.sh"
   else
-    pipeline_skip 2 $total "Bootstrap .env" "already configured (APP_ENV=local, APP_KEY set, SESSION_DOMAIN empty)"
+    pipeline_skip 2 $total "Bootstrap .env" "already configured (APP_ENV=local, SESSION_DOMAIN empty)"
   fi
 
   # 3 — Build
@@ -550,6 +723,9 @@ target_check() {
 # Dispatch
 # =============================================================================
 case "$TARGET" in
+  sync)    target_sync ;;
+  rebuild) target_rebuild ;;
+  certs)   target_certs ;;
   dev)     target_dev ;;
   staging) target_staging ;;
   pi)      target_pi ;;
