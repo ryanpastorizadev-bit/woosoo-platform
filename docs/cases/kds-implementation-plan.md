@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-07
+last_reviewed: 2026-06-08
 scope: woosoo-nexus
 ---
 
@@ -25,16 +25,58 @@ only in git history / design chat — do not implement from it.
 ## Run State
 
 - task_slug: kds-implementation-plan
-- tier: 3
-- branch: claude/happy-cannon-2nR48 (rebase on origin/dev before work)
-- status: BLOCKED
-- last_completed_agent: contrarian (spec consolidation + C5 label reconciliation)
-- next_agent: specialist:ranpo-backend | specialist:chuya-frontend (Phase 0 split by layer)
-- active_runner: none
+- tier: 2
+- branch: agent/kds-phase-0
+- status: IN_PROGRESS
+- last_completed_agent: specialist:chuya-frontend
+- next_agent: verifier
+- active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-07
-- blocked_by: plt-case-stability-remediation
+- updated: 2026-06-08
+- blocked_by: none (Pi stability deferred per operator; KDS UI slice proceeds in parallel)
+
+## Specialist Investigation & Implementation
+
+**Stability-first note:** [[plt-case-stability-remediation]] P0 (NEX-014 session-domain) remains operator/Pi work — not touched in this slice. KDS UI fixes proceed per explicit re-prioritization.
+
+**Investigated**
+- Letterboxed layout: fixed 1280×800 canvas + `transform: scale()` centered in `.kds-device-frame` left margins on 1920×1080 and Tab A11+ landscape.
+- Mark Ready stuck disabled: Phase 1 `Display.vue` POSTed item toggles then **reverted** optimistic `done` on API failure (migration/endpoints absent in mock-only env) → `isReadyBlocked` never cleared.
+- Gating duplicated: `KdsTicketCard` computed `isReadyBlocked` separately from `canAdvanceTicket()` in `kdsHelpers.ts`.
+
+**Changed (woosoo-nexus, branch `agent/kds-phase-0`)**
+- `Display.vue` — true fullscreen shell (`100dvw` × `100dvh`); removed canvas scale/device frame; scroll confined to `.kds-grid-wrap`; client-side mock toggle/advance via `applyAdvance` (no axios/Echo in this slice); mock fallback when `initialTickets` empty.
+- `kdsHelpers.ts` — added `isAdvanceBlocked()`; `canAdvanceTicket()` uses strict `item.done === true`.
+- `KdsTicketCard.vue` — `:disabled="advanceBlocked"` from centralized helper.
+- Touch targets — filter chips and item rows ≥ 44px.
+- `kdsHelpers.test.ts` + `vitest.config.ts` + `npm run test:unit` — Mark Ready gating unit tests.
+
+**Verification (raw)**
+- `npm run typecheck` — exit 0
+- `npm run lint:check` — exit 0
+- `npm run test:unit` — 5 passed
+- `php artisan test tests/Feature/Admin/KdsDisplayTest.php` — 3 passed (16 assertions)
+
+**Deferred (out of slice)**
+- Echo/live feed wiring, backend advance/toggle writes, recall confirmation modal, B5 recall-from-voided decision.
+- Physical Tab A11+ wet-hands manual pass.
+
+## WSL test workflow (operator convention)
+
+> **Authoritative for this operator:** code changes always land on **Windows** first; WSL is for
+> run/test only — never edit in WSL without pulling Windows commits first.
+
+| Step | Where | Action |
+|------|--------|--------|
+| 1 | Windows | Implement, commit, `git push origin dev` (or feature branch) |
+| 2 | WSL | `cd ~ && cd projects/woosoo-platform/woosoo-nexus` |
+| 3 | WSL | `git pull origin dev` |
+| 4 | WSL | `composer install && npm install` (when deps changed) |
+| 5 | WSL | `composer dev` → browser http://localhost:8000/kds |
+
+**Never use** `/mnt/e/Projects/...` as the canonical path — use `~/projects/woosoo-platform/`.
+WSL needs native `php` + `node` (Windows `npm.cmd` fails on WSL filesystem paths).
 
 ## Blockers (resume protocol)
 
@@ -73,7 +115,67 @@ Review findings and fixes applied:
 | No duplicate routes/layouts | Single `GET /kds` in `web.php`; no admin sidebar; styles scoped `--kds-*` |
 | Same table, separate tickets | Mock data keeps T-05 initial + refill as separate cards (spec rule) |
 
-Remaining mock limitations (expected): no live feed, client-side-only transitions, `html:has(.kds-viewport)` global overflow lock while on page.
+Remaining mock limitations (expected): no live feed in this UI slice (client-side mock interactions), `html:has(.kds-viewport)` global overflow lock while on page.
+
+### Bug audit (2026-06-08 — Cursor specialist)
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| Letterboxed canvas / unused viewport | Fixed 1280×800 + scale centering | Full-viewport `.kds-shell` grid; removed scale wrapper |
+| Mark Ready stays disabled after checking all items | Axios toggle revert on failed POST | Client-side-only toggle/advance for mock slice |
+| Gating logic duplicated in card | Local `isReadyBlocked` computed | `isAdvanceBlocked()` in `kdsHelpers.ts` |
+| Filter chips 42px tall | CSS min-height below 44px target | Raised to 44px |
+| Compact item rows 40px | Same | Raised to 44px |
+| Echo overwriting local toggles | `useKdsEcho` reapplied server payload | Removed Echo hook from mock Display slice |
+| Recall confirmation modal | Not in scope | Deferred |
+| Reduced motion | Already guarded in Display styles | No change |
+| Empty queue | `KdsEmptyState` | No change |
+
+---
+
+## KDS Launch Readiness — B5 decision pre-lock (2026-06-08, read-only prep)
+
+Read-only prep so the implementing agent starts with **locked decisions** the moment the Pi
+stability gate clears. Evidence is `contracts/order-state.contract.md` (authoritative mirror of
+`OrderStatus::canTransitionTo`); the `woosoo-nexus` repo is not in this checkout, so items marked
+**VERIFY-IN-NEXUS** must be confirmed against live code before the affected phase.
+
+### Done / not blocking
+- UI mock slice committed (nexus `dev` `6293bd2`); fixes in this case's Specialist section.
+- `tab-case-011-active-order-recovery-filter` — COMPLETE (PR #199). Only Pi ops remain as the gate.
+
+### Decisions resolvable from the contract (LOCK these)
+
+| B5 | Decision | Locked answer | Evidence |
+|----|----------|---------------|----------|
+| **B5.1a** | Recall from **voided** (`voided→in_progress`) | **REJECT — do NOT add this edge.** Recall-from-voided must re-fire as a **new kitchen ticket**, never un-void. | Contract: `VOIDED` is terminal; "terminal states never transition"; "do not invent states/transitions." Adding `voided→in_progress` breaks the terminal invariant + POS parity. |
+| **B5.1b** | Recall from **served** (`served→in_progress`) | **PERMITTED but contract-gated.** `SERVED` is non-terminal, so a backward edge is additive — but it requires updating `OrderStatus::canTransitionTo` **and** `order-state.contract.md` in the same change, plus a parity test. | Contract: `SERVED → COMPLETED \| VOIDED` today; new edge must be recorded in the contract per the "no invented transitions" rule. |
+| **B5.2** | `new→preparing` on a `pending` order | **Use the existing two-step path `pending→confirmed→in_progress`. Do NOT add `pending→in_progress`.** In practice creation already sets `confirmed`, so Start Preparing is just `confirmed→in_progress` (edge exists). | Contract: `PENDING → CONFIRMED \| VOIDED \| CANCELLED` (no direct `pending→in_progress`); `CONFIRMED → IN_PROGRESS` exists; Appendix C2 "pending is transient; creation sets confirmed." |
+
+### Contract conflict found in this plan (must resolve before P2)
+
+> **Appendix B1 / B7 list `voided → in_progress` ("Recall ⚠️ NEW edge") as a build target.**
+> That directly violates `order-state.contract.md` (VOIDED is terminal). Per **B5.1a above**, the
+> implementing agent must NOT add that edge — use the new-ticket approach. B1/B7 should be read
+> with this override. (This is the §B5 #1 "STOP before P2" risk, now decided.)
+
+### Still requires verification / human sign-off (cannot lock from platform repo)
+- **B5.6 (VERIFY-IN-NEXUS):** item display field — payload uses `receipt_name ?? name`; designer spec wants `kitchen_name`. Confirm the POS/menu column exists before wiring P0.
+- **B5.3 (VERIFY-IN-NEXUS):** order `type` (initial/refill) derivation from per-item `is_refill`.
+- **B5.4 (VERIFY-IN-NEXUS):** item `safety` flag source (notes/modifiers vs allergen field).
+- **B5.5 (DESIGN):** threshold + recall-target config storage (`SystemSetting` vs `kds_config`) — pick during P3; not needed for P0/P1.
+
+### Launch sequence (the moment Pi gates are green)
+1. Clear `plt-case-stability-remediation` P0–P1b (operator/Pi). KDS `blocked_by` then empty.
+2. Tier-3 Specialist (ranpo-backend, **Claude Code — not Cursor**) rebases `agent/kds-phase-0` on `origin/dev`.
+3. **P0** read-only board (no writes/migration) — safe first landing.
+4. **P1** writes + additive migration + `ItemToggled`; apply B5.2 lock (no new pending edge).
+5. **STOP at P2** — apply B5.1a/b locks: voided-recall = new ticket; if served-recall is wanted, update enum **and** contract together with a parity test.
+6. P3 thresholds/tokens (resolve B5.5), P4 resilience.
+
+> Tier-3 reminder: KDS touches the order state machine + POS parity. Implementation must run as a
+> Claude Code Specialist with the relevant `contracts/*.md` open; Cursor is not permitted for the
+> build (this readiness note is read-only planning only).
 
 ---
 

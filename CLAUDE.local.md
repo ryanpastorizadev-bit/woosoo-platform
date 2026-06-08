@@ -1,9 +1,17 @@
 # Woosoo Platform — Session State
 
-**Updated:** 2026-05-31
+**Updated:** 2026-06-08
 
 > This file is a personal working scratchpad. It is **not** authoritative durable state —
 > that lives in `docs/cases/<slug>.md`. See `docs/USAGE_GUIDE.md` for how to drive the system.
+
+---
+
+## Dev environment (Windows → WSL)
+
+- **Edit / commit / push:** always on **Windows** (`E:\Projects\woosoo-platform\`, sibling app repos).
+- **Run / test on WSL:** after push, `cd ~/projects/woosoo-platform/<app>` → `git pull` → `composer install` / `npm install` if needed → `composer dev` (nexus) or app gates.
+- **Do not** treat `/mnt/e/Projects/...` as canonical on WSL — use `~/projects/woosoo-platform/`.
 
 ---
 
