@@ -17,7 +17,7 @@ function Invoke-WslPld {
     }) -join ' '
 
     $bashCmd = "cd $WslCd && ./run $quoted"
-    wsl.exe bash -lc $bashCmd
+    wsl.exe bash -lc "$bashCmd"
 }
 
 # Prefer operator canonical WSL clone over /mnt/e bind-mount
@@ -33,6 +33,6 @@ $root = $PSScriptRoot
 if (-not (Test-Path (Join-Path $root 'run'))) {
     Write-Error "Platform root not found (missing run). Run from woosoo-platform repo root."
 }
-$wslPath = (wsl.exe wslpath -a $root).Trim()
+$wslPath = (wsl.exe wslpath -a "$root").Trim()
 Invoke-WslPld -WslCd $wslPath -Args $Passthrough
 exit $LASTEXITCODE

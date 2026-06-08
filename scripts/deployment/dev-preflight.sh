@@ -65,19 +65,22 @@ env_get() {
 }
 
 # Write/update a key in an env file: env_set KEY VALUE FILE
-# Uses the same sed approach as apply-woosoo-config.sh.
 env_set() {
   local key="$1" value="$2" file="$3"
   if (( DRY_RUN )); then
     _skip "would set ${key}=\"${value}\" in $(basename "$file")"
     return 0
   fi
-  local escaped_key escaped_value
+  local escaped_key
   escaped_key="$(printf '%s' "$key" | sed 's/[[\.*^$()+?{|]/\\&/g')"
   # Quote value and escape internal double-quotes
   local quoted; quoted="\"$(printf '%s' "$value" | sed 's/"/\\"/g')\""
   if grep -qE "^${escaped_key}=" "$file" 2>/dev/null; then
-    sed -i "s|^${escaped_key}=.*|${key}=${quoted}|" "$file" || return 1
+    # Plain sed s|...|...| breaks when VALUE contains '|' or '&' (sed RHS metacharacters).
+    # Use awk to rewrite the matching line so no value characters are interpreted as delimiters.
+    awk -v key="$key" -v replacement="${key}=${quoted}" \
+      'BEGIN{pat="^"key"="} $0 ~ pat {print replacement; next} {print}' \
+      "$file" > "${file}.tmp" && mv -f "${file}.tmp" "$file" || return 1
   else
     printf '%s=%s\n' "$key" "$quoted" >> "$file" || return 1
   fi

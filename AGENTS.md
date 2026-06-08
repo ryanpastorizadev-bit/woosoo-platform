@@ -160,7 +160,7 @@ Claude Code executes it via `.claude/agents/*` (subagents) and `.claude/skills/*
 Agent definitions live only in `.claude/agents/`. Per-app rules live in each app's `.agents.md`.
 
 A single chatbox adopts each role in turn (Contrarian → Specialist → code-simplifier → Verifier →
-Executioner) by reading `.claude/agents/<role>.md` as its instruction set for that phase.
+scribe → Executioner) by reading `.claude/agents/<role>.md` as its instruction set for that phase.
 
 ## Resume & Handoff (mandatory)
 

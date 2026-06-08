@@ -170,14 +170,15 @@ Full Path B detail: [`deployment/DEPLOYMENT_GUIDE.md § 4`](deployment/DEPLOYMEN
 | **WSL** | `~/projects/woosoo-platform/` | Pull, `./run dev` / `woosoo dev`, browser test |
 
 These are **separate git working trees**. After every Windows push, pull the matching app repo on WSL
-(e.g. `git -C woosoo-nexus pull origin dev`). Do **not** treat `/mnt/e/Projects/...` as the canonical
+(e.g. `git -C woosoo-nexus pull origin dev`). If you pushed the **platform** repo itself, pull that
+clone too: `git -C ~/projects/woosoo-platform pull origin dev`. Do **not** treat `/mnt/e/Projects/...` as the canonical
 WSL path — use `~/projects/woosoo-platform/`.
 
 ### Stack
 
 Docker Compose runs from **platform root**, never host Laravel on the WSL shell.
 
-**Canonical post-push flow** (after Windows `git push` in `woosoo-nexus`):
+**Canonical post-push flow** (after Windows `git push` in `woosoo-nexus`; if you pushed the **platform** repo itself, run `git pull origin dev` in `~/projects/woosoo-platform` first — `pld sync` does not pull the platform root):
 
 ```bash
 cd ~

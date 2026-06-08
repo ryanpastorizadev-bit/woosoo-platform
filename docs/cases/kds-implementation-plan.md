@@ -28,7 +28,7 @@ only in git history / design chat — do not implement from it.
 - tier: 2
 - branch: agent/kds-phase-0
 - status: IN_PROGRESS
-- last_completed_agent: specialist (Track A+B consolidated → 73a50b7, bcba487; pushed)
+- last_completed_agent: specialist (Track A+B consolidated → 73a50b7, bcba487; pushed; 13afccf closes audit nits — local only, push pending)
 - next_agent: verifier
 - active_runner: cursor
 - interrupted: false
@@ -75,8 +75,11 @@ only in git history / design chat — do not implement from it.
   all 14 shout weights repointed; `tabular-nums` on metric/clock/filter-count/qty) → **`bcba487`**.
 - Branch `agent/kds-phase-0` pushed to `origin` (Track A + B). Stray non-KDS untracked files
   (`Admin/TablesController.php`, `pages/Tables/`) intentionally left out of both commits.
-- Open Tier-3 nit (filed, non-blocking): move `toggleItem` terminal-status guard inside the lock
-  to fully close the concurrent advance→toggle race.
+- ~~Open Tier-3 nit: move `toggleItem` terminal-status guard inside the lock~~ — **resolved in `13afccf`** (guard + stale-state 422 + locked-row save + broadcast `refresh()`; mock fallback removed).
+
+**Changed (2026-06-08 — audit nit closure: `13afccf` — LOCAL, push pending)**
+- `KdsController.php` — `advance()` saves via `$locked` row (not stale `$order`); concurrent stale-state guard (`$locked->status !== $current` → 422); `refresh()` before `load()` in broadcast so `updated_at` is correct; `toggleItem()` terminal guard moved inside `lockForUpdate()` transaction (closes TOCTOU nit).
+- `Display.vue` — removed `kdsMockTickets` fallback; empty `initialTickets` now renders `KdsEmptyState` directly.
 
 **Deferred (out of slice)**
 - Echo/live feed wiring, backend advance/toggle writes, recall confirmation modal, B5 recall-from-voided decision.

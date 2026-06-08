@@ -145,8 +145,12 @@ _dev_pull_nexus() {
   local branch="${WOOSOO_DEPLOY_BRANCH:-dev}"
   local dir="$PLATFORM_ROOT/woosoo-nexus"
   if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git -C "$dir" fetch origin "$branch" --quiet 2>/dev/null || true
-    git -C "$dir" checkout "$branch" --quiet 2>/dev/null
+    # Fetch: non-fatal but visible on failure (network issues should not silently vanish).
+    if ! git -C "$dir" fetch origin "$branch" --quiet; then
+      echo -e "  ${_C_YELLOW}⚠${_C_RESET}  nexus: git fetch failed — continuing with local refs"
+      _PIPELINE_WARN=$(( _PIPELINE_WARN + 1 ))
+    fi
+    git -C "$dir" checkout "$branch" --quiet
     git -C "$dir" pull origin "$branch" --quiet
     local sha; sha="$(git -C "$dir" rev-parse --short HEAD)"
     echo "  nexus    ${sha}  (${branch})"
@@ -227,6 +231,20 @@ _dev_build() {
   _retry 3 "docker compose build" $DC build
 }
 
+_dev_wait_app_running() {
+  local waited=0 max=60
+  while (( waited < max )); do
+    if $DC ps app 2>/dev/null | grep -qiE '(up|running|healthy)'; then
+      return 0
+    fi
+    sleep 5
+    waited=$(( waited + 5 ))
+    echo "  Waiting for app container... (${waited}s)"
+  done
+  echo "  ERROR: app container not running after ${max}s" >&2
+  return 1
+}
+
 _dev_start_migrate() {
   # Start the stack. Reverb can be slow on first boot — if it's the only
   # unhealthy service, restart it once and give it another 60s.
@@ -253,6 +271,7 @@ _dev_start_migrate() {
       return $rc
     fi
   }
+  _dev_wait_app_running || return 1
   # Generate APP_KEY if missing (first run)
   if ! _dev_app_key_ok; then
     echo "  APP_KEY missing or invalid — generating..."
@@ -543,6 +562,17 @@ target_sync() {
 target_rebuild() {
   cd "$PLATFORM_ROOT"
   pipeline_banner "rebuild"
+
+  # Precondition: app container must be running before any rebuild action.
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    _app_id="$(docker compose --env-file "$_env_file" -f "$PLATFORM_ROOT/compose.yaml" ps -q app 2>/dev/null || true)"
+    if [[ -z "$_app_id" ]]; then
+      echo
+      echo -e "  ${_C_RED}✗${_C_RESET}  app container not running — run ${_C_YELLOW}pld sync${_C_RESET} first"
+      pipeline_summary
+      return 1
+    fi
+  fi
 
   if (( REBUILD_PHP )); then
     echo

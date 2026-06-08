@@ -1,0 +1,100 @@
+---
+status: canonical
+last_reviewed: 2026-06-08
+scope: woosoo-platform
+---
+
+# CASE: plt-case-executioner-simplifier-gate
+
+Make the Executioner reject when `## Code Simplification` or `## Hygiene` audit lines are missing or skipped without a documented reason.
+
+## Vault links
+
+- Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
+- Related: [[plt-case-hygiene-gates]]
+
+## Run State
+
+- task_slug: plt-case-executioner-simplifier-gate
+- tier: 1
+- branch: agent/plt-case-executioner-simplifier-gate
+- status: IN_PROGRESS
+- last_completed_agent: specialist:scribe
+- next_agent: verifier
+- active_runner: cursor
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-08
+
+## Handoff
+
+- Phase in progress: awaiting Verifier grep check.
+- Done so far: Added REJECT clauses to `.claude/agents/executioner.md` for missing/bare-SKIPPED
+  `## Code Simplification` and `## Hygiene` audit lines.
+- Exact next action: Verifier runs `Select-String -Path ".claude/agents/executioner.md" -Pattern "Code Simplification"`.
+- Working-tree state: `.claude/agents/executioner.md` modified.
+- Risks / do-not-redo: Do not broaden reject criteria beyond audit-line presence checks.
+
+## Tier
+
+1
+
+## Branch
+
+agent/plt-case-executioner-simplifier-gate
+
+## Problem
+
+`plt-case-hygiene-gates` formalised the `## Code Simplification` audit line as mandatory in case files, but `executioner.md` has no enforcement clause. A Specialist can silently omit the section and the Executioner will still approve. The gate exists on paper but is not enforced at verdict time.
+
+## Contrarian Review
+
+Tier 1 governance-only. Single file: `.claude/agents/executioner.md`. Scribe specialist. No app code, no Verifier gate needed — but scribe still checkpoints to verifier for the docs scan. Chain: `Specialist (scribe) → Verifier → Executioner`.
+
+## Success Criterion
+
+`.claude/agents/executioner.md` contains an explicit reject clause: when `## Code Simplification` is absent from the case file, or when it reads `SKIPPED` without a documented reason (e.g. Tier 1, pure-docs), the Executioner returns `REJECTED`.
+
+## Investigation
+
+Filed as follow-up from `plt-case-hygiene-gates` Executioner verdict (2026-06-08). No investigation needed — the gap is known.
+
+## Root Cause
+
+`executioner.md` was not updated as part of `plt-case-hygiene-gates` because the focus was on wiring the chain, not enforcing the audit-line presence at the verdict gate.
+
+## Proposed Fix
+
+Add to `.claude/agents/executioner.md` under the verdict criteria: reject when the case file lacks `## Code Simplification`, or when the section reads `SKIPPED` without a documented reason (Tier 1 / pure-docs / no code path changed are valid reasons; a bare `SKIPPED` is not).
+
+## Specialist Investigation & Implementation
+
+Added two REJECT clauses to `.claude/agents/executioner.md` under `## Return REJECTED if ANY of:`:
+(1) missing or bare-SKIPPED `## Code Simplification`; (2) missing or bare-SKIPPED `## Hygiene` when
+code was touched. Valid documented skip reasons (Tier 1, pure-docs, no code path) remain allowed.
+
+## Code Simplification
+
+SKIPPED — Tier 1 governance-only markdown edit; no app code.
+
+## Hygiene (dead-code-cleanup)
+
+PASS — no temp files or debug artifacts.
+
+## Verification
+
+```powershell
+Select-String -Path ".claude/agents/executioner.md" -Pattern "Code Simplification"
+```
+
+## Documentation Sync
+
+N/A — this task IS the docs sync.
+
+## Executioner Verdict
+
+(pending)
+
+## Remaining Risks
+
+None.

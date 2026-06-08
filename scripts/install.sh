@@ -99,11 +99,16 @@ done
 
 # ── Verify ────────────────────────────────────────────────────────────────────
 echo
-if command -v pld >/dev/null 2>&1; then
-  echo "✓ pld command is available (preferred)"
-elif command -v woosoo >/dev/null 2>&1; then
-  echo "✓ woosoo command is available (deprecated — re-run install for pld)"
-else
+_any_ok=0
+for cmd in "${CMDS[@]}"; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    echo "✓ $cmd command is available"
+    _any_ok=1
+  else
+    echo "✗ $cmd not found in PATH"
+  fi
+done
+if (( _any_ok == 0 )); then
   echo "NOTE: $INSTALL_DIR is not in your PATH."
   echo "Add to ~/.bashrc or ~/.bash_profile:"
   echo '  export PATH="/usr/local/bin:$PATH"'

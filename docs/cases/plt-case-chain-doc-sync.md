@@ -1,0 +1,115 @@
+---
+status: canonical
+last_reviewed: 2026-06-08
+scope: woosoo-platform
+---
+
+# CASE: plt-case-chain-doc-sync
+
+Sync three platform docs to the updated 6-step agent chain: `AGENTS.md` inline summary (omits scribe), `hooks/execute.md`, and `PROTOCOL.md` (both still show old 4-step chain).
+
+## Vault links
+
+- Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
+- Related: [[plt-case-hygiene-gates]]
+
+## Run State
+
+- task_slug: plt-case-chain-doc-sync
+- tier: 1
+- branch: agent/plt-case-chain-doc-sync
+- status: IN_PROGRESS
+- last_completed_agent: specialist:scribe
+- next_agent: verifier
+- active_runner: cursor
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-08
+
+## Handoff
+
+- Phase in progress: awaiting Verifier grep check.
+- Done so far: Synced 6-step chain in `AGENTS.md` inline summary, `hooks/execute.md`, `PROTOCOL.md`.
+- Exact next action: Verifier runs grep checks from `## Verification` section.
+- Working-tree state: `AGENTS.md`, `hooks/execute.md`, `PROTOCOL.md` modified.
+- Risks / do-not-redo: Formal chain block in AGENTS.md lines 193–200 unchanged (already correct).
+
+## Tier
+
+1
+
+## Branch
+
+agent/plt-case-chain-doc-sync
+
+## Problem
+
+Three locations lag the updated 6-step chain introduced in `plt-case-hygiene-gates`:
+
+1. **`AGENTS.md` line 162** — inline summary reads `Contrarian → Specialist → code-simplifier → Verifier → Executioner`, omitting `scribe` (step 5 in the formal chain at lines 193–200).
+2. **`hooks/execute.md`** — still shows old 4-step chain wording (pre-code-simplifier / pre-scribe).
+3. **`PROTOCOL.md`** — still shows old 4-step chain wording.
+
+The formal chain at `AGENTS.md` lines 193–200 is the source of truth and is already correct.
+
+## Contrarian Review
+
+Tier 1 governance text sync. Three files, all platform-root markdown. Scribe specialist. No app code; no Verifier build gate needed. Chain: `Specialist (scribe) → Verifier → Executioner`.
+
+## Success Criterion
+
+All three files reflect the 6-step chain (`Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner`), consistent with `AGENTS.md` lines 193–200.
+
+## Investigation
+
+Filed as follow-up from `plt-case-hygiene-gates` Executioner verdict (2026-06-08). Scribe should read all three files and confirm exact locations before editing.
+
+## Root Cause
+
+`plt-case-hygiene-gates` focused on agent definitions and the formal chain block; the inline summary and hook/protocol reference docs were out of scope for that PR.
+
+## Proposed Fix
+
+- `AGENTS.md` line 162: add `→ scribe` between `Verifier` and `Executioner`.
+- `hooks/execute.md`: update any chain diagram or step list to the 6-step chain.
+- `PROTOCOL.md`: same.
+
+## Specialist Investigation & Implementation
+
+Synced the 6-step agent chain across three lagging docs:
+- `AGENTS.md` line 162 — added `→ scribe` between Verifier and Executioner in inline summary.
+- `hooks/execute.md` — Tier 2/3 chains now include `code-simplifier` and `scribe`.
+- `PROTOCOL.md` — Task Tiers table updated to match authoritative chain in AGENTS.md lines 193–200.
+
+## Files Changed
+
+- `AGENTS.md`
+- `hooks/execute.md`
+- `PROTOCOL.md`
+
+## Code Simplification
+
+SKIPPED — Tier 1 governance-only markdown edits; no app code.
+
+## Hygiene (dead-code-cleanup)
+
+PASS — no temp files or debug artifacts.
+
+## Verification
+
+```powershell
+Select-String -Path "AGENTS.md" -Pattern "scribe" | Select-Object -First 5
+Select-String -Path "hooks/execute.md","PROTOCOL.md" -Pattern "code-simplifier"
+```
+
+## Documentation Sync
+
+N/A — this task IS the docs sync.
+
+## Executioner Verdict
+
+(pending)
+
+## Remaining Risks
+
+None.

@@ -79,10 +79,10 @@ Load `hooks/post-edit-review.md` and complete its output.
 (Verifier omitted only when no code path changed — document the reason)
 
 ### Tier 2
-`Contrarian → Specialist → Verifier → Executioner`
+`Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner`
 
 ### Tier 3
-`Contrarian (written risk analysis) → Specialist → Verifier → Executioner`
+`Contrarian (written risk analysis) → Specialist → code-simplifier → Verifier → scribe → Executioner`
 
 For Tier 3: Specialist references the relevant `contracts/*.contract.md`. Executioner uses the strongest model.
 
