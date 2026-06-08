@@ -70,6 +70,11 @@ Thumbs.db
 # --- Machine-local Claude Code settings (not shared) ---
 .claude/settings.local.json
 
+# --- Machine-local skill loader links (canonical source is .agents/skills/) ---
+# .claude/skills/ contains symlinks/junctions the harness uses to load skills.
+# They are recreated locally by scripts/setup-skills.ps1 — do not commit.
+.claude/skills/
+
 # --- Machine-local Codex runtime config (sandbox_mode etc.; not shared) ---
 .codex/config.toml
 
