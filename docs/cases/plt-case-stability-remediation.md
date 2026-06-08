@@ -141,13 +141,14 @@ Case file: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
 
 ---
 
-## P2 — NEX-CASE-015 (contract hygiene)
+## P2 — NEX-CASE-015 (contract hygiene) — COMPLETE 2026-06-07
 
-- `StoreDeviceOrderRequest` accepts client-sent `totals`/`prices`/`discounts`/`ordered_menu_id`/modifier
-  fields. Tablet sends intent-only; backend should ignore/reject these on the tablet route to
-  keep pricing POS-authoritative. Backend (`ranpo-backend`), Tier 2.
-
-Tracked in: `state/QUEUE.md` Bucket B-follow.
+- **Fixed:** `StoreDeviceOrderRequest.prepareForValidation()` now **strips** client-sent
+  `totals`/`prices`/`discounts`/`ordered_menu_id`/modifier fields before rules run — only
+  `guest_count`, `package_id`, and `items[{menu_id, quantity}]` reach `validated()`. Pricing stays
+  POS-authoritative. Backend (`ranpo-backend`), Tier 2.
+- Case: `nex-case-015-tablet-intent-payload-hardening.md` — APPROVED; merged nexus `dev` PR #178
+  (`f3f79d8`). Contract: `contracts/tablet-api.contract.md` § Backend enforcement.
 
 ---
 

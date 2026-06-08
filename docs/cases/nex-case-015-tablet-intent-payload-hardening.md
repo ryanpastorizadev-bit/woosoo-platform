@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-07
 scope: woosoo-nexus
 ---
 
@@ -88,4 +88,4 @@ asserting the extra fields are absent from the persisted `device_orders` row.
 
 ## Executioner Verdict
 
-**APPROVED** 2026-06-07. Strip-only intent whitelist; 447/447 suite PASS; no pricing/POS logic touched; merged [PR #178](https://github.com/tech-artificer/woosoo-nexus/pull/178) to `dev` (`f3f79d8`). Contract doc update deferred to dazai-docs.
+**APPROVED** 2026-06-07. Strip-only intent whitelist; 447/447 suite PASS; no pricing/POS logic touched; merged [PR #178](https://github.com/tech-artificer/woosoo-nexus/pull/178) to `dev` (`f3f79d8`). Documentation Sync complete — `contracts/tablet-api.contract.md` now records the enforced strip behaviour (see `## Documentation Sync`).
