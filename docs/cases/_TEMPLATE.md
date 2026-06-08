@@ -22,8 +22,8 @@ before handing off; any runner (Claude Code / Codex / Copilot) resumes from here
 - tier: 1 | 2 | 3
 - branch: agent/<slug>            <!-- platform governance work uses staging/orchestration-hooks -->
 - status: IN_PROGRESS | BLOCKED | COMPLETE
-- last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
-- next_agent: contrarian | specialist:<name> | verifier | executioner | done
+- last_completed_agent: none | contrarian | specialist:<name> | code-simplifier | verifier | executioner
+- next_agent: contrarian | specialist:<name> | code-simplifier | verifier | executioner | done
 - active_runner: <runner>   # claude-code | codex | copilot | cascade | cursor
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
@@ -58,6 +58,10 @@ agent/<slug>
 ## Proposed Fix
 
 ## Files Changed
+
+## Code Simplification
+<!-- Written by code-simplifier. What was refined; hygiene (dead-code-cleanup) result.
+     SKIPPED with reason on Tier 1, pure-docs, or no code path changed. -->
 
 ## Verification
 

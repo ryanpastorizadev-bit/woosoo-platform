@@ -34,8 +34,8 @@ header. Agents **rewrite it in full** when they finish their phase:
 - tier: 1 | 2 | 3
 - branch: agent/<slug>            # platform governance work uses staging/orchestration-hooks
 - status: IN_PROGRESS | BLOCKED | COMPLETE
-- last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
-- next_agent: contrarian | specialist:<name> | verifier | executioner | done
+- last_completed_agent: none | contrarian | specialist:<name> | code-simplifier | verifier | executioner
+- next_agent: contrarian | specialist:<name> | code-simplifier | verifier | executioner | done
 - active_runner: <runner>   # claude-code | codex | copilot | cascade | cursor
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
@@ -103,7 +103,11 @@ each role in turn by invoking the matching subagent in `.claude/agents/<role>.md
 
 Role names used in `next_agent`: `contrarian`, `specialist:ranpo-backend`,
 `specialist:chuya-frontend`, `specialist:relay-ops`, `specialist:scribe`,
-`specialist:infra`, `verifier`, `executioner`.
+`specialist:infra`, `code-simplifier`, `verifier`, `executioner`.
+
+Code Specialists checkpoint `next_agent: code-simplifier` on Tier 2–3 code tasks.
+`code-simplifier` checkpoints `next_agent: verifier` after its internal `dead-code-cleanup`
+sub-step. `dead-code-cleanup` is not a separate resumable role.
 
 A resuming session does not need the original session's chat history — the case file is
 sufficient and authoritative. Trust the case file over memory.

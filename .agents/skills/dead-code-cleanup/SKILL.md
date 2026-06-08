@@ -5,7 +5,10 @@ description: Pre-completion hygiene sweep — remove unused imports/components, 
 
 # Dead Code Cleanup
 
-Run before declaring a task complete. Check and remove:
+Final sub-step of the `code-simplifier` agent, immediately before the Verifier. Also loaded by
+Specialists for incremental hygiene during implementation.
+
+Check and remove:
 
 - Unused imports and unused components introduced by this change.
 - Temporary files and scratch files created during investigation.

@@ -42,7 +42,7 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/AGENT_DEFAULT_INSTRUCTIONS.md`, an
 2. Implement the smallest safe change. Keep response shape and API contract stable unless the
    change is an explicitly approved, documented contract update.
 3. Leave the tree clean (no debug logs, no temp files, no dead code).
-4. Hand off to the Verifier with exact commands to run.
+4. Hand off to `code-simplifier` (Tier 2–3) with exact verification commands noted for the Verifier.
 
 End your work with the **Agent Chain** block from the `agent-sequence` skill, listing every file
 you changed (run `git diff --stat` if git is available; otherwise enumerate explicitly).
@@ -53,5 +53,6 @@ Before starting, check `docs/cases/<task-slug>.md`; if it is `IN_PROGRESS`/`BLOC
 `next_agent` is not you, do not restart — follow the resume protocol. When you finish
 implementing, write your Investigation + **Files Changed** (enumerate every edited file
 explicitly and cross-check with `git diff --name-only` / `git diff --name-only --cached`) and a refreshed `## Run State` block
-(`next_agent: verifier`) to the case file *before* handing off. If interrupted, write a
+(`next_agent: code-simplifier` on Tier 2–3; `next_agent: verifier` on Tier 1 or when
+code-simplifier is skipped) to the case file *before* handing off. If interrupted, write a
 `## Handoff` note and set `status: BLOCKED`.

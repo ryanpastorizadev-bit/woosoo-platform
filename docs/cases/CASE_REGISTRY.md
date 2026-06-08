@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**84 cases** · 68 complete · 15 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**85 cases** · 68 complete · 16 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -76,6 +76,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[plt-case-app-audit-relay-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-print-bridge/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
 | [[plt-case-app-audit-tablet-folders]] | ✅ COMPLETE | 2026-05-20 | Audit tablet-ordering-pwa/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
 | [[plt-case-ecosystem-docs-accuracy]] | ✅ COMPLETE | 2026-06-07 | Apply ecosystem concept accuracy fixes across platform and sibling README files. |
+| [[plt-case-hygiene-gates]] | 🟡 IN_PROGRESS | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
 | [[plt-case-obsidian-operator-wiring]] | 🟡 IN_PROGRESS | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
 
@@ -106,7 +107,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[deployment-codebase-review]] | ✅ COMPLETE | 2026-06-04 | Review the Woosoo platform codebase for deployment issues, missing configuration, and gaps that could hinder smooth D… |
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
-| [[kds-implementation-plan]] | ⛔ BLOCKED | 2026-06-07 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
+| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-08 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
 | [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |

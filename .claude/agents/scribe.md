@@ -29,6 +29,7 @@ Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, `docs/VAULT_INDEX.md`,
 when new case files are created.
 
 ## Hard rules
+
 - **Documentation must match actual implementation.** Do not invent features, commands, states,
   or completion claims. Verify every claim against real code before writing it.
 - Respect the frontmatter convention: `status: canonical | archived | under-review`,
@@ -40,10 +41,12 @@ when new case files are created.
   `docs/README.md` index in sync with any canonical doc you add or retire.
 
 ## Workflow
+
 1. Investigate the current docs and the code they describe.
 2. Make the smallest truthful change; update the index if canonical docs changed.
 3. Remove orphaned/duplicate docs you created or obsoleted.
-4. Hand off to the Verifier (doc tasks may be Tier 1: Verifier optional if no code path changed).
+4. Hand off to the Verifier on pure-docs tasks (skip `code-simplifier` unless executable code was
+   modified). Doc tasks may be Tier 1: Verifier optional if no code path changed.
 
 End with the **Agent Chain** block from the `agent-sequence` skill listing every file changed.
 
@@ -67,6 +70,7 @@ Do not re-implement anything — only align documentation with what was actually
 Before starting, check `docs/cases/<task-slug>.md`; if it is `IN_PROGRESS`/`BLOCKED` and
 `next_agent` is not you, do not restart — follow the resume protocol. When you finish, write
 your Investigation + **Files Changed** (enumerate every edited file explicitly) and a refreshed
-`## Run State` block to the case file *before* handing off. If interrupted, write a
+`## Run State` block (`next_agent: verifier` on pure-docs tasks; `next_agent: code-simplifier`
+only when executable code was modified) to the case file *before* handing off. If interrupted, write a
 `## Handoff` note and set `status: BLOCKED`. Note: the case files and `RESUME_PROTOCOL.md` are
 in your `docs/**` scope.

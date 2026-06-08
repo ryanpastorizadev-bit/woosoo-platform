@@ -54,14 +54,16 @@ These are codified and enforced at the gates; this table is the index.
 | **A fix failed / REJECTED** | Revert only the bad file; re-run Verifier clean before fix-forward. Never `git reset --hard` / `git clean -fd` (*Destructive Git Operations Are Absolutely Forbidden*) |
 | **Work spans two apps** | Executioner returns `SPLIT_REQUIRED`; split into per-app cases (`AGENTS.md` → Workspace Split Rule) |
 | **Interrupted / machine switch** | `git pull && git switch agent/<slug>`, then `resume` — case file's `next_agent` is the resume point (`RESUME_PROTOCOL.md`) |
+| **Test on WSL after Windows push** | `USAGE_GUIDE.md § 6` + `deployment/DEPLOYMENT_GUIDE.md § 4` (Docker from platform root; not host `composer dev`) |
 | **Touching auth/POS/order-state/payment/print/deploy** | Auto-escalates to Tier 3 (deep Contrarian + risk analysis + contract reference) |
 | **Test counts look off / "pre-existing" claims** | *Report Rejection Protocol*, *Full-Suite Requirement*, *No "Pre-existing" Hand-Waves* |
 
 ## 4. Skills
 
 The Contrarian picks from the **scenario → skill map** in `AGENTS.md` → *Skill Discovery*; the
-Specialist loads only those. `agent-sequence` is mandatory every task; `test-verification` and
-`dead-code-cleanup` on every code task.
+Specialist loads only those. `agent-sequence` is mandatory every task; `test-verification` on every
+code task; `code-simplifier` on Tier 2–3 code tasks (runs `dead-code-cleanup` internally before
+Verifier). Specialists also load `dead-code-cleanup` for incremental hygiene during implementation.
 
 ## 5. Cursor Hybrid Workflow (EXPERIMENTAL — Tier 1–2 only)
 
@@ -97,8 +99,11 @@ Reverb/broadcasting · queues · race conditions · DB migrations · cross-app �
 GIT — do NOT: git commit, git add . / -A, git reset --hard, git clean, force-push.
 Branch must already be agent/<slug>. Operator stages and commits.
 
-CHECKPOINT (your last action): write ## Specialist Investigation & Implementation to
-docs/cases/<slug>.md in the platform repo, and refresh ## Run State:
+HYGIENE (mandatory on every code task): after POST_EDIT, invoke code-simplifier subagent on changed
+files (runs dead-code-cleanup internally). Record under ## Code Simplification in the case file.
+
+CHECKPOINT (your last action): write ## Specialist Investigation & Implementation and
+## Code Simplification to docs/cases/<slug>.md, and refresh ## Run State:
   last_completed_agent: specialist:<agent-name>
   next_agent: verifier
   active_runner: cursor
@@ -108,7 +113,7 @@ If you cannot find the case file: STOP.
 
 PRE_EDIT — before first file edit: complete hooks/pre-edit-gate.md output in chat (files table,
 minimal patch, non-goals, risks). Do not edit until done.
-POST_EDIT — before checkpoint: complete hooks/post-edit-review.md output (behavior diff, contract
+POST_EDIT — before hygiene gates: complete hooks/post-edit-review.md output (behavior diff, contract
 check, rollback).
 ```
 
@@ -119,8 +124,9 @@ check, rollback).
 2. Read the case file's `## Contrarian Review` and `## Handoff` blocks — this is Cursor's brief.
 3. **Cursor:** open **`woosoo-platform.code-workspace`** (multi-root). Confirm branch `agent/<slug>`.
 4. **Cursor:** paste preamble + Contrarian brief. Run **PRE_EDIT_GATE** before first edit. Implement
-   — editing only the active app's `<app>/**`. Run **POST_EDIT_REVIEW** before checkpoint.
-5. **Cursor:** final action — write Specialist checkpoint to `docs/cases/<slug>.md`.
+   — editing only the active app's `<app>/**`. Run **POST_EDIT_REVIEW**, then **code-simplifier**
+   (hygiene gates) on all code tasks before checkpoint.
+5. **Cursor:** final action — write Specialist + Code Simplification checkpoint to `docs/cases/<slug>.md`.
    **Operator confirms the checkpoint is present before continuing.**
 6. **Operator:** `git diff` to review changes; stage specific files by path; commit.
 7. **Claude Code:** `verify` → Verifier runs `scripts/pre-merge-check.sh --app <name>`.
@@ -151,7 +157,84 @@ Cursor session, the paste-preamble for that app becomes optional.
 
 ---
 
-## 6. Obsidian operator workspace
+## 6. WSL dev test (Windows edit → Docker run)
+
+Use this when you **edit on Windows** (Cursor) and **run/test on WSL** with Docker.
+Full Path B detail: [`deployment/DEPLOYMENT_GUIDE.md § 4`](deployment/DEPLOYMENT_GUIDE.md#4-path-b--dev-deploy-on-wsl2--docker-desktop--dev-linux).
+
+### Two clones, one workflow
+
+| Where | Path | Role |
+| ----- | ---- | ---- |
+| **Windows** | `E:\Projects\woosoo-platform\` | Edit, commit, `git push` (per app repo) |
+| **WSL** | `~/projects/woosoo-platform/` | Pull, `./run dev` / `woosoo dev`, browser test |
+
+These are **separate git working trees**. After every Windows push, pull the matching app repo on WSL
+(e.g. `git -C woosoo-nexus pull origin dev`). Do **not** treat `/mnt/e/Projects/...` as the canonical
+WSL path — use `~/projects/woosoo-platform/`.
+
+### Stack
+
+Docker Compose runs from **platform root**, never host Laravel on the WSL shell:
+
+```bash
+cd ~
+cd projects/woosoo-platform          # platform root — NOT woosoo-nexus/
+
+git -C woosoo-nexus pull origin dev  # after Windows push
+
+./run dev --no-pull                  # same as woosoo dev --no-pull
+```
+
+First-time setup: `bash scripts/install.sh` then `woosoo dev` — see DEPLOYMENT_GUIDE § 4.1.
+
+### Browser URL
+
+On this operator's home network, admin/nexus UI is tested at **`https://192.168.100.7`**
+(e.g. `/login`, `/kds`). That is the **`PUBLIC_HOST`** value for home mode
+(`switch-network.sh home`); other networks use auto-detected LAN IP via `woosoo network`.
+
+`localhost` reaches Docker from the same machine but is **not** the primary URL for LAN/tablet
+parity testing. Run `woosoo network` if LAN access fails after a WSL restart.
+
+### Agent anti-patterns (never suggest on WSL)
+
+| Wrong | Right |
+| ----- | ----- |
+| `cd woosoo-nexus` then host `composer dev` / `composer install` | `./run dev` from platform root |
+| Host `npm run dev` inside `woosoo-nexus` | Rebuild in Docker (below) or bind-mount picks up PHP/Vue |
+| `http://localhost:8000` as primary test URL | **`https://192.168.100.7`** (home example) or `$PUBLIC_HOST` |
+| `/mnt/e/Projects/woosoo-platform` as canonical WSL path | `~/projects/woosoo-platform` |
+
+Host `composer` on WSL resolves to Windows Composer and fails with **`php: not found`**. PHP, Composer,
+and npm for the app run **inside** the `app` container:
+
+```bash
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec app composer install
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec app npm run build
+```
+
+### After frontend (Vue/KDS) changes
+
+```bash
+cd ~/projects/woosoo-platform
+WOOSOO_FORCE_VITE_BUILD=true docker compose --env-file ./woosoo-nexus/.env -f compose.yaml up -d --build app
+```
+
+### Verification gates on WSL
+
+Run from platform root using Docker where needed — not host `composer test` unless PHP is natively
+installed in WSL (this operator's setup uses containers):
+
+```bash
+docker compose --env-file ./woosoo-nexus/.env -f compose.yaml exec app php artisan test tests/Feature/Admin/KdsDisplayTest.php
+```
+
+Windows-side pre-merge gates (`scripts/pre-merge-check.ps1`) remain the canonical CI path before push.
+
+---
+
+## 7. Obsidian operator workspace
 
 Obsidian is the **operator UI** on the same Git-tracked markdown agents use. It does not replace
 the case system — it makes `docs/cases/`, `state/`, and `contracts/` easier to navigate.
@@ -174,7 +257,7 @@ Resume: `docs/cases/<slug>.md` per `RESUME_PROTOCOL.md`.
 
 ---
 
-## 7. How docs stay current — and keep improving (anti-degradation loop)
+## 8. How docs stay current — and keep improving (anti-degradation loop)
 
 Nothing auto-updates. `hooks/*.md` are markdown playbooks, not executable hooks; README/CHANGELOG
 do not self-write. Currency is **gate-enforced**, and the system is designed to ratchet forward,

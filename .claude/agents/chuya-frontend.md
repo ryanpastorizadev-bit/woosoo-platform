@@ -48,7 +48,7 @@ behaviour. Reuse existing components and stores rather than inventing new ones.
 1. Investigate existing pages, stores, composables, and tests first.
 2. Implement the smallest safe change; keep API compatibility.
 3. Leave the tree clean (no debug logs, temp files, or dead code).
-4. Hand off to the Verifier with exact commands.
+4. Hand off to `code-simplifier` (Tier 2–3) with exact verification commands noted for the Verifier.
 
 End with the **Agent Chain** block from the `agent-sequence` skill listing every file changed.
 
@@ -57,5 +57,6 @@ End with the **Agent Chain** block from the `agent-sequence` skill listing every
 Before starting, check `docs/cases/<task-slug>.md`; if it is `IN_PROGRESS`/`BLOCKED` and
 `next_agent` is not you, do not restart — follow the resume protocol. When you finish, write
 your Investigation + **Files Changed** (enumerate every edited file explicitly) and a refreshed
-`## Run State` block (`next_agent: verifier`) to the case file *before* handing off. If
+`## Run State` block (`next_agent: code-simplifier` on Tier 2–3; `next_agent: verifier` on
+Tier 1 or when code-simplifier is skipped) to the case file *before* handing off. If
 interrupted, write a `## Handoff` note and set `status: BLOCKED`.

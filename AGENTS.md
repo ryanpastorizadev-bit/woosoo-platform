@@ -159,8 +159,8 @@ This operating system runs on **Claude Code** and lives in this file (the source
 Claude Code executes it via `.claude/agents/*` (subagents) and `.claude/skills/*` (skills).
 Agent definitions live only in `.claude/agents/`. Per-app rules live in each app's `.agents.md`.
 
-A single chatbox adopts each role in turn (Contrarian → Specialist → Verifier → Executioner) by
-reading `.claude/agents/<role>.md` as its instruction set for that phase.
+A single chatbox adopts each role in turn (Contrarian → Specialist → code-simplifier → Verifier →
+Executioner) by reading `.claude/agents/<role>.md` as its instruction set for that phase.
 
 ## Resume & Handoff (mandatory)
 
@@ -191,11 +191,12 @@ subsequent runner. A resuming runner must not widen scope or skip a gate to "cat
 ## The Chain
 
 ```txt
-1. Contrarian   — challenge the request, classify risk, decide path
-2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
-3. Verifier     — prove it works by running tests/build/lint/health
-4. scribe   — sync affected docs (mandatory when Specialist is a code specialist)
-5. Executioner  — final verdict gate
+1. Contrarian      — challenge the request, classify risk, decide path
+2. Specialist      — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
+3. code-simplifier — refine recently modified code (runs dead-code-cleanup internally)
+4. Verifier        — prove it works by running tests/build/lint/health
+5. scribe          — sync affected docs (mandatory when Specialist is a code specialist)
+6. Executioner     — final verdict gate
 ```
 
 First agent is always the Contrarian. Last is always the Executioner. A task is complete only
@@ -210,8 +211,8 @@ when the Specialist is already scribe.
 | Tier | Examples | Sequence |
 | ---- | -------- | -------- |
 | **1 — Trivial** | typo, single-line config, comment, README link | `Specialist → Executioner` (no Verifier if no code path changed) |
-| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → Verifier → scribe → Executioner` |
-| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → Verifier → scribe → Executioner` |
+| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner` |
+| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → code-simplifier → Verifier → scribe → Executioner` |
 
 For Tier 3 the Specialist must reference the relevant `contracts/*.md` file and the Executioner
 uses the strongest model (opus).
@@ -257,7 +258,8 @@ Scenario → skill (the Contrarian selects from these; the Specialist loads only
 | Docker/Nginx/compose/health/deployment | `docker-deployment-debug` |
 | Any doc/spec/contract change | `documentation-truth-audit` |
 | Proving a change works — before claiming "done" (every code task) | `test-verification` |
-| Pre-completion hygiene sweep — before the Verifier (every code task) | `dead-code-cleanup` |
+| After Specialist on Tier 2–3 code tasks — clarity pass before Verifier | `code-simplifier` |
+| Pre-completion hygiene sweep — final sub-step of code-simplifier; also incremental during Specialist | `dead-code-cleanup` |
 | Writing/editing case files, wikilinks, callouts, embeds, frontmatter | `obsidian-markdown` |
 | Vault search, note navigation, case file location | `obsidian-vault` |
 | Creating `.base` database view files (OPS_KANBAN, CASE_INDEX, Dataview) | `obsidian-bases` |
@@ -266,8 +268,9 @@ Scenario → skill (the Contrarian selects from these; the Specialist loads only
 | Vault automation, auto-linking, Dataview query patterns | `obsidian-automation` |
 | Knowledge base architecture, LLM wiki structure | `llm-wiki` |
 
-`agent-sequence` is mandatory on every task; `test-verification` and `dead-code-cleanup` are
-effectively mandatory on every code task.
+`agent-sequence` is mandatory on every task; `test-verification` is mandatory on every code task;
+`code-simplifier` is mandatory on Tier 2–3 code tasks (runs `dead-code-cleanup` internally before
+Verifier).
 
 ## Model Selection Policy
 
@@ -277,8 +280,8 @@ Use the cheapest competent model.
 Contrarian:     haiku        Ranpo Backend:  sonnet
 Scribe:         haiku        Chuya Frontend: sonnet
 Verifier:       haiku        Relay Ops:      sonnet
+Code Simplifier: sonnet       Infra:          sonnet
 Executioner:    opus (final correctness gate; Prime Directive = correctness > speed)
-                             Infra:          sonnet
 ```
 
 Escalate the Specialist to opus only for: security/auth, POS DB writes, payment/order lifecycle,
@@ -333,8 +336,10 @@ Rules:
 - Tier 1 still requires a minimal Claude Code precheck (slug + case file + Run State checkpoint)
   before Cursor takes over. Slug/case/resume discipline is never skipped.
 - Open via **`woosoo-platform.code-workspace`** (multi-root) so `docs/cases/` is in scope.
-- Cursor must write the Specialist checkpoint to the case file before handing off to Verifier.
-  Operator confirms the checkpoint landed before typing `verify` in Claude Code.
+- Cursor must run the `code-simplifier` phase (invoke subagent on changed files; runs
+  `dead-code-cleanup` internally) before the Specialist checkpoint, then write the case file with
+  `next_agent: verifier`. Operator confirms the checkpoint landed before typing `verify` in Claude Code.
+  This applies to **all code tasks** in Cursor (Tier 1–2), not only Tier 2–3.
 - `.cursor/rules/woosoo.mdc` encodes the project rules for Cursor AI. **Rule Sync checklist:**
   when immutable rules change in this file, update `.cursor/rules/woosoo.mdc` to match.
 - Known Cursor limitation: `.cursor/rules` may not load reliably in multi-root workspaces.
