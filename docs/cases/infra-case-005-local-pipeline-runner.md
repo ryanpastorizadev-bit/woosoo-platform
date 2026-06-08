@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-08
 scope: woosoo-platform
 ---
 
@@ -11,12 +11,13 @@ scope: woosoo-platform
 - tier: 2
 - branch: dev
 - status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- last_completed_agent: verifier
+- next_agent: executioner
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-06
+- updated: 2026-06-08
+- shipped_commit: 4e7ee79
 
 ## Specialist Investigation & Implementation
 
@@ -35,10 +36,10 @@ Operator should run `docker compose logs reverb --tail=80` and fix Reverb boot b
 `woosoo dev --no-pull --no-build --from-step 4`.
 
 ## Handoff
-- Phase in progress: symlink fix landed; operator verify pending.
-- Done so far: pipeline runner shipped (a756deb); symlink fix in `run` (uncommitted).
-- Exact next action: operator `git pull` after commit; `woosoo dev --no-pull --no-build`; triage reverb if still unhealthy.
-- Working-tree state: `run` modified; case file updated.
+- Phase in progress: awaiting Executioner on `dev`.
+- Done so far: pipeline runner + symlink fix + Palisade `pld` Phase 0/1 shipped on `dev` as `4e7ee79` (`.pld/manifest.yaml`, `pld.ps1`/`pld.cmd`, `install.sh`, `pipeline.sh` targets).
+- Exact next action: Executioner APPROVED/REJECTED; operator smoke `pld sync` / `pld help` from WSL after pull.
+- Working-tree state: shipped on `origin/dev`.
 - Risks / do-not-redo: Do not duplicate `deploy-all.sh` or `dev-docker-bootstrap.sh`.
 
 ## Tier

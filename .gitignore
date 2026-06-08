@@ -48,6 +48,9 @@ public/hot
 npm-debug.log*
 yarn-error.log*
 
+# --- Scratch review mirrors (real code lives in woosoo-nexus) ---
+.kds-review/
+
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db

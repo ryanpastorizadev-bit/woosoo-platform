@@ -76,7 +76,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[plt-case-app-audit-relay-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-print-bridge/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
 | [[plt-case-app-audit-tablet-folders]] | ✅ COMPLETE | 2026-05-20 | Audit tablet-ordering-pwa/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
 | [[plt-case-ecosystem-docs-accuracy]] | ✅ COMPLETE | 2026-06-07 | Apply ecosystem concept accuracy fixes across platform and sibling README files. |
-| [[plt-case-hygiene-gates]] | 🟡 IN_PROGRESS | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
+| [[plt-case-hygiene-gates]] | ✅ COMPLETE | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
 

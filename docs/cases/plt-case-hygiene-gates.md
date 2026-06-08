@@ -17,10 +17,11 @@ Formalise `code-simplifier` as a checkpointed chain phase; `dead-code-cleanup` r
 
 - task_slug: plt-case-hygiene-gates
 - tier: 2
-- branch: agent/plt-case-hygiene-gates
-- status: IN_PROGRESS
-- last_completed_agent: verifier
-- next_agent: executioner
+- branch: dev
+- merged_via_dev: true
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: none
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -28,10 +29,10 @@ Formalise `code-simplifier` as a checkpointed chain phase; `dead-code-cleanup` r
 
 ## Handoff
 
-- Phase in progress: none — awaiting Executioner.
-- Done so far: all files updated; woosoo.mdc hygiene section confirmed present; Verifier grep checks passed.
-- Exact next action: Executioner reviews and returns APPROVED or REJECTED.
-- Working-tree state: see ## Files Changed.
+- Phase in progress: none — COMPLETE.
+- Done so far: hygiene-gate chain landed on `dev` via `97cd055` (code-simplifier gate) and bundled docs in `4e7ee79` (pld commit). No `agent/plt-case-hygiene-gates` branch was ever created.
+- Exact next action: none.
+- Working-tree state: shipped on `origin/dev`.
 - Risks / do-not-redo: none. woosoo.mdc is complete.
 
 ## Tier
@@ -40,7 +41,7 @@ Formalise `code-simplifier` as a checkpointed chain phase; `dead-code-cleanup` r
 
 ## Branch
 
-agent/plt-case-hygiene-gates
+`dev` (merged-via-dev; phantom `agent/plt-case-hygiene-gates` never existed)
 
 ## Problem
 
@@ -115,4 +116,4 @@ Inserted `code-simplifier` as step 3 in the agent chain (between Specialist and 
 
 ## Executioner Verdict
 
-(pending)
+APPROVED — 2026-06-08. Hygiene gate chain verified on `97cd055`; docs bundled in `4e7ee79` on `dev`. No phantom branch; merged-via-dev closure.
