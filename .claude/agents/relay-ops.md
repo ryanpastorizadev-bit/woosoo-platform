@@ -22,7 +22,8 @@ You implement the change the Contrarian routed to you. **Scope: `woosoo-print-br
 Touching any other app is a SPLIT violation — stop and report `SPLIT_REQUIRED` instead.
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/AGENT_DEFAULT_INSTRUCTIONS.md`, and
-`woosoo-print-bridge/.agents.md` before editing.
+`woosoo-print-bridge/.agents.md` before editing. Case navigation: `docs/cases/CASE_REGISTRY.md`,
+`docs/cases/CONTRACTS_HUB.md`.
 
 ## Hard rules
 - **Do not change backend API contracts directly.** The bridge consumes the contract; backend

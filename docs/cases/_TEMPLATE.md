@@ -11,6 +11,11 @@ the shared file is not used (concurrent tasks would collide). This file is the *
 runner-agnostic resume point** — see `docs/RESUME_PROTOCOL.md`. Every agent checkpoints here
 before handing off; any runner (Claude Code / Codex / Copilot) resumes from here.
 
+## Vault links
+<!-- Obsidian wikilinks — keeps graph connected. Update CASE_REGISTRY after create. -->
+- Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
+- Related cases: _add `[[case-slug]]` when cross-referencing_
+
 ## Run State
 <!-- Rewritten in full by each agent when it finishes its phase. The resume header. -->
 - task_slug: <slug>

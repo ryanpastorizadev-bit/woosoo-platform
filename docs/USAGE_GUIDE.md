@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -151,7 +151,30 @@ Cursor session, the paste-preamble for that app becomes optional.
 
 ---
 
-## 6. How docs stay current — and keep improving (anti-degradation loop)
+## 6. Obsidian operator workspace
+
+Obsidian is the **operator UI** on the same Git-tracked markdown agents use. It does not replace
+the case system — it makes `docs/cases/`, `state/`, and `contracts/` easier to navigate.
+
+| Step | Action |
+|------|--------|
+| Bootstrap | `.\scripts\obsidian-bootstrap.ps1` from platform root (Windows junction repair + 6 plugins) |
+| Open vault | Obsidian → Open folder as vault → `woosoo-platform/` |
+| Pin home | `docs/cases/OPERATOR_HOME.md` — embeds `state/WORK`, queue, stability runbook |
+| Pi ops board | `docs/cases/OPS_KANBAN.md` — switch to **Kanban** view |
+| Contracts | `docs/cases/CONTRACTS_HUB.md` — wiki-links to `contracts/*.md` |
+| All cases | `docs/cases/CASE_REGISTRY.md` — full wikilink index (fixes graph orphans) |
+| Vault map | `docs/VAULT_INDEX.md` — agent + operator navigation entry |
+| Daily log | Calendar plugin → today → `docs/operator/daily/` via `Templates/OPERATOR_LOG.md` |
+| New case | Templater → `Templates/CASE_FILE.md` → save under `docs/cases/<slug>.md` → `obsidian-case-registry.ps1` |
+
+**Agents** refer to `VAULT_INDEX`, `CASE_REGISTRY`, and `CONTRACTS_HUB`; add `[[wikilinks]]` in case files.
+Lint orphans: `scripts/obsidian-lint.ps1`. Full setup: [obsidian-setup-guide.md](obsidian-setup-guide.md).
+Resume: `docs/cases/<slug>.md` per `RESUME_PROTOCOL.md`.
+
+---
+
+## 7. How docs stay current — and keep improving (anti-degradation loop)
 
 Nothing auto-updates. `hooks/*.md` are markdown playbooks, not executable hooks; README/CHANGELOG
 do not self-write. Currency is **gate-enforced**, and the system is designed to ratchet forward,
@@ -164,9 +187,11 @@ not rot:
 - **Documentation-truth gate** — `scribe` + `documentation-truth-audit` + the Executioner
   **reject** a task whose docs claim things the code doesn't do, link to missing files, or leave
   the case file unupdated. (This is what catches stale inventories and dead links.)
-- **Evidence-derived rules** — when a new failure mode appears, add a rule to the *Extended Rules
-  (Evidence-Derived from Production Failures)* section of `AGENT_DEFAULT_INSTRUCTIONS.md` so it
-  cannot recur. The ruleset only grows tighter.
+- **Lessons Ledger → evidence-derived rules** — every observed failure mode is logged in
+  `docs/LESSONS.md` (symptom → root cause → guard). Agents read it before non-trivial work and
+  append after any mistake. On recurrence or high severity, the guard is **promoted** to a binding
+  rule in `AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules (Evidence-Derived from Production
+  Failures)`. The ruleset only grows tighter; the same mistake is never made twice.
 - **Periodic orchestration audit** — re-run the structural checks (agents/skills/hooks resolve,
   no dead links, docs match code) when the system changes; fix drift immediately.
 

@@ -24,6 +24,7 @@ You implement the infrastructure change the Contrarian routed to you.
 Touching application source in any app is a SPLIT violation — report `SPLIT_REQUIRED`.
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md` before editing.
+Case navigation: `docs/cases/CASE_REGISTRY.md`, `docs/VAULT_INDEX.md`.
 
 ## Hard rules
 - **Never expose secrets.** Never write real secrets to `.env`; only `.env.example` with

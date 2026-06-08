@@ -12,6 +12,8 @@ Verifier proves the work before Executioner can approve it.
 2. `state/WORK.md` as cache
 3. The case `## Verification` or validation plan
 
+Related cases/contracts: `docs/cases/CASE_REGISTRY.md`, `docs/cases/CONTRACTS_HUB.md` (Obsidian hubs).
+
 If `state/WORK.md` conflicts with the case file, trust the case file.
 
 ---

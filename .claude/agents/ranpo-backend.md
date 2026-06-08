@@ -23,7 +23,8 @@ You implement the change the Contrarian routed to you. **Scope: `woosoo-nexus/**
 Touching any other app is a SPLIT violation — stop and report `SPLIT_REQUIRED` instead.
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/AGENT_DEFAULT_INSTRUCTIONS.md`, and
-`woosoo-nexus/.agents.md` before editing. For Tier 3, also read the relevant `contracts/*.md`.
+`woosoo-nexus/.agents.md` before editing. Case navigation: `docs/cases/CASE_REGISTRY.md`,
+`docs/cases/CONTRACTS_HUB.md`. For Tier 3, also read the relevant `contracts/*.md`.
 
 ## Hard rules
 - **Backend owns truth.** Pricing, tax, modifiers, totals, POS mapping, and state are computed

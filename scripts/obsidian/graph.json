@@ -1,0 +1,27 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": false,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:docs/cases",
+      "color": { "a": 1, "r": 0.25, "g": 0.55, "b": 0.95 }
+    },
+    {
+      "query": "path:contracts",
+      "color": { "a": 1, "r": 0.95, "g": 0.55, "b": 0.2 }
+    },
+    {
+      "query": "path:state",
+      "color": { "a": 1, "r": 0.35, "g": 0.85, "b": 0.45 }
+    },
+    {
+      "query": "path:docs/operator",
+      "color": { "a": 1, "r": 0.75, "g": 0.5, "b": 0.95 }
+    }
+  ]
+}

@@ -68,7 +68,14 @@ Copy-Item -Force (Join-Path $ConfigDir "app.json") (Join-Path $ObsidianDir "app.
 Copy-Item -Force (Join-Path $ConfigDir "community-plugins.json") (Join-Path $ObsidianDir "community-plugins.json")
 Copy-Item -Force (Join-Path $ConfigDir "core-plugins.json") (Join-Path $ObsidianDir "core-plugins.json")
 Copy-Item -Force (Join-Path $ConfigDir "templates.json") (Join-Path $ObsidianDir "templates.json")
-Write-Ok "app.json, community-plugins.json, core-plugins.json, templates.json"
+Copy-Item -Force (Join-Path $ConfigDir "daily-notes.json") (Join-Path $ObsidianDir "daily-notes.json")
+Copy-Item -Force (Join-Path $ConfigDir "graph.json") (Join-Path $ObsidianDir "graph.json")
+Write-Ok "app.json, community-plugins.json, core-plugins.json, templates.json, daily-notes.json, graph.json"
+
+# Operator daily-log folder (Calendar plugin target)
+$DailyDir = Join-Path $VaultPath "docs\operator\daily"
+New-Item -ItemType Directory -Force -Path $DailyDir | Out-Null
+Write-Ok "docs/operator/daily/"
 
 # --- Plugin-specific settings ---
 $TemplaterDir = Join-Path $PluginsDir "templater-obsidian"
@@ -116,4 +123,7 @@ Write-Host "  2. If prompted about community plugins, choose Enable / Trust"
 Write-Host "  3. Open and pin docs/cases/OPERATOR_HOME.md"
 Write-Host "  4. Settings -> Community plugins -> confirm all six are ON"
 Write-Host "  5. CASE_INDEX.md should render a Dataview table (not a code block)"
+Write-Host "  6. Open OPS_KANBAN.md in Kanban view; Calendar -> today for operator log"
+Write-Host "  7. Graph view (Ctrl+G) - color groups for cases/contracts/state"
+Write-Host "  8. Open docs/VAULT_INDEX.md and docs/cases/CASE_REGISTRY.md (graph hubs)"
 Write-Host ""

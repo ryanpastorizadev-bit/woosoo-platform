@@ -8,6 +8,14 @@ scope: ecosystem
 
 This is the canonical entry point for all Woosoo platform documentation. Only docs listed here with `status: canonical` are source of truth.
 
+## Obsidian vault (agents + operators)
+
+- [VAULT_INDEX.md](VAULT_INDEX.md) — **vault entry** — navigation hubs, orphan policy
+- [cases/CASE_REGISTRY.md](cases/CASE_REGISTRY.md) — full case wikilink index (graph hub)
+- [cases/OPERATOR_HOME.md](cases/OPERATOR_HOME.md) — operator daily dashboard (pin in Obsidian)
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — bootstrap + plugins
+- Maintenance: `scripts/obsidian-case-registry.ps1`, `scripts/obsidian-lint.ps1` (target: 0 actionable orphans in `docs/`)
+
 ## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
@@ -27,6 +35,8 @@ in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption
   recovery; case file is the durable state)
+- [LESSONS.md](LESSONS.md) — **Lessons Ledger**: recurring issues + guards. Read before non-trivial
+  work; append after any mistake. Recurrence promotes a guard to an enforced rule.
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
 - [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
@@ -120,8 +130,9 @@ Documents in `docs/archive/` and per-app `docs/archive/` directories are histori
 
 ## Tooling
 
-- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: run `scripts/obsidian-bootstrap.ps1`,
-  open this repo as vault root; pin [OPERATOR_HOME.md](cases/OPERATOR_HOME.md) (daily dashboard)
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: `scripts/obsidian-bootstrap.ps1`,
+  pin [OPERATOR_HOME.md](cases/OPERATOR_HOME.md), [OPS_KANBAN.md](cases/OPS_KANBAN.md),
+  [CONTRACTS_HUB.md](cases/CONTRACTS_HUB.md); Calendar → `docs/operator/daily/`
 - `scripts/pre-merge-check.sh` — Bash pre-merge validation
 - `scripts/pre-merge-check.ps1` — PowerShell wrapper for Windows
 - `scripts/case-status.sh` / `scripts/case-status.ps1` — print/update the `## Run State` block

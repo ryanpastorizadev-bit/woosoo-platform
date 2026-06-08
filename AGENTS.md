@@ -23,6 +23,23 @@ Derive the task slug and check `docs/cases/<task-slug>.md`.
 It is NOT the authoritative durable state — `docs/cases/<slug>.md` is.
 It tells you the active task, current status, and exact next action when you already know no resume is needed.
 
+**Step 1c — Obsidian vault map (navigation, same files).**
+The platform repo is an Obsidian vault. Agents **refer to** these hubs when finding cases,
+contracts, or related work — do not duplicate state elsewhere.
+
+| Hub | Path | Use when |
+|-----|------|----------|
+| Vault index | `docs/VAULT_INDEX.md` | First-time navigation; orphan policy |
+| Operator home | `docs/cases/OPERATOR_HOME.md` | Active work embeds (`state/WORK`, queue) |
+| Case registry | `docs/cases/CASE_REGISTRY.md` | Full case list + wikilink graph |
+| Case index | `docs/cases/CASE_INDEX.md` | Dataview — recently reviewed cases |
+| Contracts | `docs/cases/CONTRACTS_HUB.md` | Cross-app contract links |
+| Docs hub | `docs/DOCS_HUB.md` | Canonical docs outside cases |
+
+When writing or updating case files: add `[[related-case-slug]]` wikilinks for cross-references.
+New cases: ensure slug appears in `CASE_REGISTRY` (run `scripts/obsidian-case-registry.ps1`).
+Setup: `docs/obsidian-setup-guide.md` · `docs/USAGE_GUIDE.md § 6`.
+
 **Step 2 — Match the user's phrase to an installed hook. Load that hook and follow it completely.**
 
 | User phrase matches | Load hook |
@@ -55,6 +72,7 @@ If no phrase matches: load `hooks/work.md` as default.
 3. Read that app's `.agents.md` for its scope-specific hard rules.
 4. Do **not** modify more than one app per task unless this is an explicitly approved integration change.
 5. Investigate before editing. For non-trivial work, document findings inline in your response or in a case file under the app's `docs/` directory.
+6. Skim `docs/LESSONS.md` (Lessons Ledger) for failure modes tagged for the tools/app you will touch. When you hit or spot a mistake, append a ledger entry before you finish — every fix leaves a guard.
 
 ## Immutable Rules
 
@@ -240,6 +258,13 @@ Scenario → skill (the Contrarian selects from these; the Specialist loads only
 | Any doc/spec/contract change | `documentation-truth-audit` |
 | Proving a change works — before claiming "done" (every code task) | `test-verification` |
 | Pre-completion hygiene sweep — before the Verifier (every code task) | `dead-code-cleanup` |
+| Writing/editing case files, wikilinks, callouts, embeds, frontmatter | `obsidian-markdown` |
+| Vault search, note navigation, case file location | `obsidian-vault` |
+| Creating `.base` database view files (OPS_KANBAN, CASE_INDEX, Dataview) | `obsidian-bases` |
+| Creating `.canvas` visual diagrams or architecture maps | `json-canvas` |
+| Obsidian CLI commands against running vault instance | `obsidian-cli` |
+| Vault automation, auto-linking, Dataview query patterns | `obsidian-automation` |
+| Knowledge base architecture, LLM wiki structure | `llm-wiki` |
 
 `agent-sequence` is mandatory on every task; `test-verification` and `dead-code-cleanup` are
 effectively mandatory on every code task.
@@ -324,3 +349,5 @@ Rules:
 - No technical errors to customers.
 - Order state: `OrderStatus` enum; terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`.
 - Only docs with `status: canonical` are source of truth.
+- **Never repeat a known mistake.** Consult `docs/LESSONS.md` before non-trivial work; append a new entry when a failure mode appears. Recurrence promotes the guard to an enforced rule in `docs/AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules`.
+- **Obsidian vault** = platform repo. Agents refer to `docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`, and `docs/cases/CONTRACTS_HUB.md` for navigation; use `[[wikilinks]]` in case files. Operators pin `docs/cases/OPERATOR_HOME.md`. Bootstrap: `scripts/obsidian-bootstrap.ps1`.

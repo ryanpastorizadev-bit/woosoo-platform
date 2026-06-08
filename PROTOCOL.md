@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -22,6 +22,12 @@ Read this when you need the routing summary without loading the full AGENTS.md.
 4. Consult `state/WORK.md` for quick routing — it is a cache of the active case Run State, not the authoritative record.
 5. If no active task → read `state/QUEUE.md`, pick first unblocked row.
 6. Classify task tier before doing anything else.
+
+**Obsidian vault (agents + operators):** platform repo root. Agents refer to `docs/VAULT_INDEX.md`,
+`docs/cases/CASE_REGISTRY.md`, `docs/cases/CONTRACTS_HUB.md` for navigation; use `[[wikilinks]]`
+in case files. Operators pin `docs/cases/OPERATOR_HOME.md`, `OPS_KANBAN`, Calendar daily logs.
+Bootstrap: `scripts/obsidian-bootstrap.ps1`. Lint orphans: `scripts/obsidian-lint.ps1`.
+See `docs/obsidian-setup-guide.md`.
 
 ---
 

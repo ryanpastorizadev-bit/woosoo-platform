@@ -10,6 +10,7 @@ scope: ecosystem
 <!-- Rewrite the fields below when task state changes.          -->
 <!-- Last updated: 2026-06-08 — pi-stability-verify.sh added; Pi Bucket B is the gate. -->
 <!-- Bucket A EMPTY; promotion unblocked. Active orchestration = plt-case-stability-remediation. -->
+<!-- Obsidian operator UI: pin docs/cases/OPERATOR_HOME.md (embeds this file). See docs/obsidian-setup-guide.md -->
 
 ---
 
@@ -28,6 +29,7 @@ case_file:    docs/cases/plt-case-stability-remediation.md
 next_action:  Pi: sudo bash scripts/deployment/pi-stability-verify.sh (P0/P1 auto-checks).
               Then manual P1a one-ticket smoke + RELEASE_RUNBOOK Step 5; close #140/#136 if green.
               INFRA-004 PR #45 merged. KDS blocked until Pi gates green.
+obsidian:     docs/cases/OPERATOR_HOME.md (dashboard) · OPS_KANBAN.md (Pi board) · Calendar daily log
 last_agent:   cursor — 2026-06-08 — pi-stability-verify.sh for P0/P1 Bucket B checks.
 ```
 

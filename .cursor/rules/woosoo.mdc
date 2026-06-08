@@ -15,6 +15,25 @@ alwaysApply: true
 
 ---
 
+## Obsidian Skills Reference
+
+When writing case files or vault notes, read the relevant skill file for detailed spec:
+
+| Task | Skill file | Trigger |
+|------|-----------|---------|
+| Write wikilinks, callouts, frontmatter, embeds | `.agents/skills/obsidian-markdown/SKILL.md` | Any case file or vault `.md` edit |
+| Search vault, navigate notes | `.agents/skills/obsidian-vault/SKILL.md` | Need to find a note |
+| Create `.base` view files | `.agents/skills/obsidian-bases/SKILL.md` | OPS_KANBAN / CASE_INDEX changes |
+| Create `.canvas` diagrams | `.agents/skills/json-canvas/SKILL.md` | Architecture or flow diagrams |
+| Run Obsidian CLI commands | `.agents/skills/obsidian-cli/SKILL.md` | CLI vault operations |
+
+**Mandatory for your Specialist checkpoint (last action in Cursor mode):**
+- Use `[[wikilinks]]` for cross-references between case files — bare markdown links break the vault graph
+- YAML frontmatter must include `status:`, `last_reviewed:`, `scope:` on all canonical docs
+- New case file slug? Run `.\scripts\obsidian-case-registry.ps1` to update CASE_REGISTRY
+
+---
+
 ## Prime Directive
 
 Correctness > speed. This system runs a live restaurant. A bad change can break ordering,
@@ -26,6 +45,12 @@ printing, and table sessions in real time.
 
 Always open via **`woosoo-platform.code-workspace`** (multi-root workspace). This keeps the
 platform repo (with `docs/cases/` and `contracts/`) in scope alongside the app repo.
+
+**Obsidian vault:** platform repo root. **Agents** refer to `docs/VAULT_INDEX.md`,
+`docs/cases/CASE_REGISTRY.md`, `docs/cases/CONTRACTS_HUB.md`; use `[[wikilinks]]` in case files.
+**Operators** pin `docs/cases/OPERATOR_HOME.md`. Bootstrap: `.\scripts\obsidian-bootstrap.ps1`.
+Registry: `.\scripts\obsidian-case-registry.ps1` · Lint: `.\scripts\obsidian-lint.ps1`.
+Guide: `docs/obsidian-setup-guide.md`.
 
 **Edit only the one active app's directory.** If you are asked to modify files in more than one
 app in the same session: STOP, tell the operator, and request the task be split. Do not proceed

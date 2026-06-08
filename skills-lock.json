@@ -1,6 +1,78 @@
 {
   "version": 1,
   "skills": {
+    "prompt-refiner": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "prompt-refiner/SKILL.md",
+      "computedHash": "6aac4e6407503e10952f5a29c99cdbbd0d348ebbc0b05ccc6b9cbdaf8914bd82"
+    },
+    "agent-sequence": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "agent-sequence/SKILL.md",
+      "computedHash": "c311f65964733c2882100c0599fd4706cf53151c89db494b1e96fe8a9696cd3c"
+    },
+    "dead-code-cleanup": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "dead-code-cleanup/SKILL.md",
+      "computedHash": "b72ddfdee6bb72f25c885565d4e24a45a64f60f2e25e7bdd8e8f289c456d240b"
+    },
+    "docker-deployment-debug": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "docker-deployment-debug/SKILL.md",
+      "computedHash": "d66c5f769cc581c8d9020e3dbe113e4b51866cac7527721460565e3ed59641fe"
+    },
+    "documentation-truth-audit": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "documentation-truth-audit/SKILL.md",
+      "computedHash": "3006727497b943147e08a4f0e728d479c77e562a1b5d379c6f5e44079850aedd"
+    },
+    "laravel-api-change": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "laravel-api-change/SKILL.md",
+      "computedHash": "70dd9877dd553dddaf8a1a0300547c23593e8546153b374338a049c35d1c8a84"
+    },
+    "nuxt-pwa-flow": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "nuxt-pwa-flow/SKILL.md",
+      "computedHash": "d320fc970d795c8d1c0571d0e8e9478414d135c89bb6a6336b66e3fe6980c67d"
+    },
+    "pinia-state-audit": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "pinia-state-audit/SKILL.md",
+      "computedHash": "c888d88bc269771fae6f0ad23f8a6594f3d9fbf514ea6d15fa134099d602ca2d"
+    },
+    "printer-relay-debug": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "printer-relay-debug/SKILL.md",
+      "computedHash": "7779a32297e50a3654067143691ce9697c479fac303d48d7c727068aedfee3bc"
+    },
+    "sanctum-auth-debug": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "sanctum-auth-debug/SKILL.md",
+      "computedHash": "24e33cf0fcdd7dfd85abdf7b7101a13444e76fd6d394dff27347c31e3a69ae1f"
+    },
+    "test-verification": {
+      "source": "local/.agents/skills",
+      "sourceType": "local",
+      "skillPath": "test-verification/SKILL.md",
+      "computedHash": "052e557907f303706513a9330374646046d7f4218ca8dedb1cb1d5143a26ce15"
+    },
+    "obsidian-automation": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "skillPath": "obsidian-automation/SKILL.md",
+      "computedHash": "bae73d3cd0c92dafc3a86b46994b7d4be17f1765bf6d7d071628f243e112a6f4"
+    },
     "brainstorming": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -55,11 +127,23 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
     },
+    "json-canvas": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/json-canvas/SKILL.md",
+      "computedHash": "bb7aa4f03414d50d91736f824bc5f79122b38a895deb03c0260700842a338580"
+    },
     "laravel-specialist": {
       "source": "jeffallan/claude-skills",
       "sourceType": "github",
       "skillPath": "skills/laravel-specialist/SKILL.md",
       "computedHash": "805be17bd59f759e2f2f2dcbd6bd205ca6678420a87b21da1c16e0793093615c"
+    },
+    "llm-wiki": {
+      "source": "ar9av/obsidian-wiki",
+      "sourceType": "github",
+      "skillPath": ".skills/llm-wiki/SKILL.md",
+      "computedHash": "5d50ae0e57b930a490fd0a4ad6e7a94ef20f39fc4f8aa8d42c82acb9a8ea2465"
     },
     "nuxt": {
       "source": "antfu/skills",
@@ -72,6 +156,30 @@
       "sourceType": "github",
       "skillPath": "skills/nuxt-ui/SKILL.md",
       "computedHash": "26228b7bba74ab869f52526f2ba5fbfa0c2353ea0d4bc1176c5e57ee4ee95040"
+    },
+    "obsidian-bases": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-bases/SKILL.md",
+      "computedHash": "0d9958e07672384650f404bda4fc9268e1720e9234d42eeca29fc356b1e2a277"
+    },
+    "obsidian-cli": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-cli/SKILL.md",
+      "computedHash": "89ded0eb1499286d5c95217df0ff7015aa46b7efe4646fafaba38cbac3289392"
+    },
+    "obsidian-markdown": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-markdown/SKILL.md",
+      "computedHash": "9ca4f671ffecfd020c8d9c733aed75bde42742fb5545b48b6bf8e5e54111b9ac"
+    },
+    "obsidian-vault": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/personal/obsidian-vault/SKILL.md",
+      "computedHash": "a5dd44e7af2bfeb2cb2e3f421fdccef62dd334038ad06e18767b0ddcf0e75c13"
     },
     "refactor-plan": {
       "source": "github/awesome-copilot",

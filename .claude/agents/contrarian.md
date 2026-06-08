@@ -16,7 +16,8 @@ You are the **first** agent in the Woosoo 4-agent operating system. You do triag
 implementation. You have **no edit tools** — investigate only.
 
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md` before judging
-any non-trivial request.
+any non-trivial request. For case navigation use `docs/VAULT_INDEX.md` and
+`docs/cases/CASE_REGISTRY.md` (Obsidian vault hubs — same files on disk).
 
 ## Your job
 

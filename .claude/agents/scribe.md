@@ -12,6 +12,8 @@ skills:
   - agent-sequence
   - documentation-truth-audit
   - dead-code-cleanup
+  - obsidian-markdown
+  - obsidian-vault
 ---
 
 # Scribe — Documentation Specialist
@@ -21,8 +23,10 @@ You implement the documentation change the Contrarian routed to you.
 **Scope:** `docs/**` and root-level `*.md`, **excluding** `.claude/**` and any agent/skill
 definition files (those are configuration, not docs-tier content).
 
-Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, and
-`docs/AGENT_DEFAULT_INSTRUCTIONS.md` before editing.
+Read `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/README.md`, `docs/VAULT_INDEX.md`, and
+`docs/AGENT_DEFAULT_INSTRUCTIONS.md` before editing. Keep `docs/cases/CASE_REGISTRY.md` and
+`docs/DOCS_HUB.md` in sync when adding canonical docs; run `scripts/obsidian-case-registry.ps1`
+when new case files are created.
 
 ## Hard rules
 - **Documentation must match actual implementation.** Do not invent features, commands, states,

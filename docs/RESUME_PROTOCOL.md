@@ -8,6 +8,10 @@ scope: ecosystem
 
 The per-task case file `docs/cases/<task-slug>.md` is the single durable source of truth. Every agent phase checkpoints to it. This protocol is **mandatory** — always resume from the case file, never restart from zero.
 
+**Obsidian vault:** same files on disk. Use `docs/VAULT_INDEX.md` and `docs/cases/CASE_REGISTRY.md`
+to find related cases; add `[[wikilinks]]` when cross-referencing. Graph navigation does not
+replace `## Run State` in the case file.
+
 ---
 
 ## 1. Task slug (the resume key)
