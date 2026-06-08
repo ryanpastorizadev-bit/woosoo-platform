@@ -13,21 +13,21 @@ Add PRE_EDIT_GATE and POST_EDIT_REVIEW as Specialist-phase gates wired into the 
 - task_slug: plt-case-011-specialist-gates
 - tier: 1
 - branch: dev
-- status: IN_PROGRESS
-- last_completed_agent: specialist:dazai-docs
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-06
+- updated: 2026-06-07
 
 ## Handoff
 
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state (list edited files explicitly; cross-check with `git status`):
-- Risks / do-not-redo:
+- Phase in progress: none — COMPLETE.
+- Done so far: PRE_EDIT / POST_EDIT hooks created and wired into execute.md, USAGE_GUIDE, woosoo.mdc.
+- Exact next action: none.
+- Working-tree state: committed as `12313ad chore(platform): add Specialist pre/post edit gates to execute hook`.
+- Risks / do-not-redo: Gates rely on operator/Cursor discipline until exercised on 2+ real tasks.
 
 ## Tier
 
@@ -86,9 +86,18 @@ Select-String .cursor/rules/woosoo.mdc -Pattern 'PRE_EDIT_GATE|POST_EDIT_REVIEW'
 
 Docs-only platform work — app pre-merge gates not required. Verifier: confirm hook chain order in execute.md; no new CASE_FILE.md references.
 
+**Verifier PASS 2026-06-07:**
+
+```text
+Test-Path hooks/pre-edit-gate.md, hooks/post-edit-review.md  → True, True
+Select-String hooks/execute.md -Pattern 'pre-edit-gate|post-edit-review'  → 2 load directives
+Select-String docs/USAGE_GUIDE.md -Pattern 'PRE_EDIT|POST_EDIT'  → matches
+Select-String .cursor/rules/woosoo.mdc -Pattern 'PRE_EDIT_GATE|POST_EDIT_REVIEW'  → matches
+```
+
 ## Executioner Verdict
 
-(pending)
+**APPROVED** 2026-06-07. Tier 1 docs-only governance; hook files exist; execute.md mandates both gates before/after Specialist edits; USAGE_GUIDE and woosoo.mdc aligned. No CASE_FILE.md drift.
 
 ## Remaining Risks
 

@@ -14,6 +14,9 @@ Read, in this order:
 3. `state/DEPS.md` — status rows only unless a dependency is active
 4. `state/DONE.md` — recent rows only
 
+**Obsidian map (optional navigation):** `docs/cases/OPERATOR_HOME.md` embeds the same state;
+`docs/cases/CASE_REGISTRY.md` lists all cases. Refer operators to OPERATOR_HOME for visual status.
+
 Do not read:
 - app source files
 - contracts

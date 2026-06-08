@@ -18,6 +18,18 @@ Per `docs/RESUME_PROTOCOL.md`:
 
 ---
 
+## Step 0b — Operator Obsidian (human only, optional)
+
+If the operator uses Obsidian: pin `docs/cases/OPERATOR_HOME.md` for the same `state/WORK` and
+queue embeds this hook reads from disk. Kanban: `docs/cases/OPS_KANBAN.md`. Agents do not open Obsidian.
+
+## Step 0c — Lessons check
+
+Before implementing, skim `docs/LESSONS.md` for failure modes tagged for the tools/app in scope.
+Do not re-make a logged mistake. Append a new entry whenever a fresh failure mode appears.
+
+---
+
 ## Step 1 — Consult state/WORK.md (after resume check)
 
 Read `state/WORK.md` now. Parse:

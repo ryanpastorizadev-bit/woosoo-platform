@@ -73,6 +73,7 @@ Add an authenticated admin `/kds` route and a mock-only Vue KDS display with loc
 
 ## Verification
 
+- Committed: `6293bd2` Kitchen Display ui mockup (2026-06-07 re-verify: 3 tests / 15 assertions PASS).
 - Red test first: `php artisan test tests\Feature\Admin\KdsDisplayTest.php --compact` failed with 3 failures because `/kds` did not exist yet.
 - Targeted test after implementation: `php artisan test tests\Feature\Admin\KdsDisplayTest.php --compact` passed, 3 tests / 15 assertions.
 - `npm.cmd run typecheck` passed.
@@ -89,3 +90,4 @@ APPROVED.
 
 - Real Samsung Galaxy Tab A11+ browser testing is still required outside this desktop environment.
 - Backend/live feed integration remains deferred by design.
+- Commit `6293bd2` includes `README.md` changes though case scope excluded it — review separately if unintended.

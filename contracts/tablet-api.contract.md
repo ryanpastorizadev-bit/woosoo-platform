@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-07
 scope: ecosystem
 ---
 
@@ -30,15 +30,14 @@ scope: ecosystem
   message and stop, not fabricate success.
 - No hardcoded LAN IPs or API/Reverb hosts in tablet code.
 
-## Backend enforcement gap (NEX-CASE-015, queued)
+## Backend enforcement (device order create)
 
-`StoreDeviceOrderRequest` currently accepts client-submitted `totals`, `prices`, `discounts`,
-`ordered_menu_id`, and modifier fields without rejecting them. The initial-order path
-recalculates these server-side, so client values are effectively ignored in practice — but
-passive acceptance is not sufficient. The contract requirement is that the backend explicitly
-**reject or strip** any field outside the intent-only payload above, making enforcement a code
-property rather than a runtime coincidence.
+`StoreDeviceOrderRequest` (`woosoo-nexus/app/Http/Requests/StoreDeviceOrderRequest.php`)
+**strips** any field outside the intent-only payload in `prepareForValidation()` before rules
+run. Only `guest_count`, `package_id`, and `items[{menu_id, quantity}]` reach `validated()`.
+Client-submitted `totals`, `prices`, `discounts`, `ordered_menu_id`, and modifier fields are
+discarded — not accepted, not persisted from client input.
 
-This is tracked under **NEX-CASE-015**. Until that case is complete, agents must not assume
-backend enforcement exists — validate intent-only behaviour against live `StoreDeviceOrderRequest`
-rules, not this contract.
+Landmark: **NEX-CASE-015** — merged to `woosoo-nexus` `dev` via PR #178 (2026-06-07).
+Refill path (`RefillOrderRequest`) is a separate route; this contract section applies to the
+tablet **initial order** submission only.

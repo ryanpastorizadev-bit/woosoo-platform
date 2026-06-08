@@ -275,28 +275,28 @@ woosoo_sync_public_host() {
     escaped_key="$(printf '%s' "$key" | sed 's/[[\.*^$()+?{|]/\\&/g')"
     quoted="\"$(printf '%s' "$value" | sed 's/"/\\"/g')\""
     if grep -qE "^${escaped_key}=" "$_NEXUS_ENV" 2>/dev/null; then
-      sed -i "s|^${escaped_key}=.*|${key}=${quoted}|" "$_NEXUS_ENV"
+      sed -i "s|^${escaped_key}=.*|${key}=${quoted}|" "$_NEXUS_ENV" || return 1
     else
-      printf '%s=%s\n' "$key" "$quoted" >> "$_NEXUS_ENV"
+      printf '%s=%s\n' "$key" "$quoted" >> "$_NEXUS_ENV" || return 1
     fi
   }
 
-  _hn_env_set PUBLIC_HOST "$new_ip"
-  _hn_env_set APP_URL "${scheme}://${new_ip}"
-  _hn_env_set REVERB_PUBLIC_HOST "$new_ip"
-  _hn_env_set VITE_REVERB_HOST "$new_ip"
-  _hn_env_set NUXT_PUBLIC_REVERB_HOST "$new_ip"
-  _hn_env_set APP_RUNTIME_REVERB_HOST "$new_ip"
-  _hn_env_set NUXT_PUBLIC_API_BASE_URL "${scheme}://${new_ip}/api"
-  _hn_env_set APP_RUNTIME_API_BASE_URL "${scheme}://${new_ip}/api"
-  _hn_env_set MAIN_API_URL "${scheme}://${new_ip}"
-  _hn_env_set SANCTUM_STATEFUL_DOMAINS "${new_ip},${new_ip}:443,${new_ip}:4443,localhost,localhost:443,localhost:4443"
-  _hn_env_set CORS_ALLOWED_ORIGINS "${scheme}://${new_ip},${scheme}://${new_ip}:4443,https://localhost,https://localhost:4443"
+  _hn_env_set PUBLIC_HOST "$new_ip" || return 1
+  _hn_env_set APP_URL "${scheme}://${new_ip}" || return 1
+  _hn_env_set REVERB_PUBLIC_HOST "$new_ip" || return 1
+  _hn_env_set VITE_REVERB_HOST "$new_ip" || return 1
+  _hn_env_set NUXT_PUBLIC_REVERB_HOST "$new_ip" || return 1
+  _hn_env_set APP_RUNTIME_REVERB_HOST "$new_ip" || return 1
+  _hn_env_set NUXT_PUBLIC_API_BASE_URL "${scheme}://${new_ip}/api" || return 1
+  _hn_env_set APP_RUNTIME_API_BASE_URL "${scheme}://${new_ip}/api" || return 1
+  _hn_env_set MAIN_API_URL "${scheme}://${new_ip}" || return 1
+  _hn_env_set SANCTUM_STATEFUL_DOMAINS "${new_ip},${new_ip}:443,${new_ip}:4443,localhost,localhost:443,localhost:4443" || return 1
+  _hn_env_set CORS_ALLOWED_ORIGINS "${scheme}://${new_ip},${scheme}://${new_ip}:4443,https://localhost,https://localhost:4443" || return 1
 
   local allowed origins
   allowed="$(_hn_env_get REVERB_ALLOWED_ORIGINS)"
   origins="$(woosoo_reverb_allowed_origins_sync "$new_ip" "$allowed" "$old_ip")"
-  _hn_env_set REVERB_ALLOWED_ORIGINS "$origins"
+  _hn_env_set REVERB_ALLOWED_ORIGINS "$origins" || return 1
 
   woosoo_print_nexus_env_reload_steps
   return 0

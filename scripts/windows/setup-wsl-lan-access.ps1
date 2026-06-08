@@ -8,7 +8,7 @@
     Docker Engine in WSL2 binds ports inside the WSL2 VM — Windows forwards
     localhost automatically but NOT the physical LAN IP. This script adds:
       • netsh portproxy rules   (listenaddress=0.0.0.0 → WSL VM IP)
-      • Windows Firewall rules  (TCP 80/443/4443 inbound, Private profile)
+      • Windows Firewall rules  (TCP 80/443/4443 inbound, Private + Public profiles)
 
     Re-run after every 'wsl --shutdown' because the WSL2 VM IP changes.
     Operators should use: woosoo network  (not this script directly).
@@ -72,7 +72,8 @@ foreach ($Port in $Ports) {
     Write-Host "  0.0.0.0:$Port → $WslIp`:$Port" -ForegroundColor Green
 }
 
-# ── 4. Windows Firewall — allow inbound TCP 80/443/4443 (Private) ─────────────
+# ── 4. Windows Firewall — allow inbound TCP 80/443/4443 (Private + Public) ───
+# Dev laptops often classify Ethernet as Public; Private-only rules block LAN tablets.
 Write-Host "`nConfiguring Windows Firewall..." -ForegroundColor Cyan
 Remove-NetFirewallRule -DisplayName "$FirewallName" -ErrorAction SilentlyContinue
 
@@ -82,10 +83,21 @@ New-NetFirewallRule `
     -Protocol    TCP `
     -LocalPort   $Ports `
     -Action      Allow `
-    -Profile     Private `
+    -Profile     Private, Public `
     -Description "Allow inbound access to Woosoo dev stack via WSL2 portproxy" | Out-Null
 
-Write-Host "  Firewall rule '$FirewallName' added (TCP $($Ports -join '/'), Private)" -ForegroundColor Green
+Write-Host "  Firewall rule '$FirewallName' added (TCP $($Ports -join '/'), Private+Public)" -ForegroundColor Green
+
+$publicProfiles = @(Get-NetConnectionProfile -ErrorAction SilentlyContinue |
+    Where-Object { $_.NetworkCategory -eq 'Public' })
+if ($publicProfiles.Count -gt 0) {
+    Write-Host "`n[WARN] Active adapter(s) on Public network profile:" -ForegroundColor Yellow
+    foreach ($p in $publicProfiles) {
+        Write-Host "  - $($p.InterfaceAlias)" -ForegroundColor Yellow
+    }
+    Write-Host "  LAN tablets can reach Woosoo only if the firewall rule above includes Public (now set)." -ForegroundColor Yellow
+    Write-Host "  Optional: Set-NetConnectionProfile -InterfaceAlias '<alias>' -NetworkCategory Private" -ForegroundColor DarkYellow
+}
 
 # ── 5. Show current portproxy state ──────────────────────────────────────────
 Write-Host "`nActive portproxy rules:" -ForegroundColor Cyan
@@ -109,6 +121,6 @@ Write-Host @"
 
   NOTE: WSL2 IP changes after 'wsl --shutdown'. Re-run: woosoo network
 
-  To remove: woosoo network teardown (or teardown-wsl-lan-access.ps1)
+  To remove: powershell -ExecutionPolicy Bypass -File scripts\windows\teardown-wsl-lan-access.ps1
 ══════════════════════════════════════════════
 "@ -ForegroundColor Green

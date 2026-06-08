@@ -25,6 +25,14 @@ A "working feature" means the feature has been fully validated in the actual exp
 
 Follow AGENTS.md → "Mandatory Workflow" (Investigate step) and the Audit Checklist risk list. Do not begin implementation until requirements, risks, and the simplest correct path are confirmed.
 
+**Obsidian vault navigation:** the platform repo is an Obsidian vault on the same markdown you edit.
+Refer to `docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`, and `docs/cases/CONTRACTS_HUB.md`
+when locating related cases or contracts. Add `[[case-slug]]` wikilinks in case bodies when
+cross-referencing. New cases must appear in `CASE_REGISTRY` (run `scripts/obsidian-case-registry.ps1`).
+
+**Lessons Ledger (mandatory):** read `docs/LESSONS.md` for failure modes relevant to the tools/app
+you are about to touch. When you hit (or spot) a mistake, append a ledger entry before finishing.
+
 ---
 
 ## During Execution
@@ -441,3 +449,23 @@ These rules apply in addition to all of the above, and are enforced by `AGENTS.m
 - **Contract changes require docs first.** Any change to an API surface must be documented in the relevant audit doc before the code change is committed.
 - **`feature/nexus-broadcast-integrity` must never be deleted.** It is the only copy of the `/api/health` broadcasting-integrity change, pending contract review.
 - **`staging` is the real-env test target.** Never merge a red suite to staging. Never force-push staging.
+
+---
+
+## Extended Rules (Evidence-Derived from Production Failures)
+
+This section is the **enforced** tier of the learning loop. Its companion is the
+[Lessons Ledger](LESSONS.md) (`docs/LESSONS.md`) — the low-friction log of every observed failure
+mode. The flow is: **incident → ledger entry with a guard → on recurrence or high severity,
+promote the guard to a binding rule here**, and link it back from the ledger.
+
+**Consult before any non-trivial task:** skim the ledger entries tagged for the tools and app you
+are about to touch. **After any mistake:** append a ledger entry (symptom → root cause → guard).
+A fix is not complete until it leaves behind a guard (a test, a lint, a corrected doc, or a rule).
+
+Promoted rules (binding):
+
+- **Docs must match code.** No doc may claim a feature, command, state, or role the code does not implement. Verify against contracts before writing. (Ledger L-008; enforced by `documentation-truth-audit` + Executioner.)
+
+When a ledger entry is promoted, add it as a bullet here with its `L-NNN` reference. Do not delete
+ledger entries on promotion — the ledger is the historical record; this section is the enforcement.

@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-07
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -60,6 +60,12 @@ The platform is split across four repos. Three vault strategies and why platform
 `docs/cases/` is the orchestration layer for all apps. Opening it in Obsidian here gives
 cross-app visibility without breaking Git integration.
 
+**Windows junction repair (required):** Obsidian scans the entire vault at startup — excluded
+folders in `app.json` do **not** prevent crash. Sibling repos may contain Docker/Linux junctions
+(e.g. `woosoo-nexus/public/storage` → `/var/www/html/...`) that cause `EACCES` on Windows.
+`scripts/obsidian-bootstrap.ps1` repairs known junctions before you open the vault. Re-run it
+after Docker dev sessions that recreate Linux paths.
+
 ---
 
 ## Core Features to Use
@@ -79,9 +85,26 @@ cross-app visibility without breaking Git integration.
 
 ---
 
+## Bootstrap (automated)
+
+From the platform root (PowerShell):
+
+```powershell
+.\scripts\obsidian-bootstrap.ps1
+```
+
+This installs six community plugins from GitHub releases, enables them in
+`.obsidian/community-plugins.json`, points Templater at `Templates/`, and sets Obsidian Git to
+**pull on boot** (no auto-push). Re-run after cloning the repo on a new machine.
+
+Then open Obsidian → **Open folder as vault** → `woosoo-platform/`. If prompted about community
+plugins, choose **Enable / Trust**.
+
+---
+
 ## Essential Plugins (Community)
 
-Enable via: Settings → Community Plugins → Browse
+Installed by `obsidian-bootstrap.ps1`. Manual install: Settings → Community Plugins → Browse
 
 | Plugin | Purpose |
 |---|---|
@@ -96,81 +119,23 @@ Enable via: Settings → Community Plugins → Browse
 
 ## Dataview Example
 
-Case file frontmatter uses `status`, `last_reviewed`, and `scope`. Paste this in any note
-for a live index of recently-reviewed cases:
-
-````
-```dataview
-TABLE last_reviewed, scope
-FROM "docs/cases"
-WHERE status = "canonical"
-SORT last_reviewed DESC
-```
-````
+Open `docs/cases/CASE_INDEX.md` for a live Dataview index of canonical cases. Case file
+frontmatter uses `status`, `last_reviewed`, and `scope`.
 
 > Note: task-level run state (IN_PROGRESS, BLOCKED, COMPLETE) lives in the `## Run State`
 > body section of each case file, not in YAML frontmatter. Dataview cannot query it directly.
-> Use the `status` view in `state/WORK.md` for live run state.
+> Use `state/WORK.md` and `state/QUEUE.md` for live orchestration status.
 
 ---
 
 ## Templater — Case File Template
 
-Create `Templates/CASE_FILE.md`. This mirrors `docs/cases/_TEMPLATE.md` so Obsidian-created
-cases are immediately compatible with the agent chain:
+`Templates/CASE_FILE.md` is committed in this repo. It mirrors `docs/cases/_TEMPLATE.md` so
+Obsidian-created cases are immediately compatible with the agent chain. In Templater settings,
+set the templates folder to `Templates/` at the vault root.
 
-```markdown
----
-status: canonical
-last_reviewed: <% tp.date.now("YYYY-MM-DD") %>
-scope: ecosystem
----
-
-# CASE: <slug>
-
-## Run State
-- task_slug:
-- tier:
-- branch:
-- status: IN_PROGRESS
-- last_completed_agent: none
-- next_agent: contrarian
-- active_runner: claude-code
-- interrupted: false
-- interrupt_reason: none
-- updated: <% tp.date.now("YYYY-MM-DD HH:mm") %>
-
-## Handoff
-- Phase in progress:
-- Done so far:
-- Exact next action:
-- Working-tree state:
-- Risks / do-not-redo:
-
-## Tier
-
-## Branch
-
-## Problem
-
-## Contrarian Review
-
-## Success Criterion
-
-## Investigation
-
-## Root Cause
-
-## Proposed Fix
-
-## Files Changed
-
-## Verification
-
-## Executioner Verdict
-
-## Remaining Risks
-```
+To create a new case from Obsidian: Templater → Create new note from template → `CASE_FILE.md`,
+then save as `docs/cases/<task-slug>.md`.
 
 ---
 
@@ -180,5 +145,49 @@ Install the **Obsidian Git** plugin and point it at this repo. Every save or tim
 auto-commits your vault edits — the same guarantee GitHub gives you, but accessible from
 inside Obsidian.
 
-**Start small:** open the vault, navigate to `docs/cases/`, wire up Dataview and Git first.
-Everything else layers on top.
+**Start small:** open the vault, pin **`docs/cases/OPERATOR_HOME.md`** as your daily landing
+page, wire up Dataview and Git. Everything else layers on top.
+
+### Hub pages (wire these up first)
+
+| Note | Plugin / view | Role |
+|------|---------------|------|
+| `docs/cases/OPERATOR_HOME.md` | Pin as default | Daily dashboard — embeds `state/WORK`, queue, stability |
+| `docs/cases/OPS_KANBAN.md` | Kanban view | Drag-track Bucket B Pi ops |
+| `docs/cases/CONTRACTS_HUB.md` | Normal / Graph | Wiki-links to `contracts/*.md` |
+| `docs/cases/CASE_INDEX.md` | Dataview | Live case table |
+| `docs/operator/daily/YYYY-MM-DD.md` | Calendar | Operator logs (Templater `OPERATOR_LOG`) |
+
+Bootstrap copies `daily-notes.json` (Calendar folder + template) and `graph.json` (color groups).
+
+### Daily workflow
+
+1. Run `.\scripts\obsidian-bootstrap.ps1` on a new machine (junction repair + plugins)
+2. Open **OPERATOR_HOME** — embeds show `state/WORK`, stability priorities, Bucket B queue
+3. **Calendar** → today → auto-creates daily log from `Templates/OPERATOR_LOG.md`
+4. **OPS_KANBAN** — move Pi cards as ops complete (mirror into `state/QUEUE.md` when status changes)
+5. Click through to active case (`[[plt-case-stability-remediation]]`, etc.)
+6. Edit case files or queue rows; commit via Git or Obsidian Git (pull-on-boot only)
+7. Claude Code `work` / `execute` — agents read the same files; case `## Run State` is resume point
+
+Agents **refer to** the vault hubs (`docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`) for
+navigation and use `[[wikilinks]]` in case files. Resume state stays in `## Run State` on disk.
+
+### Orphan policy
+
+Many notes show as "orphans" in Graph view until linked. **Expected orphans** (by design):
+`hooks/`, `state/`, `inbox/`, `Templates/` — agent boot files, not case graph nodes.
+
+**Fix case orphans:** `docs/cases/CASE_REGISTRY.md` wikilinks every case file. Regenerate:
+```powershell
+.\scripts\obsidian-case-registry.ps1
+```
+
+**Fix docs orphans:** `docs/DOCS_HUB.md` links canonical docs outside cases.
+
+**Lint orphans:**
+```powershell
+.\scripts\obsidian-lint.ps1
+```
+
+When triaging or completing work: add `[[related-case]]` in case bodies; run registry script for new slugs.

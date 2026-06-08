@@ -17,20 +17,21 @@ human-readable runbook and priority narrative. KDS implementation spec = deferre
 - tier: 2
 - branch: n/a (orchestration; per-item branches in sibling cases)
 - status: IN_PROGRESS
-- last_completed_agent: contrarian (plan review + Part A revision)
-- next_agent: operator (Pi Bucket B) | specialist per queued case
-- active_runner: claude-code
+- last_completed_agent: specialist:infra
+- next_agent: operator (Pi Bucket B)
+- active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-07
+- updated: 2026-06-08
 
 ## Handoff
 
 - Phase in progress: Pi operator verification (P0–P1b); code items queued separately.
 - Done so far: Part A revised against working tree + `state/QUEUE.md`; NEX-014 confirmed
   code-complete on `dev`; TAB-CASE-011 and NEX-CASE-015 added; legacy script paths corrected.
-- Exact next action: Rebase `claude/happy-cannon-2nR48` onto `origin/dev`; run P0 Pi checklist
-  (NEX-014); Pi smoke for NEX-011 + INFRA-003; then schedule TAB-CASE-011.
+- Exact next action: On the Pi — `sudo bash scripts/deployment/pi-stability-verify.sh` (P0/P1
+  automated checks); then manual P1a one-ticket smoke + RELEASE_RUNBOOK Step 5. INFRA-004 PR #45
+  merged 2026-06-06.
 - Working-tree state: `docs/cases/plt-case-stability-remediation.md` (this file).
 - Risks / do-not-redo: Do **not** re-implement NEX-014 script changes — already merged. Do not
   start KDS until P0–P2 Pi gates green and KDS B5 Tier-3 decisions locked.
@@ -67,9 +68,9 @@ Current reality (verified against the working tree + `state/QUEUE.md`, 2026-06-0
 | **P0** | NEX-014 session-419 | **ops verify** (code merged) | re-apply config on Pi; confirm 419 gone |
 | **P1a** | #140 dup-print (NEX-011) | ops verify | Pi: BT-only print, one ticket/order; close #140 |
 | **P1b** | #136 Pi build (INFRA-003) | ops verify | Pi rebuild on wlan0 with merged `.npmrc`; close #136 if green |
-| **P1c** | TAB-CASE-011 | **bug (live UX)** | tablet active-order recovery filter omits `in_progress`/`served` |
-| **P2** | NEX-CASE-015 | contract hygiene | tablet route accepts client-sent `totals`/`prices` — ignore/reject |
-| **P2** | Docs #156 | docs | stale `relay-device/` paths in nexus `AI_ONBOARDING.md` |
+| **P1c** | TAB-CASE-011 | **bug (live UX)** | **COMPLETE** — landed tablet `dev` PR #199 + follow-up PR #201 |
+| **P2** | NEX-CASE-015 | contract hygiene | **COMPLETE** — intent-only strip merged nexus `dev` PR #178 |
+| **P2** | Docs #156 | docs | **COMPLETE** — `AI_ONBOARDING.md` uses `woosoo-print-bridge`, `dev` branch context |
 | **P3** | Dependabot safe bumps | hygiene | land on `dev` (not only `main`); test per bump |
 | **Deferred** | KDS #137/#143/#144; admin-display #145–#148; telemetry #152 | feature | after stability + B5 decisions locked |
 
@@ -88,13 +89,15 @@ IP-based LAN clients get a host-scoped cookie instead of one pinned to the box h
 
 1. Clear any pinned `SESSION_DOMAIN` in the live `.env`.
 2. Set `WOOSOO_ENV=production` (or correct profile).
-3. Re-run `scripts/deployment/apply-woosoo-config.sh`; restart the `app` container.
-4. Verify from a LAN device hitting the **box IP**: `GET /sanctum/csrf-cookie` → host-only
-   cookie (no `domain=`); login returns **422 on bad creds, not 419**; session persists across
-   requests; tablet/device API unaffected.
-5. Confirm `scripts/deployment/legacy/verify-client.sh:44` /
-   `scripts/deployment/legacy/update-client.sh:94` show `SESSION_DOMAIN` empty post-apply.
-6. Close the NEX-014 operator loop.
+3. Re-run `scripts/deployment/deploy-all.sh` (applies config + restarts stack) **or**
+   `scripts/deployment/apply-woosoo-config.sh` then restart the `app` container.
+4. Run automated checks:
+   `sudo bash scripts/deployment/pi-stability-verify.sh`
+   (P0: empty `SESSION_DOMAIN`, csrf cookie without `domain=`, bad login **422 not 419**;
+   P1a: `NEXUS_PRINT_EVENTS_ENABLED`; P1b: core containers running).
+5. Confirm `scripts/deployment/legacy/verify-client.sh` environment block shows
+   `SESSION_DOMAIN` empty post-apply.
+6. Close the NEX-014 operator loop when verify script exits 0.
 
 **Host-vars sanity (already in script — confirm, don't edit):** `SANCTUM_STATEFUL_DOMAINS`
 (line 457) and `REVERB_ALLOWED_ORIGINS` (line 463) include the IP. **Gap:**
@@ -131,35 +134,29 @@ Case file: `woosoo-nexus/docs/cases/nex-case-011-duplicate-order-printing.md`
 
 Case file: `docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md`
 
-### P1c — TAB-CASE-011 (tablet active-order recovery)
+### P1c — TAB-CASE-011 (tablet active-order recovery) — COMPLETE 2026-06-07
 
-- **Bug:** recovery filter in `stores/Order.ts` (~line 807) includes only
-  `pending,confirmed,ready` — missing `in_progress` and `served`, which Nexus counts as
-  non-terminal (`DeviceOrder.php` active scope). On reload mid-meal the tablet can lose an active
-  order.
-- **Fix:** include all backend non-terminal states + add a recovery test. Tablet repo
-  (`chuya-frontend`). Real live-ordering stability item — keep in the stability pass.
-
-Tracked in: `state/QUEUE.md` Bucket B-follow.
+- **Fixed:** `ACTIVE_ORDER_RECOVERY_STATUS_PARAM` now includes all five Nexus non-terminal statuses.
+- Case: `tab-case-011-active-order-recovery-filter.md` — APPROVED; landed tablet `dev` PR #199 + #201.
 
 ---
 
-## P2 — NEX-CASE-015 (contract hygiene)
+## P2 — NEX-CASE-015 (contract hygiene) — COMPLETE 2026-06-07
 
-- `StoreDeviceOrderRequest` accepts client-sent `totals`/`prices`/`discounts`/`ordered_menu_id`/modifier
-  fields. Tablet sends intent-only; backend should ignore/reject these on the tablet route to
-  keep pricing POS-authoritative. Backend (`ranpo-backend`), Tier 2.
-
-Tracked in: `state/QUEUE.md` Bucket B-follow.
+- **Fixed:** `StoreDeviceOrderRequest.prepareForValidation()` now **strips** client-sent
+  `totals`/`prices`/`discounts`/`ordered_menu_id`/modifier fields before rules run — only
+  `guest_count`, `package_id`, and `items[{menu_id, quantity}]` reach `validated()`. Pricing stays
+  POS-authoritative. Backend (`ranpo-backend`), Tier 2.
+- Case: `nex-case-015-tablet-intent-payload-hardening.md` — APPROVED; merged nexus `dev` PR #178
+  (`f3f79d8`). Contract: `contracts/tablet-api.contract.md` § Backend enforcement.
 
 ---
 
-## P2 — Docs accuracy (#156)
+## P2 — Docs accuracy (#156) — COMPLETE 2026-06-07
 
-`docs/AI_ONBOARDING.md` (nexus): replace stale `relay-device/` references with
-`woosoo-print-bridge` sibling-repo framing; fix branch context to `dev`; verify
-`print-service/index.js` vs `woosoo-print-bridge` production route before editing. Run the docs
-gate. Low risk — after Pi verification.
+`docs/AI_ONBOARDING.md` (nexus): `relay-device/` → `woosoo-print-bridge` sibling-repo framing;
+`dev` branch context; `print-service` marked legacy/local-only. Platform
+`contracts/tablet-api.contract.md` marks NEX-CASE-015 enforced.
 
 ---
 
@@ -190,11 +187,20 @@ that must read **`served → "Served"`** (Layer 2 kitchen), with the card droppe
 
 ## Recommended first actions
 
-1. **Rebase** `claude/happy-cannon-2nR48` onto `origin/dev`.
-2. **Do not code P0** — run the NEX-014 Pi operator checklist above; close the case in ops.
-3. **Pi smoke pass** for NEX-011 + INFRA-003; close #140 and #136 if green.
-4. Schedule **TAB-CASE-011** into the stability pass.
+1. **Pi:** `sudo bash scripts/deployment/pi-stability-verify.sh` — automated P0/P1 checks.
+2. **Pi:** manual P1a one-ticket smoke + RELEASE_RUNBOOK Step 5; close #140/#136 if green.
+3. ~~TAB-CASE-011~~ — **done** (tablet dev PR #199).
+4. ~~INFRA-CASE-004~~ — **merged** (platform PR #45, 2026-06-06).
 5. Only then schedule KDS Phase 0 (with B5 #1 decided before Phase 2).
+
+## Specialist Investigation & Implementation
+
+**2026-06-08 (cursor / specialist:infra):** Active gate is Pi operator work (P0–P1b); no further
+NEX-014 code changes. Verified `apply-woosoo-config.sh:459` already emits empty `SESSION_DOMAIN`;
+INFRA-CASE-004 PR #45 is merged on platform `dev`. Added
+`scripts/deployment/pi-stability-verify.sh` — diagnostic script that automates P0 csrf/422-vs-419
+probes, `NEXUS_PRINT_EVENTS_ENABLED` read, and core container health. Updated P0 operator steps
+to reference the script. Next: operator runs verify on Pi hardware; logs result in Handoff.
 
 ---
 

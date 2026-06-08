@@ -48,11 +48,18 @@ public/hot
 npm-debug.log*
 yarn-error.log*
 
+# --- Scratch review mirrors (real code lives in woosoo-nexus) ---
+.kds-review/
+
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db
 *.swp
 .idea/
+
+# --- Obsidian (machine-local layout + downloaded plugins; config via scripts/obsidian-bootstrap.ps1) ---
+.obsidian/
+*.canvas
 
 # --- Independent app repos (managed as their own git repos / sibling model) ---
 # The platform repo is the orchestration/governance layer only.
@@ -65,6 +72,11 @@ Thumbs.db
 
 # --- Machine-local Claude Code settings (not shared) ---
 .claude/settings.local.json
+
+# --- Machine-local skill loader links (canonical source is .agents/skills/) ---
+# .claude/skills/ contains symlinks/junctions the harness uses to load skills.
+# They are recreated locally by scripts/setup-skills.ps1 — do not commit.
+.claude/skills/
 
 # --- Machine-local Codex runtime config (sandbox_mode etc.; not shared) ---
 .codex/config.toml

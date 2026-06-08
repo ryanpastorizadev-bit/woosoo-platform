@@ -1,0 +1,10 @@
+{
+  "commitMessage": "vault backup: {{date}}",
+  "autoCommitMessage": "vault backup: {{date}}",
+  "autoCommitMessageAfter": 0,
+  "autoPush": false,
+  "pullUpdatesOnBoot": true,
+  "pullOnBoot": true,
+  "disablePopups": false,
+  "showStatusBar": true
+}
