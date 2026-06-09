@@ -50,9 +50,12 @@ done:         (Cursor) classifier regression fix (anchored Get-CaseStatusToken) 
               byte-identically to .cursor/rules; executioner reject clause; AGENT_DEFAULT promoted
               rule; LESSONS Automated: pointers + L-012..L-015). Verifier PASS: 6/6 detectors,
               per-detector fail-before/pass-after proven, parity diff identical.
-next_action:  Executioner verdict (final gate) on docs/cases/plt-case-governance-hardening-2026-06-08.md.
-              Then Must-Fix items 5 (non-COMPLETE audit closure) + 6 (continual-learning), gated on APPROVED.
-gate:         KDS (#137/#143-#148) + Admin UI (nex-case-012) stay deferred until Executioner APPROVED.
+next_action:  Executioner APPROVED + shipped to origin/dev (332c46c..bcb90cf, 2026-06-09); registry
+              projection regenerated so this case reads COMPLETE. Remaining (Claude Code, post-APPROVED):
+              Must-Fix item 5 (non-COMPLETE audit closure via per-case Verifier/Executioner; do not
+              self-close) + item 6 (continual-learning / agents-memory-updater).
+gate:         SATISFIED — Executioner APPROVED. KDS (#137/#143-#148) + Admin UI (nex-case-012) are
+              UNBLOCKED at the governance gate (KDS build itself is Tier 3 = Claude Code Specialists).
 ```
 
 ## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->

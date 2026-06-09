@@ -1,12 +1,12 @@
 ---
 status: canonical
-last_reviewed: 2026-06-08
+last_reviewed: 2026-06-09
 scope: ecosystem
 ---
 
 # Case Registry (summarized wikilink index)
 
-**90 cases** · 69 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**90 cases** · 70 complete · 18 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -78,7 +78,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[plt-case-chain-doc-sync]] | 🟡 IN_PROGRESS | 2026-06-08 | Sync three platform docs to the updated 6-step agent chain: AGENTS.md inline summary (omits scribe), hooks/execute.md… |
 | [[plt-case-ecosystem-docs-accuracy]] | ✅ COMPLETE | 2026-06-07 | Apply ecosystem concept accuracy fixes across platform and sibling README files. |
 | [[plt-case-executioner-simplifier-gate]] | 🟡 IN_PROGRESS | 2026-06-08 | Make the Executioner reject when ## Code Simplification or ## Hygiene audit lines are missing or skipped without a do… |
-| [[plt-case-governance-hardening-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Consolidated platform-governance hardening combining three intertwined workstreams that were |
+| [[plt-case-governance-hardening-2026-06-08]] | ✅ COMPLETE | 2026-06-09 | Consolidated platform-governance hardening combining three intertwined workstreams that were |
 | [[plt-case-hygiene-gates]] | ✅ COMPLETE | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
 | [[plt-case-non-complete-audit-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Accuracy audit of every **non-COMPLETE** case file in docs/cases/. For each case the audit |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
