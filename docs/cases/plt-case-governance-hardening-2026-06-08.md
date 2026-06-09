@@ -30,13 +30,13 @@ resume point per `docs/RESUME_PROTOCOL.md`.
 - task_slug: plt-case-governance-hardening-2026-06-08
 - tier: 3
 - branch: agent/platform-governance-hardening-2026-06-08
-- status: IN_PROGRESS
-- last_completed_agent: scribe
-- next_agent: executioner
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-09 12:05
+- updated: 2026-06-09 12:30
 
 ## Handoff
 - Phase in progress: Tier 3 (Claude Code) - recurrence-detection guard + authority wiring. ASCII cleanup (the Cursor-safe portion) is DONE.
@@ -189,6 +189,18 @@ Specialist on the changed files:
   call sites; no duplication introduced.
 Outcome: no further simplification identified. dead-code-cleanup: none found in changed scope.
 
+Tier 3 (Claude Code) simplification review of the new scripts, 2026-06-09:
+- `recurrence-check.ps1` - each detector is a small self-contained block ending in a shared
+  `Pass`/`Fail` helper; no dead code, no duplicate helpers. The one DRY candidate (a `Report`
+  wrapper over the 6 `if (count -eq 0) {Pass} else {Fail}` tails) was considered and rejected:
+  the repo's sibling linter `obsidian-lint.ps1` reports inline/linearly, so a wrapper would
+  diverge from the established pattern for marginal gain on a fixed 6-item gate.
+- `recurrence-check.sh` - mirrors the `.ps1` with `pass`/`fail`/`skip` helpers; hit values vary
+  (arrays vs strings) so a generic reporter would be less clear, not more. Left as-is.
+- dead-code-cleanup: the Verifier's transient probe files (`scripts/_rc_probe.ps1`,
+  `docs/_rc_probe.md`) and `/tmp` backups were all removed; post-run scan shows 0 residue and no
+  orphaned helpers. No temp/debug artifacts remain.
+
 ## Verification
 Tier 2 (Cursor) self-checks, raw results:
 - `case-status-classify.Tests.ps1` -> 9/9 PASS, exit 0 (fail-before + pass-after both asserted).
@@ -312,11 +324,61 @@ Remaining work, in order (all Tier 3 -> Claude Code; Cursor must not do these):
    the Part-5 `LESSONS.md` edits.
 
 ## Executioner Verdict
-<!-- Pending - the Must-Fix Gate above + Verifier must complete first. -->
+
+Verdict: APPROVED
+
+### Reason
+The Tier 3 scope (Must-Fix Gate items 1-2) is complete and independently verified:
+- `recurrence-check.{ps1,sh}` built with 6 detectors and wired into `pre-merge-check.{ps1,sh}`
+  after the app switch/case; both runners exit 0; each detector proven fail-before / pass-after.
+- Authority wiring done: the "Automated recurrence guards are binding" Immutable Rule is
+  byte-identical across `AGENTS.md` and `.cursor/rules/woosoo.mdc` (diff-confirmed); `executioner.md`
+  reject clause, `AGENT_DEFAULT_INSTRUCTIONS.md` promoted rule, and `LESSONS.md` `Automated:`
+  pointers + folded lessons L-012..L-015 all landed.
+- scribe doc-truth: every new doc claim verifies against the shipped code (wiring line numbers,
+  detector IDs, byte-identical mirror). Vault lint re-confirmed 0/0/0.
+- Hygiene: Verifier probe files + backups removed; 0 residue; no dead code introduced.
+- Checklist clearances: Documentation Sync present; Success Criterion filled; Tier 3 sequence
+  (Contrarian risk analysis -> Specialist[infra+scribe] -> code-simplifier -> Verifier -> scribe ->
+  Executioner) all checkpointed; one scope (platform governance); no contract touched. The
+  governance-surface edits (`executioner.md`, `AGENTS.md`, `.cursor/rules/woosoo.mdc`) are the
+  declared task (Must-Fix item 2), not a path-scope violation.
+
+**Gate-binding correction (found during final review):** the Cursor Tier 1-2 deliverables the gate
+depends on were UNCOMMITTED, so on a clean clone CHK-PS-ASCII / CHK-STATUS-CLASSIFY / CHK-CANVAS-TRACKED
+would have failed - the gate was not yet binding. The Session-A-free, gate-critical subset was
+committed (classifier lib + test, the two canvases, `obsidian-case-registry.ps1` anchoring,
+`.gitignore` negation, the 10 ASCII-cleaned scripts + lint hardening). Verified against HEAD via
+`git archive`: 0 non-ASCII scripts, deps present, registry/summary clean -> all 6 detectors now bind
+on a fresh checkout.
+
+### Required Next Action
+None blocking for the Tier 3 deliverable. Operator merge-prep follow-ups below.
+
+### Follow-Ups
+- **Operator merge-prep:** the remaining uncommitted Cursor Tier 1-2 deliverables are non-gate-critical
+  and entangled with Session-A's `docs/cases/*.md` frontmatter projection (the "DO NOT touch" set):
+  `docs/cases/CASE_REGISTRY.md` (regenerable via the now-committed registry script),
+  `OPERATOR_HOME.md`, `CASE_DASHBOARD.md`, `OPS_KANBAN.md`, `VAULT_INDEX.md`, `DOCS_HUB.md`,
+  `obsidian-setup-guide.md`. Commit these (disentangled from the Session-A projection) before merging
+  so the hub wiring + vault lint land with the rest. The recurrence-check gate already binds at HEAD
+  without them.
+- **Must-Fix item 5:** non-COMPLETE audit closure [[plt-case-non-complete-audit-2026-06-08]] via
+  Verifier/Executioner per case; do not self-close; the 3 OPS_PENDING stay OPS_PENDING.
+- **Must-Fix item 6:** continual-learning (`agents-memory-updater`) without conflicting with the
+  Part-5 `LESSONS.md` edits.
+- KDS (#137/#143-#148) + Admin UI ([[nex-case-012-admin-ui-prototype-impl]]) remain Bucket C deferred;
+  this APPROVED unblocks them per the case gate.
 
 ## Remaining Risks
-> [!warning] Until the recurrence-check gate is wired (item 1), the classifier fix and ASCII rules
-> are not mechanically enforced - a future parallel session could silently regress them again.
+> [!done] RESOLVED 2026-06-09: the recurrence-check gate is wired into `pre-merge-check` and binding
+> at HEAD (verified via `git archive`). The classifier fix, ASCII rules, wikilink/canvas/summary
+> invariants are now mechanically enforced - a future parallel session that regresses one fails the
+> gate. The gate-critical Cursor deps were committed to lock this (see Executioner Verdict).
+
+> [!warning] Until the operator commits the remaining entangled hub docs + regenerated CASE_REGISTRY
+> (Executioner Follow-Ups), those land only in this working tree - the gate still binds without them,
+> but the hub wiring / vault graph is incomplete on other clones until merged.
 
 > [!warning] Tier 3 edits touch `AGENTS.md` / `.cursor/rules/woosoo.mdc` / `executioner.md` -
 > governance surfaces. Keep the Immutable Rule text byte-identical across AGENTS.md and the mirror.

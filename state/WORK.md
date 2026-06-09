@@ -37,7 +37,7 @@ last_agent:   cursor — 2026-06-08 — pi-stability-verify.sh for P0/P1 Bucket 
 
 ```yaml
 task_id:      plt-case-governance-hardening-2026-06-08
-status:       in_progress
+status:       COMPLETE — Executioner APPROVED 2026-06-09
 tier:         3
 active_runner: claude-code
 case_file:    docs/cases/plt-case-governance-hardening-2026-06-08.md
