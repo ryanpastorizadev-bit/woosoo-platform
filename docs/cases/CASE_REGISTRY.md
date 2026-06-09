@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**85 cases** · 68 complete · 16 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**90 cases** · 69 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -24,7 +24,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[nex-case-008-transient-token-refresh-guard]] | ✅ COMPLETE | 2026-05-23 | POST /api/devices/refresh and POST /api/devices/logout crash with |
 | [[nex-case-009-admin-menus-filters]] | ✅ COMPLETE | 2026-05-23 | MenuController@index returns course, group, category, is_available, and has_uploaded_image for every menu row, but th… |
 | [[nex-case-010-immutable-image-production-migration]] | ⛔ BLOCKED | 2026-05-31 | Track (do NOT yet implement) the migration to immutable production images so served assets come |
-| [[nex-case-011-duplicate-order-printing]] | ✅ COMPLETE | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
+| [[nex-case-011-duplicate-order-printing]] | code-complete | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
 | [[nex-case-012-admin-ui-prototype-impl]] | ⛔ BLOCKED | 2026-05-31 | > **Deferred — Bucket C feature.** Does NOT gate the dev→staging→main stabilization merge. |
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
@@ -69,16 +69,18 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[plt-case-007-risk-assessment-challenge]] | ✅ COMPLETE | 2026-05-19 | Contrarian challenge of the Risk Probability Breakdown assessment for tablet-ordering-pwa. |
 | [[plt-case-008-gh-issue-9-p1-remediation]] | ✅ COMPLETE | 2026-05-25 | GitHub Issue #9 "Review Critic" identified five P1 (critical) remediation items: |
 | [[plt-case-009-docker-mysql-redis]] | ✅ COMPLETE | 2026-05-25 | Docker mysql and redis services not resolving — probable infrastructure root cause for Reverb broadcast failures and… |
-| [[plt-case-010-context7-cursor-guide]] | APPROVED | 2026-06-06 | Document how operators use the Context7 MCP plugin in Cursor for up-to-date library documentation. |
+| [[plt-case-010-context7-cursor-guide]] | 🟡 IN_PROGRESS | 2026-06-08 | Document how operators use the Context7 MCP plugin in Cursor for up-to-date library documentation. |
 | [[plt-case-011-specialist-gates]] | ✅ COMPLETE | 2026-06-07 | Add PRE_EDIT_GATE and POST_EDIT_REVIEW as Specialist-phase gates wired into the execute hook. |
 | [[plt-case-app-audit-nexus-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-nexus/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no longer r… |
 | [[plt-case-app-audit-platform-docs]] | ✅ COMPLETE | 2026-05-20 | Audit platform-level docs and governance folders for docs and folders that appear outdated, unused, orphaned, duplica… |
 | [[plt-case-app-audit-relay-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-print-bridge/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
 | [[plt-case-app-audit-tablet-folders]] | ✅ COMPLETE | 2026-05-20 | Audit tablet-ordering-pwa/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
+| [[plt-case-chain-doc-sync]] | 🟡 IN_PROGRESS | 2026-06-08 | Sync three platform docs to the updated 6-step agent chain: AGENTS.md inline summary (omits scribe), hooks/execute.md… |
 | [[plt-case-ecosystem-docs-accuracy]] | ✅ COMPLETE | 2026-06-07 | Apply ecosystem concept accuracy fixes across platform and sibling README files. |
+| [[plt-case-executioner-simplifier-gate]] | 🟡 IN_PROGRESS | 2026-06-08 | Make the Executioner reject when ## Code Simplification or ## Hygiene audit lines are missing or skipped without a do… |
+| [[plt-case-governance-hardening-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Consolidated platform-governance hardening combining three intertwined workstreams that were |
 | [[plt-case-hygiene-gates]] | ✅ COMPLETE | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
-| [[plt-case-executioner-simplifier-gate]] | 🟡 IN_PROGRESS | 2026-06-08 | Make Executioner reject when ## Code Simplification audit lines are missing without a documented reason. |
-| [[plt-case-chain-doc-sync]] | 🟡 IN_PROGRESS | 2026-06-08 | Sync AGENTS.md inline summary, hooks/execute.md, and PROTOCOL.md to the updated 6-step chain. |
+| [[plt-case-non-complete-audit-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Accuracy audit of every **non-COMPLETE** case file in docs/cases/. For each case the audit |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
 
@@ -87,10 +89,10 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | Case | Status | Updated | Summary |
 |------|--------|---------|---------|
 | [[infra-case-001-pi-platform-migration]] | 🟡 IN_PROGRESS | 2026-05-20 | The Pi currently runs Woosoo from the old single-repo model (woosoo-nexus/ as compose root). |
-| [[infra-case-002-deploy-stability-wrappers]] | ✅ COMPLETE | 2026-05-25 | Deployment from woosoo-platform/ works but has five stability gaps that will bite under pressure: |
+| [[infra-case-002-deploy-stability-wrappers]] | 🟡 IN_PROGRESS | 2026-05-25 | Deployment from woosoo-platform/ works but has five stability gaps that will bite under pressure: |
 | [[infra-case-003-pi-docker-build-npm-ci-wifi]] | ✅ COMPLETE | 2026-06-01 | docker compose up -d --build from /opt/woosoo/woosoo-platform/ fails consistently on the |
 | [[infra-case-004-script-flow-unification]] | ✅ COMPLETE | 2026-06-05 | > **Re-scoped 2026-06-05** from "doc/dedup cleanup" to **one robust deploy command + |
-| [[infra-case-005-local-pipeline-runner]] | 🟡 IN_PROGRESS | 2026-06-06 | No single command exists for a dev test deploy. After dev-docker-bootstrap.sh completes, the |
+| [[infra-case-005-local-pipeline-runner]] | 🟡 IN_PROGRESS | 2026-06-08 | No single command exists for a dev test deploy. After dev-docker-bootstrap.sh completes, the |
 | [[infra-case-006-dynamic-lan-host]] | 🟡 IN_PROGRESS | 2026-06-06 | Unified Pi + WSL PUBLIC_HOST / LAN access via scripts/lib/host-network.sh and |
 | [[infra-case-007-wsl-pos-db-host]] | ✅ COMPLETE | 2026-06-07 | WSL dev admin POS pages fail with Connection refused on pos DB connection because |
 | [[infra-case-008-deployment-env-audit]] | ✅ COMPLETE | 2026-06-07 | Read-only deployment audit remediation: unify operator config paths, document three POS/Reverb |
@@ -115,6 +117,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |
 | [[nexus-vite-entrypoint-rebuild]] | ✅ COMPLETE | 2026-05-30 | PR comment on woosoo-nexus/docker/docker-entrypoint.sh: the current entrypoint skips npm run build when public/build… |
 | [[pi-docker-runtime-diagnostics]] | ✅ COMPLETE | 2026-05-22 | The Raspberry Pi deployment needs production-ready diagnostics that enforce the Docker-only runtime model and catch R… |
+| [[pld-cli-hardening]] | ✅ COMPLETE | 2026-06-08 | Four MEDIUM hardening gaps in the pld CLI: |
 | [[pr-40-staging-review-findings]] | ✅ COMPLETE | 2026-06-05 | The user requested verification of PR #40 staging review findings before accepting the review. |
 | [[prepare-document-context]] | ✅ COMPLETE | 2026-06-04 | The workspace needed a clear, concise root context document for woosoo-platform, |
 | [[printed-order-incorrect-time]] | ✅ COMPLETE | 2026-05-25 | Fix paper receipt order time rendering so UTC backend timestamps display as the Android |

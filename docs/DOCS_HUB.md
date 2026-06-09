@@ -32,6 +32,8 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 ## Architecture
 
 - [[architecture/pld-cli-decision]] — ADR: Palisade CLI (`pld`) command base + Bash migration
+- [[architecture/SYSTEM_MAP.canvas|SYSTEM_MAP]] — Canvas: apps, data flow, contract boundaries
+- [[cases/DEPLOY_SEQUENCE.canvas|DEPLOY_SEQUENCE]] — Canvas: Bucket B deploy-gate ordering
 
 ## Deployment
 

@@ -30,7 +30,8 @@ before handing off; any runner (Claude Code / Codex / Copilot / Cursor) resumes 
 - updated: <% tp.date.now("YYYY-MM-DD HH:mm") %>
 
 ## Handoff
-<!-- Filled when a phase is interrupted (e.g. rate limit). Empty otherwise. -->
+<!-- Filled when a phase is interrupted (e.g. rate limit). Empty otherwise.
+     If BLOCKED, lead with a callout:  > [!danger] Blocker: <what blocks + who/what unblocks> -->
 - Phase in progress:
 - Done so far:
 - Exact next action:
@@ -66,5 +67,8 @@ agent/<slug>
      confirms no update was needed with a reason. Mandatory for code-specialist tasks. -->
 
 ## Executioner Verdict
+<!-- Use a callout for the verdict so it reads at a glance:
+     > [!success] APPROVED   /   > [!failure] REJECTED   /   > [!warning] SPLIT_REQUIRED -->
 
 ## Remaining Risks
+<!-- One  > [!warning]  callout per material risk; plain bullets for minor notes. -->

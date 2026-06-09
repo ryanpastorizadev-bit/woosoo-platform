@@ -128,6 +128,53 @@ frontmatter uses `status`, `last_reviewed`, and `scope`.
 
 ---
 
+## Query, signaling & visual layers
+
+The vault projects each case's `## Run State` body into **derived frontmatter** so the query
+and visual layers can read it. `scripts/obsidian-case-registry.ps1` writes `run_status`, `app`,
+`tier`, `next_agent`, `branch`, `interrupted`, `updated`, and `tags` behind a generated fence
+comment — **the body stays the source of truth**, so re-run the script after changing run state.
+
+### Querying — Dataview vs Bases
+
+| Surface | File | Scope | Auto? |
+|---|---|---|---|
+| [[cases/CASE_DASHBOARD\|CASE_DASHBOARD]] | `docs/cases/CASE_DASHBOARD.md` | All cases — blocked, open-by-app, stale, counts | Auto (Dataview) |
+| [[cases/CASES.base\|CASES.base]] | `docs/cases/CASES.base` | All cases — table + board-by-status + per-app | Auto (Bases, core) |
+| [[cases/OPS_KANBAN\|OPS_KANBAN]] | `docs/cases/OPS_KANBAN.md` | Bucket-B Pi ops only | **Curated** (manual) |
+
+`CASES.base` (auto board from frontmatter) and `OPS_KANBAN` (hand-ordered ops board) **coexist** —
+they serve different scopes (all-cases vs Bucket-B ops) and neither supersedes the other.
+
+### Visual signaling — callouts
+
+Case templates seed a small callout vocabulary; use them so risk is visible at a glance:
+
+| Callout | Where |
+|---|---|
+| `> [!danger]` | `## Handoff` blockers, active P0 gates |
+| `> [!warning]` | `## Remaining Risks` |
+| `> [!success]` / `> [!failure]` | `## Executioner Verdict` (APPROVED / REJECTED) |
+| `> [!info]` | context / scope notes |
+
+### Tags (auto-generated)
+
+The registry projection emits `status/<run_status>`, `app/<app>`, and `tier/<n>` tags onto each
+case, making the **tag pane** and graph tag groups navigable. `obsidian-lint.ps1` flags cases that
+carry run-state frontmatter but are missing required tags.
+
+### Canvas maps
+
+| Canvas | Purpose |
+|---|---|
+| [[architecture/SYSTEM_MAP.canvas\|SYSTEM_MAP]] | Apps, data flow, and the contract on each boundary |
+| [[cases/DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]] | Bucket B deploy-gate ordering (mirrors OPS_KANBAN) |
+
+File nodes open the real `.md`; both are linked from [[VAULT_INDEX]] and [[DOCS_HUB]] so they are
+not graph orphans.
+
+---
+
 ## Templater — Case File Template
 
 `Templates/CASE_FILE.md` is committed in this repo. It mirrors `docs/cases/_TEMPLATE.md` so
@@ -185,7 +232,7 @@ Many notes show as "orphans" in Graph view until linked. **Expected orphans** (b
 
 **Fix docs orphans:** `docs/DOCS_HUB.md` links canonical docs outside cases.
 
-**Lint orphans:**
+**Lint the vault** (orphans + broken links/embeds + missing tags; canvas-aware, ignores code-span examples):
 ```powershell
 .\scripts\obsidian-lint.ps1
 ```
