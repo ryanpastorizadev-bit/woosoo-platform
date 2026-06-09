@@ -6,7 +6,7 @@ scope: ecosystem
 app: infra
 run_status: IN_PROGRESS
 tier: 2
-next_agent: verifier
+next_agent: executioner
 branch: dev
 interrupted: false
 updated: 2026-06-09
@@ -31,8 +31,8 @@ Related: [[infra-case-006-dynamic-lan-host]]
 - tier: 2
 - branch: dev
 - status: IN_PROGRESS
-- last_completed_agent: specialist:infra
-- next_agent: verifier
+- last_completed_agent: scribe
+- next_agent: executioner
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
@@ -85,7 +85,56 @@ Pre-existing (untracked, verified complete): `register-wsl-lan-startup-task.ps1`
 
 ## Code Simplification
 
-SKIPPED — no simplifications identified (`register-wsl-lan-startup-task.ps1` reviewed by code-simplifier).
+SKIPPED — new scripts only; no dead code introduced, no existing code paths touched.
+
+## Hygiene (dead-code-cleanup)
+
+SKIPPED — new files added, nothing removed or obsoleted. No orphaned imports, helpers, or
+debug logs introduced. `recurrence-check.ps1` confirms all scripts parse clean (CHK-PS-PARSE).
+
+## Verifier
+
+**Verdict: PASS** (2026-06-09)
+
+| # | Check | Result |
+|---|-------|--------|
+| 1 | `Get-ScheduledTask 'Woosoo-WSL-LAN-Bridge'` state | **Ready** |
+| 2 | Task trigger | `MSFT_TaskLogonTrigger` (at logon) |
+| 3 | Task principal | `RunLevel=Highest`, `LogonType=Interactive` |
+| 4 | Task action | `powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "…\setup-wsl-lan-access.ps1"` |
+| 5 | `netsh portproxy show v4tov4` | `0.0.0.0:80/443/4443 → 172.21.115.211` (current WSL IP) |
+| 6 | `curl.exe https://192.168.100.7/login` | HTTP 200 |
+| 7 | `curl.exe https://192.168.100.7:4443/` | HTTP 200 |
+| 8 | PS AST parse: both scripts | Syntax clean; `Set-StrictMode + $ErrorActionPreference = Stop` |
+| 9 | `setup-wsl-lan-access.ps1` + `teardown-wsl-lan-access.ps1` exist | True |
+
+Non-blocking findings:
+- `LastTaskResult 267011` (SCHED_S_TASK_HAS_NOT_RUN) — expected; at-logon task fires on next Windows login, not immediately.
+- Task action path hardcoded at registration time via `$PSScriptRoot`; re-run needed if repo path changes.
+
+## Recurrence Check
+
+`scripts\recurrence-check.ps1` — **6/6 PASS** (2026-06-09)
+
+```
+[PASS] CHK-PS-ASCII         - 17 scripts ASCII-only
+[PASS] CHK-PS-PARSE         - 17 scripts parse clean
+[PASS] CHK-STATUS-CLASSIFY  - registry anchored; regression test 9/9 PASS
+[PASS] CHK-WIKILINK-RELATIVE - 132 docs; 0 relative wikilinks
+[PASS] CHK-CANVAS-TRACKED   - 2 hub canvases committable
+[PASS] CHK-REGISTRY-SUMMARY - no frontmatter key leaked as case summary
+```
+
+## Documentation Sync
+
+Specialist updated docs as part of implementation (no separate scribe pass required for ops-only task):
+
+| File | Change |
+|------|--------|
+| `docs/USAGE_GUIDE.md` | Added `pld network` + `register-wsl-lan-startup-task.ps1` to command reference; added portproxy-avoidance note |
+| `docs/deployment/DEPLOYMENT_GUIDE.md` | Added §4 LAN bridge runbook: when portproxy stales, one-time task registration, daily workflow, cross-link |
+
+Both sections describe behaviour the scripts actually implement and match the verified scheduled task configuration.
 
 ## Files Changed
 
@@ -101,3 +150,19 @@ No — platform scripts and operator docs only.
 ## Rollback
 
 Unregister task: `scripts\windows\unregister-wsl-lan-startup-task.ps1`; revert doc edits.
+
+## Agent Chain
+
+- Tier: 2
+- Branch: dev
+- Contrarian: Tier 2 classification
+- Specialist: infra — portproxy automation scripts + doc updates
+- Code Simplifier: SKIPPED (new scripts only, no dead code introduced)
+- Hygiene (dead-code-cleanup): SKIPPED (new files; recurrence-check CHK-PS-PARSE confirms clean)
+- Verifier: PASS
+- Docs Sync: Included in Specialist phase (USAGE_GUIDE.md + DEPLOYMENT_GUIDE.md updated)
+- Executioner: pending
+
+## Executioner Verdict
+
+<!-- to be written by Executioner -->
