@@ -33,6 +33,28 @@ obsidian:     docs/cases/OPERATOR_HOME.md (dashboard) · OPS_KANBAN.md (Pi board
 last_agent:   cursor — 2026-06-08 — pi-stability-verify.sh for P0/P1 Bucket B checks.
 ```
 
+## Parallel Active — Governance Hardening (fix before KDS / Admin UI)
+
+```yaml
+task_id:      plt-case-governance-hardening-2026-06-08
+status:       in_progress
+tier:         3
+active_runner: claude-code
+case_file:    docs/cases/plt-case-governance-hardening-2026-06-08.md
+done:         (Cursor) classifier regression fix (anchored Get-CaseStatusToken) + registry summary
+              fix + obsidian-lint hardening + canvases + hub/callout wiring + whole-file ASCII
+              cleanup of all scripts (0 parse errors) + .gitignore un-ignore for the 2 hub-linked
+              canvases (were silently *.canvas-ignored). Lint 0/0/0; tests green.
+              (Claude Code Tier 3, 2026-06-09) recurrence-check.{ps1,sh} built (6 detectors) + wired
+              into pre-merge-check.{ps1,sh}; authority wiring done (AGENTS.md Immutable Rule mirrored
+              byte-identically to .cursor/rules; executioner reject clause; AGENT_DEFAULT promoted
+              rule; LESSONS Automated: pointers + L-012..L-015). Verifier PASS: 6/6 detectors,
+              per-detector fail-before/pass-after proven, parity diff identical.
+next_action:  Executioner verdict (final gate) on docs/cases/plt-case-governance-hardening-2026-06-08.md.
+              Then Must-Fix items 5 (non-COMPLETE audit closure) + 6 (continual-learning), gated on APPROVED.
+gate:         KDS (#137/#143-#148) + Admin UI (nex-case-012) stay deferred until Executioner APPROVED.
+```
+
 ## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->
 
 ```text

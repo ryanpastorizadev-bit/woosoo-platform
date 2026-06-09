@@ -31,12 +31,12 @@ resume point per `docs/RESUME_PROTOCOL.md`.
 - tier: 3
 - branch: agent/platform-governance-hardening-2026-06-08
 - status: IN_PROGRESS
-- last_completed_agent: specialist:scribe
-- next_agent: verifier
+- last_completed_agent: scribe
+- next_agent: executioner
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
-- updated: 2026-06-09 11:40
+- updated: 2026-06-09 12:05
 
 ## Handoff
 - Phase in progress: Tier 3 (Claude Code) - recurrence-detection guard + authority wiring. ASCII cleanup (the Cursor-safe portion) is DONE.
@@ -201,10 +201,46 @@ Tier 2 (Cursor) self-checks, raw results:
 Full WSL `pre-merge-check.sh` gate is the Claude Code Verifier's job after Tier 3 (recurrence-check
 must exist first). NOT run here.
 
+Tier 3 (Claude Code Verifier) - recurrence-check gate, raw results 2026-06-09:
+- `recurrence-check.ps1` clean run -> 6/6 detectors `[PASS]`, exit 0.
+- `recurrence-check.sh` clean run -> all detectors `[PASS]` (pwsh present, no SKIPs), exit 0.
+- Per-detector fail-before / pass-after (one isolated violation injected per detector, then
+  reverted from a byte-exact backup - NOT `git checkout`, since these tracked files carry
+  uncommitted Session-A changes):
+  - CHK-PS-ASCII -> `[FAIL]` on a throwaway `.ps1` with an em-dash byte; PASS after removal.
+  - CHK-PS-PARSE -> `[FAIL]` on an unterminated-block `.ps1`; PASS after removal.
+  - CHK-STATUS-CLASSIFY -> `[FAIL]` after appending an unanchored `-match 'COMPLETE'` to the
+    registry; PASS after restore.
+  - CHK-WIKILINK-RELATIVE -> `[FAIL]` on a temp `docs/*.md` with `[[../foo]]`; PASS after removal.
+  - CHK-CANVAS-TRACKED -> `[FAIL]` after removing the two `.gitignore` negation lines; PASS after
+    restore.
+  - CHK-REGISTRY-SUMMARY -> `[FAIL]` after injecting an `| app: platform |` summary row; PASS
+    after restore.
+  - Post-revert probe-signature scan: 0 residue in all three tracked files; 2 `.gitignore`
+    negation lines intact; no `_rc_probe` leaks.
+- `case-status-classify.Tests.ps1` standalone -> "OK: all assertions passed", exit 0.
+- AGENTS.md vs `.cursor/rules/woosoo.mdc` Immutable Rule -> `diff` reports byte-identical.
+- Wiring placement -> `pre-merge-check.ps1:76` (after `switch ($App)` @38, before OK banner @80);
+  `pre-merge-check.sh:99` (after `esac` @96, before OK banner @103). App-independent governance step.
+- Vault lint (`obsidian-lint.ps1`) re-run after Tier 3 doc edits -> Orphans 0/126, Broken 0, Tags 0.
+- Per-app `pre-merge-check.{ps1,sh} --app <name>` full gate (composer/npm/flutter): the case's
+  designated WSL operator gate; the toolchains are not this governance step's scope. The
+  app-independent recurrence-check governance step is verified directly above. VERIFIER VERDICT: PASS.
+
 ## Documentation Sync
 Updated by the Specialist inline (docs are in scope): `obsidian-setup-guide.md`, `VAULT_INDEX.md`,
-`DOCS_HUB.md`, `OPERATOR_HOME.md`, `CASE_DASHBOARD.md`, `OPS_KANBAN.md`. A scribe doc-truth pass is
-still required after the Tier 3 phase (LESSONS/AGENT_DEFAULT/AGENTS/.mdc/executioner edits).
+`DOCS_HUB.md`, `OPERATOR_HOME.md`, `CASE_DASHBOARD.md`, `OPS_KANBAN.md`.
+
+Tier 3 scribe doc-truth pass (Claude Code, 2026-06-09) - DONE. Authority-surface edits
+(`AGENTS.md`, `.cursor/rules/woosoo.mdc`, `.claude/agents/executioner.md`,
+`docs/AGENT_DEFAULT_INSTRUCTIONS.md`, `docs/LESSONS.md`) audited against the code just shipped;
+every claim verifies:
+- "wired into `pre-merge-check`" -> confirmed at `pre-merge-check.ps1:76` / `pre-merge-check.sh:99`.
+- "6 detectors" / detector IDs in `AGENT_DEFAULT_INSTRUCTIONS.md` + `LESSONS.md` `Automated:` lines
+  -> match the actual `CHK-*` IDs emitted by `recurrence-check.ps1`.
+- "byte-identical mirror" of the Immutable Rule -> confirmed by `diff` (Verifier).
+- `state/WORK.md` governance block refreshed to point at the Executioner gate.
+No doc claims a behaviour the code does not implement; no stale command/path introduced.
 
 ## Careful Attention (read before resuming - these bit us this session)
 
