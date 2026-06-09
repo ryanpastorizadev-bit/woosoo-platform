@@ -14,9 +14,9 @@ scope: woosoo-nexus
 - task_slug: nex-case-019-debug-endpoint-hardening
 - tier: 1
 - branch: agent/nex-case-019-debug-endpoint-hardening
-- status: IN_PROGRESS
-- last_completed_agent: specialist:ranpo-backend
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -67,7 +67,28 @@ try {
 - `routes/api.php`
 
 ## Code Simplification
+
+SKIPPED — Tier 1, single try/catch body replacement. No simplification possible beyond the change itself.
+
 ## Verification
+
+PASS (verifier, 2026-06-09):
+- `use Illuminate\Support\Facades\Log;` present at line 28 (alphabetical between DB and Queue)
+- `Stored procedure call failed:` — zero matches (leaked string removed)
+- `Log::error('[debug/pos] stored procedure failed', ['error' => $e->getMessage(), 'course' => $course])` at line 379
+- `ApiResponse::error('POS stored procedure failed. Check Laravel log.', null, 500)` at line 381
+- `$e->getMessage()` confined to Log::error context array only — not in any ApiResponse::error argument
+- Pint: passed (no formatting issues)
+- Route: `GET|HEAD api/debug/pos/menus/course` listed
+
 ## Documentation Sync
+
+SKIPPED — Tier 1. No docs reference the raw exception message behavior. The gate condition (`app()->environment('local') || config('app.debug')`) is unchanged and documented inline.
+
 ## Executioner Verdict
+
+APPROVED (executioner, 2026-06-09): Success criterion met. Raw exception text removed from HTTP response; logged to Laravel log with structured context. Gate condition unchanged.
+
 ## Remaining Risks
+
+Low. The fix only changes what is returned on exception — the debug gate remains. Risk: if `APP_DEBUG` is set on a live box, the gate still passes, but the response is now generic. Acceptable.

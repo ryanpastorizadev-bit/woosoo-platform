@@ -14,9 +14,9 @@ scope: woosoo-nexus
 - task_slug: nex-case-017-refill-intent-payload-hardening
 - tier: 2
 - branch: agent/nex-case-017-refill-intent-payload-hardening
-- status: IN_PROGRESS
-- last_completed_agent: specialist:ranpo-backend
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -118,10 +118,26 @@ lookup path, and API contracts must enforce backend-owns-pricing.
 
 ## Code Simplification
 
+SKIPPED — the change IS the simplification: removing a dead-code shortcut block (6 lines eliminated) and one validation rule. No new abstractions introduced.
+
 ## Verification
+
+PASS (verifier, 2026-06-09, isolated re-run after false-negative from concurrent checkout race):
+- `items.*.price` — zero matches in RefillOrderRequest.php rules (line 59-69)
+- `isset($it['price'])` — zero matches in OrderApiController.php (shortcut block removed)
+- `test_refill_does_not_accept_client_price()` — present at DeviceOrderIntentContractTest.php line 233
+- `'price' =>` in OrderRefillTest.php postJson() payloads — zero matches in API payload arrays (remaining `'price' =>` matches are POS DB setup fixtures, not payloads)
+- `'price' =>` in OrderCreateAndRefillTest.php refill payload — zero matches in API call
+- All 458 tests passed (prior specialist run)
 
 ## Documentation Sync
 
+contracts/order-state.contract.md reviewed — does not assert the refill item shape with a price field. [[nex-case-015-tablet-intent-payload-hardening]] is cross-linked in Vault links above as the prior fix for the same pattern on the main order endpoint. No doc update required.
+
 ## Executioner Verdict
 
+APPROVED (executioner, 2026-06-09): All four verifications pass. `items.*.price` absent from rules, `isset($it['price'])` shortcut removed, contract test present, price sourced from `KryptonMenu::find()::$menu->price`.
+
 ## Remaining Risks
+
+Low. The KryptonMenu::find() path is already exercised by the existing test suite via real pos SQLite DB in setUp(). Authenticated devices only — contract breach required a valid Sanctum token.

@@ -14,9 +14,9 @@ scope: woosoo-nexus
 - task_slug: nex-case-018-kds-fullscreen-hardening
 - tier: 1
 - branch: agent/nex-case-018-kds-fullscreen-hardening
-- status: IN_PROGRESS
-- last_completed_agent: specialist:ranpo-backend
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -83,7 +83,25 @@ body.kds-active {
 - `resources/js/pages/KDS/Display.vue`
 
 ## Code Simplification
+
+SKIPPED — Tier 1, single file. Three padding value reductions and two lifecycle lines. No further simplification possible.
+
 ## Verification
+
+PASS (verifier, 2026-06-09):
+- `:has(` — zero matches in Display.vue (old selector removed)
+- `kds-active` — 3 matches: `document.body.classList.add('kds-active')` (onMounted line 105), `document.body.classList.remove('kds-active')` (onBeforeUnmount line 122), `body.kds-active` CSS rule (line 211)
+- Padding: `.kds-subbar` = `8px` (line 262), `.kds-grid-wrap` = `14px 8px 18px` (line 287), `:deep(.kds-command)` = `0 8px` (line 306)
+- Only remaining `20px` values (lines 338-339) are unrelated SVG icon dimensions
+
 ## Documentation Sync
+
+SKIPPED — Tier 1 internal UI tweak. No docs reference the `:has()` reset or 20px gutter values. KDS is pre-release (nex-case-016 established the base UI).
+
 ## Executioner Verdict
+
+APPROVED (executioner, 2026-06-09): All checks pass. `:has()` selector gone, `body.kds-active` lifecycle and CSS rule in place, all three gutter selectors at 8px.
+
 ## Remaining Risks
+
+None beyond normal browser compatibility. `body.kds-active` class approach is universally supported.

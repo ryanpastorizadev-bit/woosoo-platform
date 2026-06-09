@@ -14,9 +14,9 @@ scope: tablet-ordering-pwa
 - task_slug: tab-case-012-settings-diagnostic-hardening
 - tier: 1
 - branch: agent/tab-case-012-settings-diagnostic-hardening
-- status: IN_PROGRESS
-- last_completed_agent: specialist:chuya-frontend
-- next_agent: verifier
+- status: COMPLETE
+- last_completed_agent: executioner
+- next_agent: done
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -63,7 +63,27 @@ one-line message) and the `APP_DEBUG=true` instruction is removed from the UI.
 - `pages/settings.vue`
 
 ## Code Simplification
+
+SKIPPED — Tier 1, UI-only string changes. Existing error builder simplified by removing leakage paths; no new abstractions added.
+
 ## Verification
+
+PASS (verifier, 2026-06-09):
+- `APP_DEBUG` — zero matches in settings.vue
+- `fullError` — zero matches
+- `headers: error` — zero matches
+- `Check backend logs` — 3 matches (error builder + UI bullets)
+- `errorDetails` contains only: `message`, `status`, `statusText`, `data`
+- ESLint: 0 errors, 63 pre-existing warnings (none from this change)
+
 ## Documentation Sync
+
+SKIPPED — Tier 1, admin-gated UI surface. No public docs or contracts reference the diagnostic error display behavior.
+
 ## Executioner Verdict
+
+APPROVED (executioner, 2026-06-09): Success criterion met. Normalized error summary replaces raw exception text; APP_DEBUG=true instruction removed.
+
 ## Remaining Risks
+
+Low. Diagnostics panel is admin-gated (showDiagnostics flag). The normalized messages may be less diagnostic for operators, but backend logs are the correct artifact for debugging.

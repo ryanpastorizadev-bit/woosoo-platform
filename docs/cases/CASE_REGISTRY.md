@@ -29,9 +29,9 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
-| [[nex-case-017-refill-intent-payload-hardening]] | 🟡 IN_PROGRESS | 2026-06-09 | RefillOrderRequest.php accepts items.*.price and OrderApiController.php uses client-supplied price for refills — same contract breach as nex-case-015 but on the refill path. |
-| [[nex-case-018-kds-fullscreen-hardening]] | 🟡 IN_PROGRESS | 2026-06-09 | KDS Display.vue 20px gutters read as borders; :has() selector fragile on Pi tablet Android WebView — replace with body.kds-active class lifecycle. |
-| [[nex-case-019-debug-endpoint-hardening]] | 🟡 IN_PROGRESS | 2026-06-09 | Debug POS route returns raw stored-procedure exception message when APP_DEBUG=true — normalize to generic string and log to Laravel log. |
+| [[nex-case-017-refill-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-09 | RefillOrderRequest.php accepts items.*.price and OrderApiController.php uses client-supplied price for refills — same contract breach as nex-case-015 but on the refill path. |
+| [[nex-case-018-kds-fullscreen-hardening]] | ✅ COMPLETE | 2026-06-09 | KDS Display.vue 20px gutters read as borders; :has() selector fragile on Pi tablet Android WebView — replace with body.kds-active class lifecycle. |
+| [[nex-case-019-debug-endpoint-hardening]] | ✅ COMPLETE | 2026-06-09 | Debug POS route returns raw stored-procedure exception message when APP_DEBUG=true — normalize to generic string and log to Laravel log. |
 
 ## Tablet (`tab-case-*`)
 
@@ -48,7 +48,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[tab-case-009-broadcast-silent-death-detector]] | ✅ COMPLETE | 2026-05-31 | The tablet's Echo/Reverb WebSocket can enter a "connected-but-dead" (zombie) state: the client |
 | [[tab-case-010-canonical-order-id-and-detail-sync]] | ✅ COMPLETE | 2026-06-02 | Make the tablet use the canonical POS order_id consistently, and consume the new |
 | [[tab-case-011-active-order-recovery-filter]] | ✅ COMPLETE | 2026-06-07 | The tablet active-order recovery filter at stores/Order.ts (~line 807) queries only |
-| [[tab-case-012-settings-diagnostic-hardening]] | 🟡 IN_PROGRESS | 2026-06-09 | settings.vue renders raw testOrderError in a pre block and instructs operator to set APP_DEBUG=true — normalize to safe summary and remove debug instruction. |
+| [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | settings.vue renders raw testOrderError in a pre block and instructs operator to set APP_DEBUG=true — normalize to safe summary and remove debug instruction. |
 
 ## Print bridge (`prn-*`)
 
@@ -57,7 +57,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[prn-case-001-print-determinism]] | ✅ COMPLETE | 2026-05-18 | Print job determinism and reliability fixes for woosoo-print-bridge to address critical print reliability issues. |
 | [[prn-case-002-queue-retention-cleanup]] | ✅ COMPLETE | 2026-05-18 |  |
 | [[prn-case-003-pr11-review-comments]] | ✅ COMPLETE | 2026-05-19 | PR #11 review comments on the print bridge staging branch need source-verified remediation. |
-| [[prn-case-004-error-message-normalization]] | 🟡 IN_PROGRESS | 2026-06-09 | queue_screen.dart and reverb_service.dart show raw $e exception objects in operator UI — normalize to actionable operator messages. |
+| [[prn-case-004-error-message-normalization]] | ✅ COMPLETE | 2026-06-09 | queue_screen.dart and reverb_service.dart show raw $e exception objects in operator UI — normalize to actionable operator messages. |
 | [[prn-rebuild-apk-scp-pi]] | 🟡 IN_PROGRESS | 2026-05-21 | Rebuild the Flutter Android release APK for the print bridge from the current repository state and |
 | [[prn-review-staging-build]] | ✅ COMPLETE | 2026-05-20 | Review the woosoo print bridge repository state, pull staging if the remote branch has new |
 
