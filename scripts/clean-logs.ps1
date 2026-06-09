@@ -22,7 +22,7 @@ $kept  = $lines | Where-Object {
         [datetime]$entryDate = $Matches[1]
         return $entryDate -ge $cutoff
     }
-    # Keep continuation lines (stack traces, JSON blobs) — no leading timestamp
+    # Keep continuation lines (stack traces, JSON blobs) - no leading timestamp
     return $true
 }
 
@@ -30,4 +30,6 @@ $removed = $lines.Count - $kept.Count
 $kept | Set-Content $laravelLog -Encoding UTF8
 
 $sizeMB = [math]::Round((Get-Item $laravelLog).Length / 1MB, 2)
-Write-Host "✅ laravel.log trimmed — kept $($kept.Count) lines, removed $removed lines older than $($cutoff.ToString('yyyy-MM-dd')) (${sizeMB} MB remaining)"
+# Build the check-mark glyph at runtime so the script source stays ASCII (PS 5.1 safe; see LESSONS L-001/L-002).
+$ok = [char]::ConvertFromUtf32(0x2705)
+Write-Host "$ok laravel.log trimmed - kept $($kept.Count) lines, removed $removed lines older than $($cutoff.ToString('yyyy-MM-dd')) (${sizeMB} MB remaining)"

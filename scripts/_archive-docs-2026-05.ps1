@@ -147,7 +147,7 @@ $Manifest = @(
        superseded_by = "woosoo-print-bridge/docs/WOOSOO_PRINT_BRIDGE_PRODUCTION_RELIABILITY_AUDIT_2026-05-14.md" }
 )
 
-# Operational runbook moves (NOT archived — kept as canonical operational ref)
+# Operational runbook moves (NOT archived - kept as canonical operational ref)
 $RunbookManifest = @(
     @{ src = "woosoo-print-bridge/PHASE2_PRINTER_SSL_RUNBOOK.md";
        dst = "woosoo-print-bridge/docs/runbooks/PHASE2_PRINTER_SSL_RUNBOOK.md";

@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Removes the WSL → Windows LAN portproxy and firewall rules created by
+    Removes the WSL -> Windows LAN portproxy and firewall rules created by
     setup-wsl-lan-access.ps1. Docker stack is untouched; localhost access
     continues to work after teardown.
 
@@ -26,7 +26,7 @@ foreach ($Port in $Ports) {
         Write-Host "  removed 0.0.0.0:$Port" -ForegroundColor Green
         $removedAny = $true
     } else {
-        Write-Host "  0.0.0.0:$Port — no rule present" -ForegroundColor DarkGray
+        Write-Host "  0.0.0.0:$Port - no rule present" -ForegroundColor DarkGray
     }
 }
 
@@ -37,7 +37,7 @@ if ($rule) {
     Write-Host "  removed firewall rule '$FirewallName'" -ForegroundColor Green
     $removedAny = $true
 } else {
-    Write-Host "  firewall rule '$FirewallName' — not present" -ForegroundColor DarkGray
+    Write-Host "  firewall rule '$FirewallName' - not present" -ForegroundColor DarkGray
 }
 
 Write-Host "`nRemaining portproxy rules:" -ForegroundColor Cyan
@@ -45,14 +45,14 @@ netsh interface portproxy show v4tov4
 
 Write-Host @"
 
-══════════════════════════════════════════════
+==============================================
   WSL LAN access removed
-══════════════════════════════════════════════
+==============================================
 
   Docker stack is untouched. From WSL or Windows:
-    https://localhost  — still works
-    LAN PUBLIC_HOST  — no longer reachable from LAN
+    https://localhost  - still works
+    LAN PUBLIC_HOST  - no longer reachable from LAN
 
   To restore: woosoo network
-══════════════════════════════════════════════
+==============================================
 "@ -ForegroundColor Green

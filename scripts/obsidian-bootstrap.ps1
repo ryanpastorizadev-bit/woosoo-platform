@@ -1,5 +1,5 @@
 # Bootstrap Obsidian vault config + community plugins for woosoo-platform.
-# Idempotent — safe to re-run. Does not auto-push; Obsidian Git pull-on-boot only.
+# Idempotent - safe to re-run. Does not auto-push; Obsidian Git pull-on-boot only.
 #
 # Usage (from platform root):
 #   .\scripts\obsidian-bootstrap.ps1
@@ -52,7 +52,7 @@ function Repair-Junction {
     Write-Ok "junction $LinkPath -> $TargetPath"
 }
 
-# Obsidian lstat's the whole vault at startup — broken Docker/Linux junctions crash before
+# Obsidian lstat's the whole vault at startup - broken Docker/Linux junctions crash before
 # userIgnoreFilters apply. Repair known sibling-repo links on Windows.
 Write-Step "Repairing sibling-repo junctions (Obsidian startup requirement)"
 Repair-Junction `
