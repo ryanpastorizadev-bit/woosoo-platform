@@ -111,7 +111,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[deployment-codebase-review]] | ✅ COMPLETE | 2026-06-04 | Review the Woosoo platform codebase for deployment issues, missing configuration, and gaps that could hinder smooth D… |
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
-| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-08 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
+| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-09 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
 | [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |
