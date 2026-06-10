@@ -10,7 +10,7 @@ next_agent: done
 branch: dev
 interrupted: false
 updated: 2026-06-09
-tags: [app/infra, status/in-progress, tier/2]
+tags: [app/infra, status/complete, tier/2]
 ---
 
 # CASE: infra-case-010-wsl-lan-bridge-runbook

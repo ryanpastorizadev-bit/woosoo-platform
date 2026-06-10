@@ -1,12 +1,12 @@
 ---
 status: canonical
-last_reviewed: 2026-06-09
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
 # Case Registry (summarized wikilink index)
 
-**95 cases** · 70 complete · 23 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**100 cases** · 79 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -29,9 +29,13 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
-| [[nex-case-017-refill-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-09 | RefillOrderRequest.php accepts items.*.price and OrderApiController.php uses client-supplied price for refills — same contract breach as nex-case-015 but on the refill path. |
-| [[nex-case-018-kds-fullscreen-hardening]] | ✅ COMPLETE | 2026-06-09 | KDS Display.vue 20px gutters read as borders; :has() selector fragile on Pi tablet Android WebView — replace with body.kds-active class lifecycle. |
-| [[nex-case-019-debug-endpoint-hardening]] | ✅ COMPLETE | 2026-06-09 | Debug POS route returns raw stored-procedure exception message when APP_DEBUG=true — normalize to generic string and log to Laravel log. |
+| [[nex-case-017-refill-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-09 | RefillOrderRequest.php:64 allows items.*.price as a nullable/numeric field. |
+| [[nex-case-018-kds-fullscreen-hardening]] | ✅ COMPLETE | 2026-06-09 | Display.vue IS coded for fullscreen (100dvw × 100dvh, no AppLayout wrapper, no letterbox). |
+| [[nex-case-019-debug-endpoint-hardening]] | ✅ COMPLETE | 2026-06-09 | routes/api.php:378 returns 'Stored procedure call failed: '.$e->getMessage() when the POS |
+| [[nex-case-020-admin-ui-audit-fixes]] | ✅ COMPLETE | 2026-06-10 | A 24-item UI/UX + functionality audit across the woosoo-nexus admin panel (POS, Devices, Tablet Categories, Package C… |
+| [[nex-case-021-pos-connection-hardening]] | ✅ COMPLETE | 2026-06-09 | GET /pos returned a raw 500 QueryException when the pos connection used krypton_readonly with an empty password (usin… |
+| [[nex-case-022-nexus-full-review]] | 🟡 IN_PROGRESS | 2026-06-10 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
+| [[nex-case-024-kds-workflow]] | ✅ COMPLETE | 2026-06-10 | Kitchen Display used a 4-step workflow (New → Preparing → Ready → Served) with local-only state mutation (no backend… |
 
 ## Tablet (`tab-case-*`)
 
@@ -48,7 +52,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[tab-case-009-broadcast-silent-death-detector]] | ✅ COMPLETE | 2026-05-31 | The tablet's Echo/Reverb WebSocket can enter a "connected-but-dead" (zombie) state: the client |
 | [[tab-case-010-canonical-order-id-and-detail-sync]] | ✅ COMPLETE | 2026-06-02 | Make the tablet use the canonical POS order_id consistently, and consume the new |
 | [[tab-case-011-active-order-recovery-filter]] | ✅ COMPLETE | 2026-06-07 | The tablet active-order recovery filter at stores/Order.ts (~line 807) queries only |
-| [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | settings.vue renders raw testOrderError in a pre block and instructs operator to set APP_DEBUG=true — normalize to safe summary and remove debug instruction. |
+| [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | pages/settings.vue:1176 renders raw testOrderError text in a <pre> block inside the |
 
 ## Print bridge (`prn-*`)
 
@@ -57,7 +61,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[prn-case-001-print-determinism]] | ✅ COMPLETE | 2026-05-18 | Print job determinism and reliability fixes for woosoo-print-bridge to address critical print reliability issues. |
 | [[prn-case-002-queue-retention-cleanup]] | ✅ COMPLETE | 2026-05-18 |  |
 | [[prn-case-003-pr11-review-comments]] | ✅ COMPLETE | 2026-05-19 | PR #11 review comments on the print bridge staging branch need source-verified remediation. |
-| [[prn-case-004-error-message-normalization]] | ✅ COMPLETE | 2026-06-09 | queue_screen.dart and reverb_service.dart show raw $e exception objects in operator UI — normalize to actionable operator messages. |
+| [[prn-case-004-error-message-normalization]] | ✅ COMPLETE | 2026-06-09 | lib/ui/screens/queue_screen.dart:146,395 display raw $e exception objects in operator UI. |
 | [[prn-rebuild-apk-scp-pi]] | 🟡 IN_PROGRESS | 2026-05-21 | Rebuild the Flutter Android release APK for the print bridge from the current repository state and |
 | [[prn-review-staging-build]] | ✅ COMPLETE | 2026-05-20 | Review the woosoo print bridge repository state, pull staging if the remote branch has new |
 
@@ -102,6 +106,7 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[infra-case-007-wsl-pos-db-host]] | ✅ COMPLETE | 2026-06-07 | WSL dev admin POS pages fail with Connection refused on pos DB connection because |
 | [[infra-case-008-deployment-env-audit]] | ✅ COMPLETE | 2026-06-07 | Read-only deployment audit remediation: unify operator config paths, document three POS/Reverb |
 | [[infra-case-009-deploy-script-hardening]] | 🟡 IN_PROGRESS | 2026-06-07 | Post-audit hardening for Pi deployment scripts: config guard parity, deploy readiness |
+| [[infra-case-010-wsl-lan-bridge-runbook]] | ✅ COMPLETE | 2026-06-09 | WSL2 Docker dev stack healthy inside VM but https://192.168.100.7 unreachable from Windows/LAN |
 
 ## Infra other (`infra-*`)
 
