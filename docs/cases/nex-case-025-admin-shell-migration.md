@@ -6,7 +6,7 @@ scope: woosoo-nexus
 app: nexus
 run_status: IN_PROGRESS
 tier: 2
-next_agent: ranpo-backend
+next_agent: verifier
 branch: agent/nex-case-025-admin-shell-migration
 interrupted: false
 updated: 2026-06-10
@@ -26,12 +26,40 @@ tags: [app/nexus, status/in-progress, tier/2]
 - branch: agent/nex-case-025-admin-shell-migration
 - verified_commit: ~
 - status: IN_PROGRESS
-- last_completed_agent: ~
-- next_agent: ranpo-backend
+- last_completed_agent: specialist:chuya-frontend
+- next_agent: verifier
 - active_runner: cursor
 - interrupted: false
 - interrupt_reason: none
 - updated: 2026-06-10
+
+## Specialist Investigation & Implementation
+
+Implemented on branch `agent/nex-case-025-admin-shell-migration` (commit `b119d12` + session fix).
+
+**What was built:**
+- Custom admin shell replacing shadcn STEP 1: `AdminShell`, `AdminSidebar` (224px / `w-56`, always dark), `AdminSidebarContent`, `AdminTopbar` (52px, full right cluster)
+- Mobile drawer via shadcn `Sheet`; desktop fixed sidebar
+- `admin-shell.ts`: spec nav sections (Main / Analytics / Configuration footer), `matchesRoute`, `ROUTE_CRUMBS`
+- `NexusNavIcon.vue`: literal SVG paths for 13 nav icons
+- `nexus-shell.css` design tokens; JetBrains Mono in `app.blade.php`
+- `useNexusTheme.ts`: `nexus-theme` localStorage + `data-theme` + `.dark` sync
+- `AdminShellBadgeService` + `navBadges` Inertia share (orders: pending/confirmed/in_progress; devices: offline >5min)
+- `AppSidebarLayout` rewired to `AdminShell`; `AppContentLayout` glass card removed
+- `layouts/AppLayout.vue` unchanged (flash + Toaster preserved)
+- Configuration hub: 5 new cards (Accessibility, Event Logs, KDS, Media, Legacy Packages)
+- Deleted `AppSidebar.vue`, `AppSidebarHeader.vue`, `NavMain.vue`
+
+**Session fix:** `app.ts` now calls `initializeNexusTheme()` instead of `initializeTheme()` so client boot stays aligned with blade first-paint script and topbar toggle.
+
+**Verification (this session):**
+- `php artisan test` — 490 passed
+- `AdminShellBadgeServiceTest` — 6 passed
+- `npm run typecheck && npm run lint && npm run build` — clean
+
+## Code Simplification
+
+SKIPPED — code-simplifier subagent unavailable (billing). No manual simplifications applied beyond `app.ts` theme bootstrap fix.
 
 ## Tier
 2 — Admin shell replacement. Touches frontend shell layout (Vue), CSS design tokens, Inertia shared props, and a new PHP badge service. No order-state or contract changes.
