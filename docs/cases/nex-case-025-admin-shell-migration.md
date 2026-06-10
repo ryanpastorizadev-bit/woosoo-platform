@@ -52,10 +52,19 @@ Implemented on branch `agent/nex-case-025-admin-shell-migration` (commit `b119d1
 
 **Session fix:** `app.ts` now calls `initializeNexusTheme()` instead of `initializeTheme()` so client boot stays aligned with blade first-paint script and topbar toggle.
 
+**Operator page wave (2026-06-10):** Visual-only alignment of the four operator-critical pages onto the flat `AppContentLayout` + brand tokens. No routing, API, Echo, or drag-reorder logic touched.
+- **Orders** (`pages/Orders/Index.vue`): added Devices-parity hero card (with `woosoo-accent` gradient overlay), wrapper `space-y-4`→`space-y-5`, `print-highlight` keyframe `rgb(34,197,94)`→`var(--color-woosoo-green)` (via `color-mix` for the tint). Echo status pill unchanged (already branded).
+- **Devices** (`pages/Devices/Index.vue`): all raw `#f6b56d` → `woosoo-accent` tokens (template utilities + `batteryColor`/`batteryBg` JS return strings).
+- **Packages** (`pages/package-configs/IndexPackageConfigs.vue`): hero gradient + bullet dots → `woosoo-accent`; price `font-bold`→`font-semibold`.
+- **Tablet Categories** (`pages/tablet-categories/IndexTabletCategories.vue`): selection state `bg-[#2a1e0c] text-[#F6B56D]` → `bg-woosoo-accent/12 text-woosoo-accent border border-woosoo-accent/30`; drag-over + attach chips → `woosoo-accent`.
+- **Handoff docs:** imported `handoff/START_HERE.md` + `handoff/specs/` (5 HTML + `series.css`) from the zip bundle; added "Steps 1–2 superseded" callout to `README.md` and `START_HERE.md`. Repo `IMPLEMENTATION_HANDOVER.md` kept (newer than zip — has live-tree execution note + corrected `woosoo-accent` mappings).
+- Since `--color-woosoo-accent: #f6b56d`, every token swap is pixel-identical.
+
 **Verification (this session):**
 - `php artisan test` — 490 passed
 - `AdminShellBadgeServiceTest` — 6 passed
-- `npm run typecheck && npm run lint && npm run build` — clean
+- `npm run typecheck && npm run lint && npm run build` — clean (re-run after page wave: typecheck clean, build 5.0s, lint clean)
+- Static guard: `rg "#f6b56d|#2a1e0c|emerald|yellow-|rose-|blue-600"` across the four pages → no matches
 
 ## Code Simplification
 
