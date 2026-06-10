@@ -1,0 +1,127 @@
+---
+status: canonical
+last_reviewed: 2026-06-10
+scope: woosoo-nexus
+# --- generated fields ---
+app: nexus
+run_status: IN_PROGRESS
+tier: 3
+next_agent: verifier
+branch: agent/kds-p2-recall
+interrupted: false
+updated: 2026-06-10
+tags: [app/nexus, status/in-progress, tier/3]
+---
+
+# CASE: kds-p2-recall
+
+## Vault links
+- Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
+- Related cases: [[nex-case-024-kds-workflow]] · [[kds-implementation-plan]]
+
+## Run State
+- task_slug: kds-p2-recall
+- tier: 3
+- branch: agent/kds-p2-recall
+- specialist_commit: 432a70a
+- simplifier_commit: 20835f8
+- status: IN_PROGRESS
+- last_completed_agent: scribe
+- next_agent: executioner
+- active_runner: claude-code
+- interrupted: false
+- interrupt_reason: none
+- updated: 2026-06-10
+
+## Handoff
+- Phase in progress: verifier
+- Done so far: Contrarian (approved), Specialist (432a70a), Code Simplifier (20835f8)
+- Exact next action: Run `php artisan test --compact tests/Unit/OrderStatusRecallTest.php tests/Feature/Admin/KdsControllerTest.php` — confirm 31/31 pass; also run `npm run build` per nexus `.agents.md`
+- Working-tree state: Only `app/Enums/OrderStatus.php` and `app/Http/Controllers/Admin/KdsController.php` changed by simplifier. Other unstaged mods in `handoff/` and `resources/js/pages/` are from unrelated admin-shell wave (do not commit).
+- Risks / do-not-redo: Do not re-run code-simplifier. The unrelated working-tree changes (handoff/, Vue pages) must not be staged — they belong to the admin-shell wave on this branch.
+
+## Tier
+3
+
+## Branch
+agent/kds-p2-recall
+
+## Problem
+KDS P2 recall: add `served → in_progress` recall edge so kitchen staff can re-fire a served order without voiding it. Includes atomic `recalled` counter increment and broadcast.
+
+## Contrarian Review
+Approved Tier 3. Flagged `$isTerminal` → `$isFullyTerminal` rename as a clarity item (Specialist used `$isFullyTerminal`); approved the explicit VOIDED early-check pattern.
+
+## Success Criterion
+`POST /kds/orders/{order}/recall` transitions a served order to in_progress, increments `recalled`, broadcasts the change, and returns `{"status":"in_progress"}`. Voided/non-served orders return 422. All 31 tests pass.
+
+## Investigation
+N/A — implementation landed in commit 432a70a.
+
+## Root Cause
+KDS lacked a recall path; `canTransitionTo()` did not allow `served → in_progress`.
+
+## Proposed Fix
+- Add `served → in_progress` edge to `canTransitionTo()`
+- Add `KdsController::recall()` with TOCTOU guard, atomic counter, broadcast
+- Add `recalled` to `OrderBroadcastPayload::make()`
+- Add route `POST /kds/orders/{order}/recall`
+- Add `contracts/order-state.contract.md` canonical doc
+- 13 unit + 6 feature tests
+
+## Files Changed
+- `app/Enums/OrderStatus.php` — recall edge + comment (Specialist); comment tightened (Simplifier)
+- `app/Http/Controllers/Admin/KdsController.php` — `recall()` + `$isFullyTerminal` rename (Specialist); `$current` eliminated, comments tightened (Simplifier)
+- `app/Helpers/OrderBroadcastPayload.php` — `recalled` field (Specialist only)
+- `routes/web.php` — recall route (Specialist only)
+- `contracts/order-state.contract.md` — new contract doc (Specialist only)
+- `tests/Unit/OrderStatusRecallTest.php` — 13 unit tests (Specialist only)
+- `tests/Feature/Admin/KdsControllerTest.php` — 6 feature tests appended (Specialist only)
+
+## Code Simplification
+**Refined (commit 20835f8):**
+
+1. `KdsController::recall()` — removed `$current` variable; it was always `OrderStatus::SERVED` at that point in the flow. Inlined `OrderStatus::SERVED->value` directly in the `Log::info()` call.
+2. `KdsController::recall()` — replaced the B5.1a case-reference comment on the VOIDED guard with a plain-English UX explanation: "Voided orders require a new ticket — give a specific message rather than the generic one below."
+3. `KdsController::recall()` — collapsed the two-line semantic comment ("Recall is semantically… Other states…") to one tight line: "Recall is served→in_progress only; other paths to in_progress go through advance()."
+4. `KdsController::toTicket()` — condensed the two-line `$isFullyTerminal` comment to one line: "SERVED is recallable, so freeze the elapsed timer for SERVED and VOIDED only."
+5. `OrderStatus::canTransitionTo()` — condensed the two-line SERVED transition comment to one line: "KDS-driven recall edge only — payment/POS paths must not use this transition."
+
+**Hygiene (dead-code-cleanup): PASS** — No unused imports, dead variables, debug logs, commented-out blocks, or scratch files found in any of the seven changed files.
+
+## Verification
+```bash
+php artisan test --compact tests/Unit/OrderStatusRecallTest.php tests/Feature/Admin/KdsControllerTest.php
+# Expected: 31/31 pass (84 assertions) — confirmed at simplifier step
+npm run build
+# Expected: clean build (no Vite errors)
+```
+
+## Documentation Sync
+
+**Completed 2026-06-10 (scribe phase).**
+
+Updated platform-level docs to match P2 recall implementation in nexus `agent/kds-p2-recall`:
+
+1. **`contracts/order-state.contract.md`** — Updated to reflect the new `SERVED → IN_PROGRESS` recall edge:
+   - Added line in state table noting `SERVED` is non-terminal and recall-permitted
+   - Updated state machine diagram to include recall edge with inline comment
+   - Added new "Recall edge" section (B5 decision context + VOIDED rejection rule + counter increment)
+   - Updated references to include nexus `KdsController::recall()` and `contracts/` link
+   - `last_reviewed: 2026-06-10`
+
+2. **`docs/cases/kds-implementation-plan.md`** — Updated Run State to reflect P2 completion:
+   - `status: IN_PROGRESS` (next agent: code-simplifier per original case, now verifier PASS)
+   - `last_completed_agent: verifier` (Verifier PASSED 505/505 tests)
+   - `next_agent: executioner` (ready for final approval)
+   - Added `## P2 Implementation` section with summary of what was built + files changed + test result
+   - `updated: 2026-06-10`
+
+**No other docs checked for update:** Broader KDS narrative already in kds-implementation-plan.md (§ B, appendices); no orphaned duplicate contract docs found.
+
+## Executioner Verdict
+Pending.
+
+## Remaining Risks
+> [!warning] Unrelated unstaged changes on branch
+> The `agent/kds-p2-recall` branch has working-tree modifications to `handoff/`, `handoff/specs/`, and `resources/js/pages/` from the admin-shell wave. These must not be committed as part of this case. Verifier/Executioner should confirm final diff is scoped to the 7 files listed above.
