@@ -82,10 +82,12 @@ Write-Ok "docs/operator/daily/"
 # --- Plugin-specific settings ---
 $TemplaterDir = Join-Path $PluginsDir "templater-obsidian"
 $GitDir       = Join-Path $PluginsDir "obsidian-git"
-New-Item -ItemType Directory -Force -Path $TemplaterDir, $GitDir | Out-Null
+$DataviewDir  = Join-Path $PluginsDir "dataview"
+New-Item -ItemType Directory -Force -Path $TemplaterDir, $GitDir, $DataviewDir | Out-Null
 Copy-Item -Force (Join-Path $ConfigDir "templater-data.json") (Join-Path $TemplaterDir "data.json")
 Copy-Item -Force (Join-Path $ConfigDir "obsidian-git-data.json") (Join-Path $GitDir "data.json")
-Write-Ok "Templater + Obsidian Git settings"
+Copy-Item -Force (Join-Path $ConfigDir "dataview-data.json") (Join-Path $DataviewDir "data.json")
+Write-Ok "Templater + Obsidian Git + Dataview settings"
 
 function Install-ObsidianPlugin {
     param([string]$Id, [string]$Repo)
@@ -123,9 +125,11 @@ Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Open Obsidian -> Open folder as vault -> $VaultPath"
 Write-Host "  2. If prompted about community plugins, choose Enable / Trust"
 Write-Host "  3. Open and pin docs/cases/OPERATOR_HOME.md"
-Write-Host "  4. Settings -> Community plugins -> confirm all six are ON"
-Write-Host "  5. CASE_INDEX.md should render a Dataview table (not a code block)"
-Write-Host "  6. Open OPS_KANBAN.md in Kanban view; Calendar -> today for operator log"
-Write-Host "  7. Graph view (Ctrl+G) - color groups for cases/contracts/state"
-Write-Host "  8. Open docs/VAULT_INDEX.md and docs/cases/CASE_REGISTRY.md (graph hubs)"
+Write-Host "  4. Settings -> Community plugins -> master switch ON; confirm all six are ON"
+Write-Host "  5. Settings -> About -> Restricted mode OFF (blocks community plugins)"
+Write-Host "  6. CASE_INDEX.md + CASE_DASHBOARD.md should render Dataview tables (not code blocks)"
+Write-Host "  7. Fallback: open CASES.base in Bases view (core plugin; no Dataview required)"
+Write-Host "  8. Open OPS_KANBAN.md in Kanban view; Calendar -> today for operator log"
+Write-Host "  9. Graph view (Ctrl+G) - color groups for cases/contracts/state"
+Write-Host " 10. Open docs/VAULT_INDEX.md and docs/cases/CASE_REGISTRY.md (graph hubs)"
 Write-Host ""

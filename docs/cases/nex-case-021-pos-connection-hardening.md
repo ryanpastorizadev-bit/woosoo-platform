@@ -17,7 +17,7 @@ tags: [app/nexus, status/complete, tier/3]
 
 ## Vault links
 - Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
-- Related: [[infra-case-007-wsl-pos-db-host]] · [[nex-case-019]]
+- Related: [[infra-case-007-wsl-pos-db-host]] · [[nex-case-019-debug-endpoint-hardening]]
 
 ## Run State
 - task_slug: nex-case-021-pos-connection-hardening

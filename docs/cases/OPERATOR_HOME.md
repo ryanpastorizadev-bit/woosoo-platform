@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-08
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
@@ -13,7 +13,7 @@ Setup: [obsidian-setup-guide.md](../obsidian-setup-guide.md) · Vault: [[VAULT_I
 
 > [!info] Two case views, different scopes
 > [[OPS_KANBAN]] is the **curated** Bucket-B Pi-ops board (operator-owned, hand-ordered).
-> [[CASE_DASHBOARD]] / [[CASES.base\|CASES.base]] are **automatic** all-case views (Dataview/Bases over projected frontmatter). They coexist - they do not replace each other.
+> [[CASE_DASHBOARD]] / [[CASES.base\|CASES.base]] are **automatic** all-case views (Dataview/Bases over projected frontmatter). They coexist — neither replaces the other.
 
 ---
 
@@ -82,6 +82,8 @@ Full queue: `state/QUEUE.md` · Visual board: [[OPS_KANBAN]]
 | Link cases | `[[nex-case-014-session-domain-login-419]]` — backlinks appear automatically |
 | Pi verify only | Run `pi-stability-verify.sh`; log in daily note or case `## Handoff` |
 | Unblock KDS | Clear KDS § Blockers; set `status: IN_PROGRESS` in KDS Run State |
+| Dataview empty | [obsidian-setup-guide.md](../obsidian-setup-guide.md#activate-community-plugins) — enable plugins, restart; fallback [[CASES.base\|CASES.base]] |
+| Refresh dashboards | `.\scripts\obsidian-case-registry.ps1` from platform root (after Run State edits) |
 
 ---
 
@@ -98,5 +100,3 @@ Full queue: `state/QUEUE.md` · Visual board: [[OPS_KANBAN]]
 | **CASE_INDEX** | Dataview table of canonical cases |
 | **Calendar** | Daily operator logs in `docs/operator/daily/` |
 | **Graph** (`Ctrl+G`) | Color groups: cases (blue), contracts (orange), state (green) |
-
-Run state (`IN_PROGRESS`, `next_agent`) lives in each case's `## Run State` body — not YAML frontmatter.

@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-08
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
@@ -100,6 +100,22 @@ This installs six community plugins from GitHub releases, enables them in
 Then open Obsidian → **Open folder as vault** → `woosoo-platform/`. If prompted about community
 plugins, choose **Enable / Trust**.
 
+### Activate community plugins
+
+Bootstrap installs plugin files and lists them in `community-plugins.json`, but **Obsidian still
+requires you to enable them in the app**:
+
+1. **Settings** (gear) → **Community plugins** → turn the **master switch ON**
+2. When prompted, **Trust author and enable plugins** for this vault
+3. **Settings → About** → confirm **Restricted mode** is **OFF** (it disables all community plugins)
+4. Under Community plugins, confirm each plugin is ON — especially **Dataview** and **Kanban**
+5. **Restart Obsidian** (full quit and reopen)
+6. Open `docs/cases/CASE_INDEX.md` in **Preview** (`Ctrl+E`) — you should see a **table**, not a
+   raw ` ```dataview ` code block
+7. `Ctrl+P` → **Dataview: Force refresh** if tables are empty after a registry run
+
+**Fallback without Dataview:** open `docs/cases/CASES.base` in **Bases** view (core plugin).
+
 ---
 
 ## Essential Plugins (Community)
@@ -117,23 +133,14 @@ Installed by `obsidian-bootstrap.ps1`. Manual install: Settings → Community Pl
 
 ---
 
-## Dataview Example
-
-Open `docs/cases/CASE_INDEX.md` for a live Dataview index of canonical cases. Case file
-frontmatter uses `status`, `last_reviewed`, and `scope`.
-
-> Note: task-level run state (IN_PROGRESS, BLOCKED, COMPLETE) lives in the `## Run State`
-> body section of each case file, not in YAML frontmatter. Dataview cannot query it directly.
-> Use `state/WORK.md` and `state/QUEUE.md` for live orchestration status.
-
----
-
 ## Query, signaling & visual layers
 
-The vault projects each case's `## Run State` body into **derived frontmatter** so the query
-and visual layers can read it. `scripts/obsidian-case-registry.ps1` writes `run_status`, `app`,
-`tier`, `next_agent`, `branch`, `interrupted`, `updated`, and `tags` behind a generated fence
-comment — **the body stays the source of truth**, so re-run the script after changing run state.
+Open `docs/cases/CASE_DASHBOARD.md` (run-state tables) and `docs/cases/CASE_INDEX.md` (recently
+reviewed cases). Each case's `## Run State` body is the source of truth;
+`scripts/obsidian-case-registry.ps1` projects `run_status`, `app`, `tier`, `next_agent`, `branch`,
+`interrupted`, `updated`, and `tags` into frontmatter (generated fence comment) — re-run after
+run-state edits. Live orchestration queue: `state/WORK.md` and `state/QUEUE.md` (embedded in
+[[OPERATOR_HOME]]).
 
 ### Querying — Dataview vs Bases
 
@@ -200,9 +207,11 @@ page, wire up Dataview and Git. Everything else layers on top.
 | Note | Plugin / view | Role |
 |------|---------------|------|
 | `docs/cases/OPERATOR_HOME.md` | Pin as default | Daily dashboard — embeds `state/WORK`, queue, stability |
+| `docs/cases/CASE_DASHBOARD.md` | Dataview | Run-state tables — blocked, Bucket B, counts |
+| `docs/cases/CASES.base` | Bases (core) | Table/board by status — works without Dataview |
 | `docs/cases/OPS_KANBAN.md` | Kanban view | Drag-track Bucket B Pi ops |
 | `docs/cases/CONTRACTS_HUB.md` | Normal / Graph | Wiki-links to `contracts/*.md` |
-| `docs/cases/CASE_INDEX.md` | Dataview | Live case table |
+| `docs/cases/CASE_INDEX.md` | Dataview | Recently reviewed canonical cases |
 | `docs/operator/daily/YYYY-MM-DD.md` | Calendar | Operator logs (Templater `OPERATOR_LOG`) |
 
 Bootstrap copies `daily-notes.json` (Calendar folder + template) and `graph.json` (color groups).
@@ -238,3 +247,9 @@ Many notes show as "orphans" in Graph view until linked. **Expected orphans** (b
 ```
 
 When triaging or completing work: add `[[related-case]]` in case bodies; run registry script for new slugs.
+
+**Full hygiene runbook** (canonical-age, placeholder dates, malformed status, all checks in one command):
+```powershell
+.\scripts\vault-hygiene.ps1
+```
+See [[obsidian-vault-hygiene]] for the complete operator runbook — tiers, commands, and interpreting findings.

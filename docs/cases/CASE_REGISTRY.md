@@ -6,9 +6,9 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**100 cases** · 79 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**102 cases** · 80 complete · 20 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
-Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
+Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
 ## Nexus (`nex-case-*`)
 
@@ -90,8 +90,10 @@ Hub: [[OPERATOR_HOME]] · Dataview: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB
 | [[plt-case-governance-hardening-2026-06-08]] | ✅ COMPLETE | 2026-06-09 | Consolidated platform-governance hardening combining three intertwined workstreams that were |
 | [[plt-case-hygiene-gates]] | ✅ COMPLETE | 2026-06-08 | Formalise code-simplifier as a checkpointed chain phase; dead-code-cleanup runs as its internal final sub-step. |
 | [[plt-case-non-complete-audit-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Accuracy audit of every **non-COMPLETE** case file in docs/cases/. For each case the audit |
+| [[plt-case-obsidian-dataview-hardening]] | 🟡 IN_PROGRESS | 2026-06-10 | Follow-up to [[plt-case-obsidian-operator-wiring]] — operator reported empty Dataview tables and |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
+| [[plt-case-vault-doc-automation]] | ✅ COMPLETE | 2026-06-10 | Widespread vault doc staleness with no single operator-runnable hygiene entry-point. |
 
 ## Infra numbered (`infra-case-*`)
 

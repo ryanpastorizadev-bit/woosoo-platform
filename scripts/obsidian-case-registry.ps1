@@ -271,7 +271,7 @@ $complete = ($all | Where-Object { (Get-CaseStatusToken $_.Status) -eq 'COMPLETE
 $active = ($all | Where-Object { (Get-CaseStatusToken $_.Status) -in @('IN_PROGRESS', 'BLOCKED') } | Measure-Object).Count
 
 $intro = "**$total cases** $Sep $complete complete $Sep $active active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1."
-$hub = "Hub: [[OPERATOR_HOME]] $Sep Dataview: [[CASE_INDEX]] $Sep Contracts: [[CONTRACTS_HUB]] $Sep Vault: [[VAULT_INDEX]]"
+$hub = "Hub: [[OPERATOR_HOME]] $Sep Dashboard: [[CASE_DASHBOARD]] $Sep Bases: [[CASES.base|CASES.base]] $Sep Index: [[CASE_INDEX]] $Sep Contracts: [[CONTRACTS_HUB]] $Sep Vault: [[VAULT_INDEX]]"
 
 $out = @(
     '---', 'status: canonical', "last_reviewed: $(Get-Date -Format 'yyyy-MM-dd')", 'scope: ecosystem', '---', '',

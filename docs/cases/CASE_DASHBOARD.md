@@ -1,20 +1,45 @@
 ---
 status: canonical
-last_reviewed: 2026-06-08
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
 # Case Dashboard (live run-state)
 
-Live work-state across all cases. Requires the **Dataview** community plugin. Queries read the
-derived frontmatter (`run_status`, `app`, `tier`, `updated`, `tags`) that
-`scripts/obsidian-case-registry.ps1` projects from each case's `## Run State` body — the body
-stays the source of truth, so **re-run the registry script after changing run state** to refresh
-these views. Static index: [[CASE_INDEX]] · Full list: [[CASE_REGISTRY]] · Home: [[OPERATOR_HOME]] · Bases: [[CASES.base\|CASES.base]] · Curated Pi-ops: [[OPS_KANBAN]]
+Live work-state across 85+ cases. Requires **Dataview** ([activate plugins](../obsidian-setup-guide.md#activate-community-plugins)).
+Queries use frontmatter (`run_status`, `app`, `tier`, `updated`, `tags`) projected by
+`scripts/obsidian-case-registry.ps1` from each file's `## Run State` body — **re-run the registry
+script after run-state edits**. Hub links: [[CASE_INDEX]] · [[CASE_REGISTRY]] · [[OPERATOR_HOME]] ·
+[[CASES.base\|CASES.base]] · [[OPS_KANBAN]]
 
-> [!info] Why this exists
-> 85+ case files carry rich run-state, but it lived in body sections Dataview can't read. The
-> registry script now mirrors it into frontmatter, so the queries below actually resolve.
+> [!warning] Empty tables?
+> If you see raw ` ```dataview ` blocks or zero rows, Dataview is not active. Fix:
+> Settings → Community plugins → **ON** → enable **Dataview** → Restricted mode **OFF** → restart
+> Obsidian → `Ctrl+P` → **Dataview: Force refresh**. Until then use [[CASE_REGISTRY]] or
+> [[CASES.base\|CASES.base]] (Bases core plugin).
+
+> [!tip] Daily progress vs all-case audit
+> **Live deploy work** = [[OPERATOR_HOME]] + `state/QUEUE.md` (Bucket B). This dashboard shows
+> every non-COMPLETE case file — many are stale/deferred, not active tasks.
+
+## Bucket B deploy readiness (Pi ops)
+
+Cases tied to `state/QUEUE.md` Bucket B. For the live queue table see [[OPERATOR_HOME#Deploy queue (Bucket B)]].
+
+```dataview
+TABLE WITHOUT ID file.link AS Case, run_status AS Status, app AS App, next_agent AS "Next agent", updated AS Updated
+FROM "docs/cases"
+WHERE file.name IN (
+  "nex-case-011-duplicate-order-printing",
+  "nex-case-014-session-domain-login-419",
+  "nex-case-007-pos-payment-outbox-session-reset",
+  "infra-case-004-script-flow-unification",
+  "infra-case-002-deploy-stability-wrappers",
+  "infra-case-001-pi-platform-migration",
+  "prn-rebuild-apk-scp-pi"
+)
+SORT updated DESC
+```
 
 ## Blocked / interrupted (look here first)
 
