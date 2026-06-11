@@ -1,6 +1,6 @@
 # Woosoo Platform — Session State
 
-**Updated:** 2026-06-08
+**Updated:** 2026-06-10
 
 > This file is a personal working scratchpad. It is **not** authoritative durable state —
 > that lives in `docs/cases/<slug>.md`. See `docs/USAGE_GUIDE.md` for how to drive the system.
@@ -63,10 +63,26 @@ git -C woosoo-nexus pull origin dev
 
 | Case | Status | Next action |
 |---|---|---|
+| `nex-case-025` (admin shell) | ✅ **MERGED to `dev` (`10f65c4`)** — verified on merged tree: 511 PHP tests ✓ (1834 assertions), typecheck/build/lint clean | Operator pull+test @ 192.168.100.7 — **verify non-admin sidebar = Dashboard only** (#2 fix); close case after Executioner |
+| `kds-p2-recall` | ✅ **DONE — merged to `dev` (`8cee9c9`)**; chain APPROVED (Verifier 505/505, 1821 assertions) | Non-blocking follow-up: wire KDS recall button → `POST /admin/kds/orders/{order}/recall` (tracked in `kds-implementation-plan.md`) |
 | `nex-case-007` | ✅ APPROVED — on remote `dev` | Run `php artisan pos:setup-payment-trigger` on Pi after deploy |
 | `nex-case-011` | code-merged (PR #163, 2026-06-04); Pi POS config pending (Bucket B) | Confirm `NEXUS_PRINT_EVENTS_ENABLED=true`; disable Krypton 3rd-party printer; verify BT-only print |
 | `nex-case-005` | ✅ CLOSED — OBE (idempotency guard added inline via nex-case-011 PR #163) | — |
 | `nex-case-014` | ✅ COMPLETE 2026-06-05 — APPROVED | Operator: clear SESSION_DOMAIN in live .env, set WOOSOO_ENV=production, re-run apply-woosoo-config.sh |
+
+#### KDS roadmap
+
+1. **KDS P3** — ⏭️ **NEXT: run Contrarian when ready** — `#144` `:root` token lift + server-authoritative freeze; case `next_agent: contrarian`
+2. **KDS P4** resilience
+3. **Pi Bucket B** ops — operator runs physically on Pi
+4. `plt-case-non-complete-audit-2026-06-08` — scribe pass on `infra-case-002` `DRIFT_MAJOR`
+
+**Staging state:** ✅ **promoted to `37d14c9`** (PR #192, 2026-06-11) — now carries recall (`8cee9c9`) + admin shell + page wave (`10f65c4`) + Case B visual polish (`#191`, `d8e334f`). **Combined KDS+shell E2E ready to run on staging.**
+
+**Pi smoke gate DROPPED** (Pi unavailable) — the **staging E2E** is now the software validation surface in its place. The Pi-*physical* items below are **not** thereby done — they're deferred to a "Pi day" checklist (functional requirements, not test steps):
+- nex-case-007 `pos:setup-payment-trigger` on Pi · nex-case-011 disable Krypton printer / verify BT-only print · print-bridge APK install on Pi tablet · restaurant smoke (3 tables).
+
+**nex-024 chip (`task_e292b332`, post-go-live, held behind Pi smoke):** recall's "broadcast fix" only added the `recalled` field (+1 line) — it did **not** dedup, and `recall()` added a *third* duplicate-broadcast site. F1 (drop duplicate broadcast) scope is now **3 sites**: `advance()` (`KdsController:135`), `recall()` (`KdsController:219`), `pos.fill-order`.
 
 ### tablet-ordering-pwa
 

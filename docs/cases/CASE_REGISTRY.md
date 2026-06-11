@@ -1,12 +1,12 @@
 ---
 status: canonical
-last_reviewed: 2026-06-10
+last_reviewed: 2026-06-11
 scope: ecosystem
 ---
 
 # Case Registry (summarized wikilink index)
 
-**103 cases** · 80 complete · 21 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**105 cases** · 81 complete · 22 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -36,7 +36,8 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-021-pos-connection-hardening]] | ✅ COMPLETE | 2026-06-09 | GET /pos returned a raw 500 QueryException when the pos connection used krypton_readonly with an empty password (usin… |
 | [[nex-case-022-nexus-full-review]] | 🟡 IN_PROGRESS | 2026-06-10 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
 | [[nex-case-024-kds-workflow]] | ✅ COMPLETE | 2026-06-10 | Kitchen Display used a 4-step workflow (New → Preparing → Ready → Served) with local-only state mutation (no backend… |
-| [[nex-case-025-admin-shell-migration]] | 🟡 IN_PROGRESS | 2026-06-10 | The STEP 1 partial shadcn sidebar implementation does not match the spec: |
+| [[nex-case-025-admin-shell-migration]] | ✅ COMPLETE | 2026-06-10 | The STEP 1 partial shadcn sidebar implementation does not match the spec: |
+| [[nex-case-026-kds-visual-polish]] | 🟡 IN_PROGRESS | 2026-06-11 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
 
 ## Tablet (`tab-case-*`)
 
@@ -124,7 +125,8 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[deployment-codebase-review]] | ✅ COMPLETE | 2026-06-04 | Review the Woosoo platform codebase for deployment issues, missing configuration, and gaps that could hinder smooth D… |
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
-| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-09 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
+| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-10 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
+| [[kds-p2-recall]] | 🟡 IN_PROGRESS | 2026-06-10 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
 | [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |
