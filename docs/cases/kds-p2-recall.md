@@ -22,6 +22,7 @@ tags: [app/nexus, status/in-progress, tier/3]
 
 ## Run State
 - task_slug: kds-p2-recall
+- app: nexus
 - tier: 3
 - branch: agent/kds-p2-recall
 - specialist_commit: 432a70a
