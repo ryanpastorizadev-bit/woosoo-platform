@@ -97,3 +97,6 @@ Thumbs.db
 /playwright/.cache/
 /playwright/.auth/
 /.playwright-mcp/
+
+# Personal working scratchpad (private, not checked in)
+/CLAUDE.local.md
