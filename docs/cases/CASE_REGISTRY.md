@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**105 cases** · 81 complete · 22 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**106 cases** · 82 complete · 22 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -82,6 +82,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[plt-case-009-docker-mysql-redis]] | ✅ COMPLETE | 2026-05-25 | Docker mysql and redis services not resolving — probable infrastructure root cause for Reverb broadcast failures and… |
 | [[plt-case-010-context7-cursor-guide]] | 🟡 IN_PROGRESS | 2026-06-08 | Document how operators use the Context7 MCP plugin in Cursor for up-to-date library documentation. |
 | [[plt-case-011-specialist-gates]] | ✅ COMPLETE | 2026-06-07 | Add PRE_EDIT_GATE and POST_EDIT_REVIEW as Specialist-phase gates wired into the execute hook. |
+| [[plt-case-agent-tooling-audit]] | ✅ COMPLETE | 2026-06-11 | Platform Agent Tooling Audit — read-only snapshot of agent OS, skill libraries, brainstorming gate, Cursor layer, Obs… |
 | [[plt-case-app-audit-nexus-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-nexus/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no longer r… |
 | [[plt-case-app-audit-platform-docs]] | ✅ COMPLETE | 2026-05-20 | Audit platform-level docs and governance folders for docs and folders that appear outdated, unused, orphaned, duplica… |
 | [[plt-case-app-audit-relay-folders]] | ✅ COMPLETE | 2026-05-20 | Audit woosoo-print-bridge/ for docs and folders that appear outdated, unused, orphaned, duplicated, or otherwise no l… |
@@ -125,7 +126,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[deployment-codebase-review]] | ✅ COMPLETE | 2026-06-04 | Review the Woosoo platform codebase for deployment issues, missing configuration, and gaps that could hinder smooth D… |
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
-| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-10 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
+| [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-11 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
 | [[kds-p2-recall]] | 🟡 IN_PROGRESS | 2026-06-10 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |

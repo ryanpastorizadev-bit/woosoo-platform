@@ -98,6 +98,14 @@ function Get-CaseSummary {
     if ($interruptedRaw -match '^true$')  { $interrupted = $true }
     elseif ($interruptedRaw -match '^false$') { $interrupted = $false }
 
+    $appRaw = Get-RunStateValue -Lines $lines -Key 'app'
+    $appOverride = $null
+    $ValidApps = @('nexus', 'tablet', 'print', 'platform', 'infra', 'other')
+    if ($appRaw) {
+        if ($ValidApps -contains $appRaw) { $appOverride = $appRaw }
+        else { Write-Warning "Unknown app override '$appRaw' in $Path; ignoring." }
+    }
+
     # --- Summary line for the registry table ---
     # Skip the leading YAML frontmatter so its generated fence comment ("# ---")
     # is not mistaken for the markdown H1 title (which would make the summary read
@@ -141,7 +149,7 @@ function Get-CaseSummary {
         Status = $status; Updated = $updated; Summary = $summary
         RunStatus = $runStatus; Tier = $tier; Branch = $branch
         NextAgent = $nextAgent; Interrupted = $interrupted
-        HasRunState = $hasRunState
+        AppOverride = $appOverride; HasRunState = $hasRunState
     }
 }
 
@@ -162,6 +170,7 @@ function Update-CaseFrontmatter {
     # (a genuine work item), so unprefixed cases like kds-implementation-plan stay queryable.
     # Pure reference/audit notes with no Run State are left untouched.
     $app = Get-AppFromSlug -Slug $Slug
+    if (-not $app -and $Summary.AppOverride) { $app = $Summary.AppOverride }
     if (-not $app) {
         if ($Summary.HasRunState) { $app = 'other' } else { return 'skipped' }
     }
