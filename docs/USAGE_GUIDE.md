@@ -201,8 +201,16 @@ Windows (WSL required for stack): `.\pld.cmd sync` from platform root — see [p
 | `pld rebuild --php` | `composer install` in app container |
 | `pld certs` | Missing `docker/certs/fullchain.pem` or TLS drift |
 | `pld network` | LAN / PUBLIC_HOST / portproxy after WSL restart |
+| `register-wsl-lan-startup-task.ps1` | **One-time** (Admin PS): auto portproxy on Windows logon |
 
 `woosoo *` is a deprecated alias (same commands).
+
+**Avoid repeating portproxy fixes:** after first successful `pld network`, register the
+logon task once (elevated PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\windows\register-wsl-lan-startup-task.ps1
+```
 
 Legacy equivalent: `git -C woosoo-nexus pull origin dev` then `./run dev --no-pull --no-build`.
 
@@ -216,6 +224,40 @@ On this operator's home network, admin/nexus UI is tested at **`https://192.168.
 
 `localhost` reaches Docker from the same machine but is **not** the primary URL for LAN/tablet
 parity testing. Run `woosoo network` if LAN access fails after a WSL restart.
+
+### WSL LAN bridge runbook
+
+**Daily start** (WSL, `~/projects/woosoo-platform`):
+
+```bash
+pld sync                              # after Windows push
+pld dev --no-pull --no-build          # optional cold start / health summary
+```
+
+Browser: **`https://192.168.100.7/login`** (admin) · **`https://192.168.100.7:4443/`** (tablet PWA).
+
+**One-time** (elevated PowerShell from `E:\Projects\woosoo-platform`) — auto-refresh portproxy
+on Windows logon so reboot does not require manual `pld network`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\windows\register-wsl-lan-startup-task.ps1
+```
+
+**After `wsl --shutdown`** (WSL VM IP changes; logon task does not re-fire until next sign-in):
+
+```bash
+pld network    # approve UAC — re-points 0.0.0.0:80/443/4443 → current WSL IP
+```
+
+**Quick verify** (Windows PowerShell):
+
+```powershell
+netsh interface portproxy show v4tov4
+curl.exe -ksf -o NUL -w "login %{http_code}`n" https://192.168.100.7/login
+curl.exe -ksf -o NUL -w "tablet %{http_code}`n" https://192.168.100.7:4443/
+```
+
+Expect portproxy `connectaddress` = first octet of `wsl hostname -I`, and both curls → `200`.
 
 ### Agent anti-patterns (never suggest on WSL)
 

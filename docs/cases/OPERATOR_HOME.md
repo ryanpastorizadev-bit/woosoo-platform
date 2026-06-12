@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-08
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
@@ -9,7 +9,11 @@ scope: ecosystem
 **Pin this note.** One screen for daily Woosoo orchestration in Obsidian. Embeds pull live
 content from the same files agents use — no duplicate state.
 
-Setup: [obsidian-setup-guide.md](../obsidian-setup-guide.md) · Vault: [[VAULT_INDEX]] · Cases: [[CASE_INDEX]] · All cases: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Pi board: [[OPS_KANBAN]]
+Setup: [obsidian-setup-guide.md](../obsidian-setup-guide.md) · Vault: [[VAULT_INDEX]] · Cases: [[CASE_INDEX]] · All cases: [[CASE_REGISTRY]] · Dashboards: [[CASE_DASHBOARD]] · Bases: [[CASES.base\|CASES.base]] · Contracts: [[CONTRACTS_HUB]] · Pi board: [[OPS_KANBAN]] · Maps: [[DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]]
+
+> [!info] Two case views, different scopes
+> [[OPS_KANBAN]] is the **curated** Bucket-B Pi-ops board (operator-owned, hand-ordered).
+> [[CASE_DASHBOARD]] / [[CASES.base\|CASES.base]] are **automatic** all-case views (Dataview/Bases over projected frontmatter). They coexist — neither replaces the other.
 
 ---
 
@@ -27,6 +31,10 @@ Setup: [obsidian-setup-guide.md](../obsidian-setup-guide.md) · Vault: [[VAULT_I
 ---
 
 ## Pi ops — priority table
+
+> [!danger] P0 gate
+> Session-419 (NEX-014) deploy + verify on Pi blocks restaurant rollout. Clear this before P1/P2.
+> Flow map: [[DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]].
 
 ![[plt-case-stability-remediation#Priority order (recommended)]]
 
@@ -74,6 +82,8 @@ Full queue: `state/QUEUE.md` · Visual board: [[OPS_KANBAN]]
 | Link cases | `[[nex-case-014-session-domain-login-419]]` — backlinks appear automatically |
 | Pi verify only | Run `pi-stability-verify.sh`; log in daily note or case `## Handoff` |
 | Unblock KDS | Clear KDS § Blockers; set `status: IN_PROGRESS` in KDS Run State |
+| Dataview empty | [obsidian-setup-guide.md](../obsidian-setup-guide.md#activate-community-plugins) — enable plugins, restart; fallback [[CASES.base\|CASES.base]] |
+| Refresh dashboards | `.\scripts\obsidian-case-registry.ps1` from platform root (after Run State edits) |
 
 ---
 
@@ -82,10 +92,11 @@ Full queue: `state/QUEUE.md` · Visual board: [[OPS_KANBAN]]
 | Surface | Use |
 |---------|-----|
 | **OPERATOR_HOME** (this note) | Daily landing — embeds `state/WORK`, queue, stability |
-| **OPS_KANBAN** | Kanban plugin — drag Bucket B cards |
+| **OPS_KANBAN** | Kanban plugin — drag Bucket B cards (curated) |
+| **CASE_DASHBOARD** | Dataview — open / blocked / stale across all cases (auto) |
+| **CASES.base** | Bases — table + board-by-status + per-app (auto from frontmatter) |
+| **SYSTEM_MAP / DEPLOY_SEQUENCE** | Canvas — architecture + deploy-gate maps |
 | **CONTRACTS_HUB** | Wiki-links to `contracts/*.md` |
 | **CASE_INDEX** | Dataview table of canonical cases |
 | **Calendar** | Daily operator logs in `docs/operator/daily/` |
 | **Graph** (`Ctrl+G`) | Color groups: cases (blue), contracts (orange), state (green) |
-
-Run state (`IN_PROGRESS`, `next_agent`) lives in each case's `## Run State` body — not YAML frontmatter.

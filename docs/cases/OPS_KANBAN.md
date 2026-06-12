@@ -12,6 +12,10 @@ Agents still use `state/QUEUE.md` + case `## Run State` — drag cards here for 
 
 Refresh cards when `state/QUEUE.md` changes. Link: [[OPERATOR_HOME]] · Runbook: [[plt-case-stability-remediation]]
 
+> [!info] Curated vs automatic
+> This board is **curated** (operator-owned, hand-ordered, Bucket-B only). For automatic all-case
+> status use [[CASE_DASHBOARD]] / [[CASES.base\|CASES.base]]. Deploy-gate flow: [[DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]].
+
 ---
 
 ## P0 — Session 419

@@ -466,6 +466,7 @@ A fix is not complete until it leaves behind a guard (a test, a lint, a correcte
 Promoted rules (binding):
 
 - **Docs must match code.** No doc may claim a feature, command, state, or role the code does not implement. Verify against contracts before writing. (Ledger L-008; enforced by `documentation-truth-audit` + Executioner.)
+- **Recurrence guards are mechanically enforced.** The recurring failure modes below are gated by `scripts/recurrence-check.{ps1,sh}`, which `pre-merge-check` runs on every merge: PowerShell source must stay ASCII and parse-clean; case status must classify by anchored leading token; no `[[../ ]]` wikilinks; the intentional hub canvases must stay un-ignored; no frontmatter key may leak as a case summary. (Ledger L-001/L-002 → `CHK-PS-ASCII`, L-003 → `CHK-PS-PARSE`, classifier regression → `CHK-STATUS-CLASSIFY`, L-004 → `CHK-WIKILINK-RELATIVE`, plus `CHK-CANVAS-TRACKED` and `CHK-REGISTRY-SUMMARY`; enforced by the recurrence-check gate + Executioner.)
 
 When a ledger entry is promoted, add it as a bullet here with its `L-NNN` reference. Do not delete
 ledger entries on promotion — the ledger is the historical record; this section is the enforcement.

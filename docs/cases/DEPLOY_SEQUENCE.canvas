@@ -1,0 +1,174 @@
+{
+  "nodes": [
+    {
+      "id": "11a22b33c44d55e6",
+      "type": "text",
+      "x": -60,
+      "y": -440,
+      "width": 480,
+      "height": 80,
+      "text": "# Bucket B - Deploy sequence\n\nPi deploy-readiness gates in priority order. File nodes open the case. Mirrors `OPS_KANBAN` and `plt-case-stability-remediation`. Curated, operator-owned (not auto)."
+    },
+    {
+      "id": "22b33c44d55e6f70",
+      "type": "group",
+      "x": -60,
+      "y": -340,
+      "width": 480,
+      "height": 170,
+      "label": "P0 - Session 419",
+      "color": "1"
+    },
+    {
+      "id": "33c44d55e6f7081a",
+      "type": "file",
+      "x": 0,
+      "y": -300,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/plt-case-stability-remediation.md"
+    },
+    {
+      "id": "44d55e6f7081a2b3",
+      "type": "group",
+      "x": -60,
+      "y": -130,
+      "width": 480,
+      "height": 170,
+      "label": "P1a - Duplicate print (#140)",
+      "color": "2"
+    },
+    {
+      "id": "55e6f7081a2b3c4d",
+      "type": "file",
+      "x": 0,
+      "y": -90,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/nex-case-011-duplicate-order-printing.md"
+    },
+    {
+      "id": "66f7081a2b3c4d5e",
+      "type": "group",
+      "x": -60,
+      "y": 80,
+      "width": 480,
+      "height": 170,
+      "label": "P1b - Pi build (#136)",
+      "color": "2"
+    },
+    {
+      "id": "7781a2b3c4d5e6f0",
+      "type": "file",
+      "x": 0,
+      "y": 120,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/infra-case-003-pi-docker-build-npm-ci-wifi.md"
+    },
+    {
+      "id": "881a2b3c4d5e6f01",
+      "type": "group",
+      "x": -60,
+      "y": 290,
+      "width": 480,
+      "height": 170,
+      "label": "P1 - POS trigger",
+      "color": "3"
+    },
+    {
+      "id": "991a2b3c4d5e6f02",
+      "type": "file",
+      "x": 0,
+      "y": 330,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/nex-case-007-pos-payment-outbox-session-reset.md"
+    },
+    {
+      "id": "aa2b3c4d5e6f0113",
+      "type": "group",
+      "x": -60,
+      "y": 500,
+      "width": 480,
+      "height": 290,
+      "label": "P2 - APK + infra",
+      "color": "4"
+    },
+    {
+      "id": "bb3c4d5e6f011224",
+      "type": "file",
+      "x": 0,
+      "y": 540,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/prn-rebuild-apk-scp-pi.md"
+    },
+    {
+      "id": "cc4d5e6f01122335",
+      "type": "file",
+      "x": 0,
+      "y": 660,
+      "width": 380,
+      "height": 90,
+      "file": "docs/cases/infra-case-004-script-flow-unification.md"
+    },
+    {
+      "id": "dd5e6f0112233446",
+      "type": "text",
+      "x": -60,
+      "y": 840,
+      "width": 480,
+      "height": 110,
+      "color": "6",
+      "text": "## Restaurant smoke test\n\n3 tables, pay 1, verify 1 tablet resets + one ticket per order. Close Bucket B when green."
+    }
+  ],
+  "edges": [
+    {
+      "id": "ee6f011223344557",
+      "fromNode": "33c44d55e6f7081a",
+      "fromSide": "bottom",
+      "toNode": "55e6f7081a2b3c4d",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "then"
+    },
+    {
+      "id": "ff70112233445566",
+      "fromNode": "55e6f7081a2b3c4d",
+      "fromSide": "bottom",
+      "toNode": "7781a2b3c4d5e6f0",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "then"
+    },
+    {
+      "id": "0112233445566778",
+      "fromNode": "7781a2b3c4d5e6f0",
+      "fromSide": "bottom",
+      "toNode": "991a2b3c4d5e6f02",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "then"
+    },
+    {
+      "id": "1223344556677889",
+      "fromNode": "991a2b3c4d5e6f02",
+      "fromSide": "bottom",
+      "toNode": "bb3c4d5e6f011224",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "then"
+    },
+    {
+      "id": "233445566778899a",
+      "fromNode": "bb3c4d5e6f011224",
+      "fromSide": "bottom",
+      "toNode": "dd5e6f0112233446",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "verify"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # setup-skills.ps1
 # Creates .claude/skills/ symlinks pointing to .agents/skills/ for each installed skill.
 # Run once after cloning, or after adding new skills to .agents/skills/.
-# Idempotent — skips entries that already exist.
+# Idempotent - skips entries that already exist.
 
 $repo    = Split-Path $PSScriptRoot -Parent
 $source  = Join-Path $repo ".agents\skills"
@@ -19,4 +19,4 @@ foreach ($skill in $skills) {
         Write-Host "linked: $($skill.Name)"
     }
 }
-Write-Host "Done — $($skills.Count) skills processed."
+Write-Host "Done - $($skills.Count) skills processed."

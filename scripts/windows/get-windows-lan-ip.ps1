@@ -6,7 +6,7 @@
 .DESCRIPTION
     Picks the first RFC1918 address (192.168.* or 10.*) on the network adapter
     that owns the default route, sorted by interface metric (lower = preferred).
-    Called from WSL via host-network.sh — not for direct operator use.
+    Called from WSL via host-network.sh - not for direct operator use.
     Operators should run: woosoo network
 
 .OUTPUTS
@@ -26,7 +26,7 @@ function Test-Rfc1918Ipv4 {
     return $false
 }
 
-# Default route → interface index
+# Default route -> interface index
 $defaultRoute = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue |
     Where-Object { $_.NextHop -ne '0.0.0.0' } |
     Sort-Object RouteMetric, InterfaceMetric |

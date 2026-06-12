@@ -52,6 +52,7 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Root cause: em-dash (`—`), middle-dot (`·`), ellipsis (`…`), or emoji in the **script source**; Windows PowerShell 5.1 reads the file as Windows-1252, corrupting multibyte UTF-8.
 - Guard: keep `.ps1` **source ASCII-only**. If the *output* needs glyphs/emoji, build them at runtime via `[char]::ConvertFromUtf32(0xXXXX)`.
 - Evidence: `scripts/obsidian-bootstrap.ps1`, `scripts/obsidian-case-registry.ps1` (2026-06-08, hit twice).
+- Automated: `CHK-PS-ASCII` (`scripts/recurrence-check.{ps1,sh}`, via `pre-merge-check`) — every `scripts/**/*.ps1` is scanned for non-ASCII bytes; a re-introduced glyph fails the merge gate.
 - Promoted: no — ledger only.
 
 ### L-002 — PowerShell `Get-Content -Raw` mangles UTF-8 (mojibake)
@@ -60,6 +61,7 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Root cause: `Get-Content`/`Set-Content` default to Windows-1252 in PS 5.1; reading a UTF-8 source then re-writing doubles the corruption.
 - Guard: read with `[System.IO.File]::ReadAllText($p,[Text.Encoding]::UTF8)`; write with `[System.IO.File]::WriteAllText($p,$s,(New-Object Text.UTF8Encoding($false)))` (UTF-8, no BOM).
 - Evidence: `scripts/obsidian-case-registry.ps1` (2026-06-08).
+- Automated: `CHK-PS-ASCII` keeps `.ps1` source ASCII at the boundary; mojibake from read/write re-encoding cannot survive once the source is clean.
 - Promoted: no — ledger only.
 
 ### L-003 — `&&` is not a statement separator in PowerShell 5.1
@@ -68,6 +70,7 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Root cause: chaining `cd x && cmd` — bash syntax. PS 5.1 has no `&&`.
 - Guard: use the Shell tool's `working_directory`, or chain with `;` (no short-circuit) / explicit `if ($LASTEXITCODE -eq 0)`. Prefer separate tool calls.
 - Evidence: orphan-scan command (2026-06-08).
+- Automated: `CHK-PS-PARSE` (`scripts/recurrence-check.{ps1,sh}`) — `&&` in a `.ps1` is a parse error, caught by `[Parser]::ParseFile` across all scripts.
 - Promoted: no — ledger only.
 
 ### L-004 — Obsidian wikilinks do not resolve `../` relative paths
@@ -76,6 +79,7 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Root cause: `[[../FOO]]` is markdown/filesystem syntax. Obsidian resolves wikilinks by note name or vault-root-relative path suffix — **never** `../`.
 - Guard: use bare note name `[[FOO]]` (unique names) or vault-root path `[[folder/FOO]]`. Reserve `../` for standard markdown links `[text](../path.md)`.
 - Evidence: `CASE_INDEX`, `OPERATOR_HOME`, `CASE_REGISTRY`, generator script (2026-06-08).
+- Automated: `CHK-WIKILINK-RELATIVE` (`scripts/recurrence-check.{ps1,sh}`) — flags any `[[../...]]` in `docs/**/*.md` (code spans excluded, so this ledger example does not self-trip).
 - Promoted: no — ledger only.
 
 ### L-005 — Ambiguous Obsidian wikilink when basenames collide
@@ -118,11 +122,63 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Evidence: `scripts/obsidian-bootstrap.ps1:42` (2026-06-08; fix verified exit 0, ~24s).
 - Promoted: no — ledger only.
 
+### L-010 — Self-signed cert generation can write a half-pair if openssl fails mid-stream
+- Tags: #infra #scripts #docker
+- Symptom: `pld certs` succeeds but nginx won't start; `SSL_ERROR_BAD_CERT_DOMAIN` or cert/key mismatch when device connects.
+- Root cause: cert generation writes `privkey.pem` + `fullchain.pem` directly to live paths in a single `openssl req` call. If the call is interrupted or openssl fails after the first file, the pair is incomplete — the second file may be missing or corrupted, leaving nginx with a half-written cert.
+- Guard: write to `.tmp` files first. After both files are written, extract public keys from both and compare them (keypair verification). **Only after verification succeeds**, back up the old certs to `.bak` and atomically promote `.tmp` → live with `mv`. On any failure, clean up `.tmp` and exit non-zero. Live certs are never touched unless the new pair is valid.
+- Evidence: `pld-cli-hardening` case — F1 fix, `docker/certs/generate-dev-certs.sh` (2026-06-08).
+- Promoted: no — ledger only (may promote to lint rule if `.env` / script-generation patterns grow).
+
+### L-011 — `sed s|...|...| ` breaks when RHS contains `|` or `&` (unescaped metacharacters)
+- Tags: #infra #scripts #bash
+- Symptom: env vars containing `|` (pipe), `&` (ampersand), or other sed metacharacters corrupt `.env` files: `API_URL="http://a|b"` becomes `API_URL="http://a.bERROR"` or similar.
+- Root cause: `sed s|delimiter|replacement|` treats the delimiter and **RHS replacement characters as literal metacharacters**. A bare `|` in the value is interpreted as sed's end-of-pattern, and `&` in the RHS means "original matched text", breaking the line.
+- Guard: avoid using a **delimiter that can appear in the value**. For arbitrary key=value pairs, use `awk` (or `perl`) to match and rewrite lines — no metacharacter interpretation. If using sed, choose a delimiter that is **impossible in the values** (e.g. NUL byte, or a multi-char sentinel) and **escape all RHS special chars** (`&`, `\`). Safest: use awk with `-v key=... -v val=...` and string-match on `$0 ~ "^" key "="`.
+- Evidence: `pld-cli-hardening` case — F2 fix, `scripts/deployment/dev-preflight.sh:env_set()` (2026-06-08).
+- Promoted: no — ledger only (test-gate script-env changes if pattern recurs).
+
+### L-012 — Parallel sessions in one working tree clobber each other (claimed-but-absent fix)
+- Tags: #process #git #agent-os
+- Symptom: a fix the audit doc claimed was applied was absent from the code; concurrent sessions in the same tree overwrote each other's edits and spawned transient branches.
+- Root cause: more than one runner editing the same working tree at once — a later write silently clobbered the registry anchoring fix.
+- Guard: run ONE runner at a time per working tree. Trust the case file over chat history, and verify a claimed fix against the actual code before building on it.
+- Evidence: `plt-case-governance-hardening-2026-06-08` (2026-06-09; root cause of the whole case).
+- Automated: partial — the regression half is enforced by `CHK-STATUS-CLASSIFY` (a clobbered classifier fix fails the gate); the single-runner discipline itself is process-only.
+- Promoted: no — ledger only (process rule; see the case "Careful Attention" callouts).
+
+### L-013 — Frontmatter `#`-fence mistaken for the H1 title
+- Tags: #tool/obsidian #docs #tooling
+- Symptom: every projected case rendered its Summary as `app: <x>` in `CASE_REGISTRY.md`.
+- Root cause: the generated `# --- generated ... ---` fence line written inside YAML frontmatter was grabbed by `^#`-based H1 detection, so the next frontmatter key became the "summary".
+- Guard: skip the leading YAML frontmatter block before locating the H1 title in any case-file parser.
+- Evidence: `scripts/obsidian-case-registry.ps1`, `plt-case-governance-hardening-2026-06-08` (2026-06-09).
+- Automated: `CHK-REGISTRY-SUMMARY` (`scripts/recurrence-check.{ps1,sh}`) — flags any frontmatter key leaked as a case summary in the generated registry.
+- Promoted: no — ledger only.
+
+### L-014 — A lint can pass for the wrong reason
+- Tags: #tooling #docs #tool/obsidian
+- Symptom: `obsidian-lint.ps1` reported "0 broken links" while `[[CASES.base]]` was actually unresolvable.
+- Root cause: the lint silently skipped table-escaped aliased links (`[[Foo\|Bar]]`) and never indexed `.base`, so a real broken link appeared clean.
+- Guard: confirm a passing check actually resolves a known-good case — a green result with no positive control is not evidence. (Fixed: split on `/`, trim the escape, strip `.md|.canvas|.base`, index `.canvas`/`.base`.)
+- Evidence: `scripts/obsidian-lint.ps1`, `plt-case-governance-hardening-2026-06-08` (2026-06-09).
+- Automated: no — `obsidian-lint.ps1` always exits 0, so `recurrence-check` enforces the specific link/canvas invariants directly (`CHK-WIKILINK-RELATIVE`, `CHK-CANVAS-TRACKED`) rather than trusting the lint's exit code.
+- Promoted: no — ledger only.
+
+### L-015 — PowerShell `-Include` multi-pattern dir scans are flaky
+- Tags: #env/powershell #tooling
+- Symptom: `Get-ChildItem -Recurse -Include '*.a','*.b'` intermittently returned nothing on some hosts.
+- Root cause: PS 5.1 `-Include` is unreliable for multi-pattern directory scans (it needs a trailing path wildcard to engage).
+- Guard: enumerate with `... -File | Where-Object { $_.Extension -in '.a','.b' }` instead of `-Include`.
+- Evidence: `scripts/obsidian-lint.ps1`, `scripts/recurrence-check.ps1` (2026-06-09).
+- Automated: no — covered by the authoring pattern; `recurrence-check.ps1` and `obsidian-lint.ps1` both use the `-File | Where-Object` idiom.
+- Promoted: no — ledger only.
+
 ---
 
 ## Promotion candidates (watchlist)
 
 Entries that will become enforced rules if they recur once more:
 
-- L-001 / L-002 — PowerShell encoding. If a third encoding bug lands, add a `scripts/` authoring rule + a CI ASCII-lint for `*.ps1`.
-- L-003 / L-009 — PowerShell filesystem/syntax footguns. Pattern building: consider a short "PS 5.1 gotchas" block in `scripts/`-authoring guidance if one more lands.
+- **Enforced (2026-06-09):** L-001 / L-002 (ASCII), L-003 (`&&`/parse), and L-004 (relative wikilinks) are now mechanically gated by `scripts/recurrence-check.{ps1,sh}` via `pre-merge-check`. The "CI ASCII-lint for `*.ps1`" anticipated below shipped as `CHK-PS-ASCII`; see `AGENTS.md § Immutable Rules` and `AGENT_DEFAULT_INSTRUCTIONS.md § Promoted rules`.
+- L-009 — PowerShell filesystem footguns (`Remove-Item` on junctions). Consider a short "PS 5.1 gotchas" block in `scripts/`-authoring guidance if one more lands.

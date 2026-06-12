@@ -86,6 +86,7 @@ cross-app.
 - **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code. Production POS static IP is `192.168.1.32` — detect mismatches; never write it into tablet/bridge source.
 - **No secrets in `.env`** without explicit operator review and backup.
 - **One app per branch/commit** unless this is an explicitly approved integration-scoped change recorded in the case file.
+- **Automated recurrence guards are binding.** `scripts/recurrence-check.{ps1,sh}` (wired into `pre-merge-check`) mechanically enforces the LESSONS-derived guards: PowerShell ASCII/parse, anchored case-status classification, no `../` wikilinks, tracked hub canvases, and registry-summary integrity. It must pass before any merge. Never weaken, skip, or comment out a detector to make a change pass; fix the cause.
 
 ---
 

@@ -307,6 +307,20 @@ Do **not** call `scripts/windows/setup-wsl-lan-access.ps1` directly — `woosoo 
 delegates to it via `invoke-elevated.ps1`. The first run from WSL may show a **Windows
 UAC prompt**; approve once to create portproxy rules.
 
+**One-time auto-fix after reboot / `wsl --shutdown` (recommended):** register a logon
+scheduled task so portproxy refreshes without manual `pld network`:
+
+```powershell
+# Elevated PowerShell from platform root (E:\Projects\woosoo-platform)
+powershell -ExecutionPolicy Bypass -File scripts\windows\register-wsl-lan-startup-task.ps1
+```
+
+Remove: `scripts\windows\unregister-wsl-lan-startup-task.ps1`
+
+> **Runbook summary:** daily `pld sync` (+ optional `pld dev --no-pull --no-build`); one-time
+> `register-wsl-lan-startup-task.ps1` for reboot; **`pld network` after `wsl --shutdown`**.
+> Full operator steps: [`USAGE_GUIDE.md § WSL LAN bridge runbook`](../USAGE_GUIDE.md#wsl-lan-bridge-runbook).
+
 **Equivalent manual commands** (if you prefer not to use the pipeline):
 ```bash
 # Bootstrap .env

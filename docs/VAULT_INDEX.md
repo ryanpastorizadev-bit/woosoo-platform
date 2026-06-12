@@ -23,9 +23,18 @@ Same files agents read on disk — Obsidian adds graph, search, Kanban, and embe
 | Note | Purpose |
 |------|---------|
 | [[cases/CASE_REGISTRY]] | **Full wikilink list** — fixes graph orphans for all cases |
+| [[cases/CASE_DASHBOARD]] | Dataview dashboards — open / blocked / stale across all cases |
+| [[cases/CASES.base\|CASES.base]] | Bases — table + board-by-status + per-app views (auto from projected frontmatter) |
 | [[cases/CASE_INDEX]] | Dataview — recently reviewed canonical cases |
 | [[cases/CONTRACTS_HUB]] | Cross-app contracts |
 | `docs/cases/_TEMPLATE.md` | New case template |
+
+## Visual maps (Canvas)
+
+| Canvas | Purpose |
+|--------|---------|
+| [[architecture/SYSTEM_MAP.canvas\|SYSTEM_MAP]] | Apps, data flow, and the contract governing each boundary |
+| [[cases/DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]] | Bucket B deploy-gate ordering (mirrors `OPS_KANBAN`) |
 
 ## Canonical docs
 

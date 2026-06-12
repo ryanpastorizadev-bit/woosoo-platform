@@ -50,7 +50,7 @@ try {
         -PassThru
 
     if ($null -eq $process) {
-        Write-Error 'Elevation declined — portproxy not configured'
+        Write-Error 'Elevation declined - portproxy not configured'
         exit 1
     }
 
@@ -62,6 +62,6 @@ try {
 }
 catch [System.ComponentModel.Win32Exception] {
     # User declined UAC or elevation was cancelled.
-    Write-Error 'Elevation declined — portproxy not configured'
+    Write-Error 'Elevation declined - portproxy not configured'
     exit 1
 }

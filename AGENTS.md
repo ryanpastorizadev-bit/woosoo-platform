@@ -82,6 +82,7 @@ If no phrase matches: load `hooks/work.md` as default.
 - **Sibling-repo boundary:** one app per branch/commit unless integration-scoped. Cross-app changes require contract updates first.
 - **Config integrity:** production POS uses static IP `192.168.1.32`. Detect mismatches; never write secrets to `.env` without backup and review.
 - **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code.
+- **Automated recurrence guards are binding.** `scripts/recurrence-check.{ps1,sh}` (wired into `pre-merge-check`) mechanically enforces the LESSONS-derived guards: PowerShell ASCII/parse, anchored case-status classification, no `../` wikilinks, tracked hub canvases, and registry-summary integrity. It must pass before any merge. Never weaken, skip, or comment out a detector to make a change pass; fix the cause.
 
 ## Mandatory Workflow
 

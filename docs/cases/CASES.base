@@ -1,0 +1,77 @@
+filters:
+  and:
+    - 'file.inFolder("docs/cases")'
+    - or:
+        - 'run_status == "IN_PROGRESS"'
+        - 'run_status == "BLOCKED"'
+        - 'run_status == "COMPLETE"'
+
+formulas:
+  status_icon: 'if(run_status == "COMPLETE", "✅", if(run_status == "BLOCKED", "⛔", "🟡"))'
+
+properties:
+  run_status:
+    displayName: "Status"
+  app:
+    displayName: "App"
+  tier:
+    displayName: "Tier"
+  next_agent:
+    displayName: "Next agent"
+  last_reviewed:
+    displayName: "Reviewed"
+  formula.status_icon:
+    displayName: ""
+
+views:
+  - type: table
+    name: "By status"
+    groupBy:
+      property: run_status
+      direction: ASC
+    order:
+      - file.name
+      - app
+      - tier
+      - next_agent
+      - updated
+
+  - type: table
+    name: "Active by app"
+    filters:
+      and:
+        - 'run_status != "COMPLETE"'
+    groupBy:
+      property: app
+      direction: ASC
+    order:
+      - formula.status_icon
+      - file.name
+      - run_status
+      - tier
+      - next_agent
+      - updated
+
+  - type: table
+    name: "Blocked"
+    filters:
+      or:
+        - 'run_status == "BLOCKED"'
+        - 'interrupted == true'
+    order:
+      - file.name
+      - app
+      - tier
+      - next_agent
+      - updated
+
+  - type: table
+    name: "All cases"
+    order:
+      - formula.status_icon
+      - file.name
+      - app
+      - run_status
+      - tier
+      - updated
+      - last_reviewed
