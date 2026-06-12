@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**109 cases** · 89 complete · 18 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**109 cases** · 90 complete · 17 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -40,7 +40,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-026-kds-visual-polish]] | ✅ COMPLETE | 2026-06-12 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
 | [[nex-case-027-admin-pages-ui-redesign]] | ✅ COMPLETE | 2026-06-12 | Admin pages (Orders, POS, Packages, Dining Tiers, Menu Sync, Devices) needed presentational redesign aligned with nex… |
 | [[nex-case-028-admin-ui-handoff-completion]] | ✅ COMPLETE | 2026-06-12 | > Continues from nex-case-012 (superseded) and nex-case-027 (6-page redesign). |
-| [[nex-case-029-kds-action-payload-optimistic]] | 🟡 IN_PROGRESS | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
+| [[nex-case-029-kds-action-payload-optimistic]] | ✅ COMPLETE | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
 
 ## Tablet (`tab-case-*`)
 
