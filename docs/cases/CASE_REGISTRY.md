@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**107 cases** · 83 complete · 22 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**107 cases** · 85 complete · 20 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -34,10 +34,10 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-019-debug-endpoint-hardening]] | ✅ COMPLETE | 2026-06-09 | routes/api.php:378 returns 'Stored procedure call failed: '.$e->getMessage() when the POS |
 | [[nex-case-020-admin-ui-audit-fixes]] | ✅ COMPLETE | 2026-06-10 | A 24-item UI/UX + functionality audit across the woosoo-nexus admin panel (POS, Devices, Tablet Categories, Package C… |
 | [[nex-case-021-pos-connection-hardening]] | ✅ COMPLETE | 2026-06-09 | GET /pos returned a raw 500 QueryException when the pos connection used krypton_readonly with an empty password (usin… |
-| [[nex-case-022-nexus-full-review]] | 🟡 IN_PROGRESS | 2026-06-10 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
+| [[nex-case-022-nexus-full-review]] | ✅ COMPLETE | 2026-06-12 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
 | [[nex-case-024-kds-workflow]] | ✅ COMPLETE | 2026-06-10 | Kitchen Display used a 4-step workflow (New → Preparing → Ready → Served) with local-only state mutation (no backend… |
 | [[nex-case-025-admin-shell-migration]] | ✅ COMPLETE | 2026-06-10 | The STEP 1 partial shadcn sidebar implementation does not match the spec: |
-| [[nex-case-026-kds-visual-polish]] | 🟡 IN_PROGRESS | 2026-06-11 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
+| [[nex-case-026-kds-visual-polish]] | ✅ COMPLETE | 2026-06-12 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
 | [[nex-case-027-admin-pages-ui-redesign]] | ✅ COMPLETE | 2026-06-12 | Admin pages (Orders, POS, Packages, Dining Tiers, Menu Sync, Devices) needed presentational redesign aligned with nex… |
 
 ## Tablet (`tab-case-*`)
