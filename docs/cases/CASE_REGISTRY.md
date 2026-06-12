@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**107 cases** · 85 complete · 20 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**108 cases** · 87 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -25,7 +25,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-009-admin-menus-filters]] | ✅ COMPLETE | 2026-05-23 | MenuController@index returns course, group, category, is_available, and has_uploaded_image for every menu row, but th… |
 | [[nex-case-010-immutable-image-production-migration]] | ⛔ BLOCKED | 2026-05-31 | Track (do NOT yet implement) the migration to immutable production images so served assets come |
 | [[nex-case-011-duplicate-order-printing]] | code-complete | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
-| [[nex-case-012-admin-ui-prototype-impl]] | ⛔ BLOCKED | 2026-05-31 | > **Deferred — Bucket C feature.** Does NOT gate the dev→staging→main stabilization merge. |
+| [[nex-case-012-admin-ui-prototype-impl]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded.** Deliverable 3 (Vue SFCs for Packages and Tablet Categories) was |
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
@@ -39,6 +39,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-025-admin-shell-migration]] | ✅ COMPLETE | 2026-06-10 | The STEP 1 partial shadcn sidebar implementation does not match the spec: |
 | [[nex-case-026-kds-visual-polish]] | ✅ COMPLETE | 2026-06-12 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
 | [[nex-case-027-admin-pages-ui-redesign]] | ✅ COMPLETE | 2026-06-12 | Admin pages (Orders, POS, Packages, Dining Tiers, Menu Sync, Devices) needed presentational redesign aligned with nex… |
+| [[nex-case-028-admin-ui-handoff-completion]] | ✅ COMPLETE | 2026-06-12 | > Continues from nex-case-012 (superseded) and nex-case-027 (6-page redesign). |
 
 ## Tablet (`tab-case-*`)
 
