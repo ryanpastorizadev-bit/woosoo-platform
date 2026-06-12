@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**108 cases** · 87 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**108 cases** · 89 complete · 17 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -129,10 +129,10 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
 | [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-11 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
-| [[kds-p2-recall]] | 🟡 IN_PROGRESS | 2026-06-10 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
+| [[kds-p2-recall]] | ✅ COMPLETE | 2026-06-12 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
-| [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |
+| [[nexus-ui-handoff-visual-implementation]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded by [[nex-case-028-admin-ui-handoff-completion]].** The handoff brand-alignment work scoped he… |
 | [[nexus-vite-entrypoint-rebuild]] | ✅ COMPLETE | 2026-05-30 | PR comment on woosoo-nexus/docker/docker-entrypoint.sh: the current entrypoint skips npm run build when public/build… |
 | [[pi-docker-runtime-diagnostics]] | ✅ COMPLETE | 2026-05-22 | The Raspberry Pi deployment needs production-ready diagnostics that enforce the Docker-only runtime model and catch R… |
 | [[pld-cli-hardening]] | ✅ COMPLETE | 2026-06-08 | Four MEDIUM hardening gaps in the pld CLI: |
