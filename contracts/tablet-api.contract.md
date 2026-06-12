@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-06-07
 scope: ecosystem
 ---
 
@@ -29,3 +29,15 @@ scope: ecosystem
 - The tablet flow must not continue after a critical API failure — it must surface a friendly
   message and stop, not fabricate success.
 - No hardcoded LAN IPs or API/Reverb hosts in tablet code.
+
+## Backend enforcement (device order create)
+
+`StoreDeviceOrderRequest` (`woosoo-nexus/app/Http/Requests/StoreDeviceOrderRequest.php`)
+**strips** any field outside the intent-only payload in `prepareForValidation()` before rules
+run. Only `guest_count`, `package_id`, and `items[{menu_id, quantity}]` reach `validated()`.
+Client-submitted `totals`, `prices`, `discounts`, `ordered_menu_id`, and modifier fields are
+discarded — not accepted, not persisted from client input.
+
+Landmark: **NEX-CASE-015** — merged to `woosoo-nexus` `dev` via PR #178 (2026-06-07).
+Refill path (`RefillOrderRequest`) is a separate route; this contract section applies to the
+tablet **initial order** submission only.

@@ -162,6 +162,18 @@ All `*.md` files under `node_modules/`, `vendor/`, `.nuxt/`, `.git/`, `.output/`
 - 5 files **rewritten** to canonical template (the four 2026-05-14 audit docs are restructured in place; `docs/README.md` was created during boot layer).
 - ~30 files **archived** (moved with `status: archived` frontmatter and `superseded_by` pointer).
 - ~25 files **frontmatter only** (canonical / under-review marker added; body untouched).
+
+---
+
+## 2026-06 dev-branch addendum
+
+**Assessed 2026-06-06.** Classifications from the 2026-05-14 pass remain accurate. The following changes have occurred since this audit that affect the doc landscape:
+
+- `docs/software-development/` package on woosoo-nexus: now merged to dev (the "pending merge" note in `docs/README.md` was stale and has been corrected).
+- Contracts updated: `contracts/printer-relay.contract.md` (heartbeat schema filled from live code), `contracts/tablet-api.contract.md` (NEX-015 enforcement gap documented), `contracts/order-state.contract.md` (Nexus active-order scope section added), `contracts/websocket-events.contract.md` (`order.printed` duplicate-risk status updated to reflect PR #163 partial resolution).
+- New case files: `docs/cases/nex-case-015-tablet-intent-payload-hardening.md` and `docs/cases/tab-case-011-active-order-recovery-filter.md` created (queued, not yet started).
+- `docs/WOOSOO_ROADMAP_REVIEW.md` remains `under-review`; body not yet audited — carry forward for the next dedicated review pass.
+- No files reclassified from canonical to archive in this addendum.
 - The remaining ~30 in-scope files are **supporting** and unchanged.
 - 0 files **deleted**.
 

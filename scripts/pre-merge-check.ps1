@@ -72,6 +72,9 @@ switch ($App) {
     }
 }
 
+# Governance gate (app-independent): the recurrence-check guards must pass for every merge.
+Invoke-Step "recurrence-check (governance guards)" { & (Join-Path $PSScriptRoot "recurrence-check.ps1") }
+
 Write-Host ""
 Write-Host "================================================================"
 Write-Host "  pre-merge-check OK ($App)"

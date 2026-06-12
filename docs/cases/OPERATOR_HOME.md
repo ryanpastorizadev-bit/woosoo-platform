@@ -1,0 +1,102 @@
+---
+status: canonical
+last_reviewed: 2026-06-10
+scope: ecosystem
+---
+
+# Operator Home
+
+**Pin this note.** One screen for daily Woosoo orchestration in Obsidian. Embeds pull live
+content from the same files agents use — no duplicate state.
+
+Setup: [obsidian-setup-guide.md](../obsidian-setup-guide.md) · Vault: [[VAULT_INDEX]] · Cases: [[CASE_INDEX]] · All cases: [[CASE_REGISTRY]] · Dashboards: [[CASE_DASHBOARD]] · Bases: [[CASES.base\|CASES.base]] · Contracts: [[CONTRACTS_HUB]] · Pi board: [[OPS_KANBAN]] · Maps: [[DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]]
+
+> [!info] Two case views, different scopes
+> [[OPS_KANBAN]] is the **curated** Bucket-B Pi-ops board (operator-owned, hand-ordered).
+> [[CASE_DASHBOARD]] / [[CASES.base\|CASES.base]] are **automatic** all-case views (Dataview/Bases over projected frontmatter). They coexist — neither replaces the other.
+
+---
+
+## Right now
+
+![[state/WORK#Current Task]]
+
+| Open | Why |
+|------|-----|
+| [[plt-case-stability-remediation]] | Pi ops runbook (P0–P2) — **active orchestration** |
+| [[OPS_KANBAN]] | Kanban view for Bucket B drag-track |
+| [[CONTRACTS_HUB]] | Cross-app contracts (agent truth) |
+| `state/QUEUE.md` | Bucket B deploy queue (embed below) |
+
+---
+
+## Pi ops — priority table
+
+> [!danger] P0 gate
+> Session-419 (NEX-014) deploy + verify on Pi blocks restaurant rollout. Clear this before P1/P2.
+> Flow map: [[DEPLOY_SEQUENCE.canvas\|DEPLOY_SEQUENCE]].
+
+![[plt-case-stability-remediation#Priority order (recommended)]]
+
+### Next actions
+
+![[plt-case-stability-remediation#Recommended first actions]]
+
+### P0 checklist (NEX-014)
+
+![[plt-case-stability-remediation#P0 — NEX-014 session-419: deploy + verify on Pi (code already merged)]]
+
+**Script:** `sudo bash scripts/deployment/pi-stability-verify.sh` (P0/P1 auto-checks on Pi)
+
+---
+
+## Deploy queue (Bucket B)
+
+![[state/QUEUE#Bucket B — Deploy readiness (restaurant rollout prerequisites; NON-gating ops, not code bugs)]]
+
+Full queue: `state/QUEUE.md` · Visual board: [[OPS_KANBAN]]
+
+---
+
+## KDS — blocked until stability green
+
+![[kds-implementation-plan#Run State]]
+
+![[kds-implementation-plan#Blockers (resume protocol)]]
+
+---
+
+## Case index (Dataview)
+
+![[CASE_INDEX#Recently reviewed cases]]
+
+---
+
+## Quick actions
+
+| I want to… | Do this |
+|------------|---------|
+| Start agents | Claude Code: `work` or `execute <slug>` — case file `## Run State` is resume point |
+| New intake | Templater → `Templates/CASE_FILE.md` → `docs/cases/<slug>.md` → row in `state/QUEUE.md` |
+| Daily Pi log | Calendar → today → `Templates/OPERATOR_LOG.md` → `docs/operator/daily/` |
+| Link cases | `[[nex-case-014-session-domain-login-419]]` — backlinks appear automatically |
+| Pi verify only | Run `pi-stability-verify.sh`; log in daily note or case `## Handoff` |
+| Unblock KDS | Clear KDS § Blockers; set `status: IN_PROGRESS` in KDS Run State |
+| Dataview empty | [obsidian-setup-guide.md](../obsidian-setup-guide.md#activate-community-plugins) — enable plugins, restart; fallback [[CASES.base\|CASES.base]] |
+| Refresh dashboards | `.\scripts\obsidian-case-registry.ps1` from platform root (after Run State edits) |
+
+---
+
+## Obsidian surfaces
+
+| Surface | Use |
+|---------|-----|
+| **OPERATOR_HOME** (this note) | Daily landing — embeds `state/WORK`, queue, stability |
+| **OPS_KANBAN** | Kanban plugin — drag Bucket B cards (curated) |
+| **CASE_DASHBOARD** | Dataview — open / blocked / stale across all cases (auto) |
+| **CASES.base** | Bases — table + board-by-status + per-app (auto from frontmatter) |
+| **SYSTEM_MAP / DEPLOY_SEQUENCE** | Canvas — architecture + deploy-gate maps |
+| **CONTRACTS_HUB** | Wiki-links to `contracts/*.md` |
+| **CASE_INDEX** | Dataview table of canonical cases |
+| **Calendar** | Daily operator logs in `docs/operator/daily/` |
+| **Graph** (`Ctrl+G`) | Color groups: cases (blue), contracts (orange), state (green) |

@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-14
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -8,21 +8,32 @@ scope: ecosystem
 
 Load this file when an AI agent needs business and architecture context beyond the root `AGENTS.md`. Per-task token cost should stay low — read only the sections relevant to the task.
 
+For the full ecosystem map (five components, delivery status, flows), see
+[`docs/WOOSOO_ECOSYSTEM_OVERVIEW.md`](WOOSOO_ECOSYSTEM_OVERVIEW.md).
+
 ## System Overview
 
-Three apps form a chain, not a single coherent runtime:
+**Woosoo** is the ecosystem name. **Nexus** (`woosoo-nexus`) is the Laravel backend and manager
+admin — not the umbrella label for all apps.
 
-| App | Path | Role |
-|-----|------|------|
-| **woosoo-nexus** | `woosoo-nexus/` | Laravel backend: admin UI, API, POS/Krypton integration, Reverb broadcasting, print event orchestration, Docker runtime |
-| **tablet-ordering-pwa** | `tablet-ordering-pwa/` | Nuxt 3 SPA/PWA: customer-facing tablet ordering, session/recovery UX, Echo/Reverb client |
-| **woosoo-print-bridge** | `woosoo-print-bridge/` | Flutter Android relay: WebSocket/polling intake, Bluetooth printer dispatch, ACK lifecycle |
+Three **production** apps form an operational chain, plus platform governance and a portal prototype:
+
+| App | Path | Role | Status |
+|-----|------|------|--------|
+| **woosoo-platform** | `.` | Docker orchestration, contracts, agent OS, deployment docs | Production |
+| **woosoo-nexus** | `woosoo-nexus/` | Laravel API + **Inertia manager admin**, POS/Krypton, Reverb, print-event orchestration | Production |
+| **tablet-ordering-pwa** | `tablet-ordering-pwa/` | Nuxt 3 SPA/PWA: customer tablet ordering, session/recovery UX, Echo/Reverb client | Production |
+| **woosoo-print-bridge** | `woosoo-print-bridge/` | Flutter Android relay: WebSocket/polling intake, Bluetooth printer dispatch, ACK lifecycle | Production |
+| **woosoo-portal** | external / `ryanpastorizadev-bit/woosoo-portal` | Owner cloud reporting UI (Laravel 13/Inertia prototype; Nexus sync Phase 2) | Prototype UI |
 
 System truth is split:
 
 - **Nexus** owns business truth (pricing, modifiers, package rules, POS mapping, order state, print-event state).
 - **PWA** owns customer interaction state, local recovery, and persisted draft/session data.
-- **Print bridge** owns the real last-mile print outcome (printer health, ACK, dead-letter).
+- **Print bridge** owns the real last-mile print outcome (printer health, ACK, dead-letter) — **canonical production print path**.
+- **Portal** (when integrated) will consume EOD sync batches from Nexus; not connected today.
+
+**Manager admin** is embedded in `woosoo-nexus` (Inertia/Vue), not a separate deployable app.
 
 ## Core Architecture Rules
 
@@ -32,8 +43,9 @@ System truth is split:
 - Tablet sends **intent only**: `{ guest_count, package_id, items: [ { menu_id, quantity } ] }`.
 - Order states: the `OrderStatus` enum (`pending, confirmed, in_progress, ready, served, completed, cancelled, voided, archived`); terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`. Do not invent states beyond the enum.
 - All packages include unlimited sides and meats within their modifier set. Three packages: Classic Feast, Noble Selection, Royal Banquet.
-- Printing: station-based, sides → cashier. Print jobs must be idempotent at the reserve/ack level.
-- POS integration uses a static LAN IP: `192.168.1.32`.
+- Printing: **Print Bridge** executes jobs in production (`NEXUS_PRINT_EVENTS_ENABLED` defaults off). Station-based; jobs must be idempotent at reserve/ack/failed.
+- POS integration uses a static LAN IP: `192.168.1.32` (restaurant network profile).
+- LAN-first is production-ready; full offline tablet queueing and Nexus→portal EOD sync are **not** delivered — see `docs/business/WOOSOO_SPEC_DELTA.md`.
 
 ## Cross-App Contracts (canonical references)
 
@@ -42,12 +54,14 @@ System truth is split:
 | Device registration / auth | `woosoo-nexus/app/Http/Controllers/Api/V1/Auth/DeviceAuthApiController.php` | Nexus audit doc |
 | Session lifecycle | Nexus session controllers + `/api/sessions/*` routes | Nexus audit + Ecosystem audit |
 | Order submit | `POST /api/devices/create-order` (Nexus) | Tablet audit + Nexus audit |
-| Print event lifecycle | `POST /api/printer/print-events/{id}/{reserve,ack,failed}` | Print Bridge audit + Nexus audit |
-| Reverb channels/events | `woosoo-nexus/routes/channels.php` | Ecosystem audit |
+| Print event lifecycle | `POST /api/printer/print-events/{id}/{reserve,ack,failed}` | Print Bridge audit + `contracts/printer-relay.contract.md` |
+| Reverb channels/events | `woosoo-nexus/routes/channels.php` | `contracts/websocket-events.contract.md` |
 | Heartbeat | `POST /api/printer/heartbeat` (bridge), `/api/health` (Nexus) | Print Bridge audit + Nexus audit |
+| Cloud EOD sync (planned) | not implemented | `docs/cases/woosoo-cloud-portal-sync-plan-review.md` |
 
 Authoritative audit documents (read on demand):
 
+- `docs/WOOSOO_ECOSYSTEM_OVERVIEW.md` — ecosystem map and delivery status.
 - `docs/WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14.md` — cross-app review.
 - `woosoo-nexus/docs/archive/2026-05/WOOSOO_NEXUS_STABILIZATION_AND_HARDENING_AUDIT_2026-05-14.md` — backend audit copy currently present in this checkout; verify claims against live source/contracts.
 - `tablet-ordering-pwa/docs/archive/2026-05/TABLET_ORDERING_PWA_PRODUCTION_STABILITY_AUDIT_2026-05-14.md` — tablet audit copy currently present in this checkout; verify claims against live source/contracts.
@@ -61,6 +75,17 @@ Customer-facing screens: friendly messages only. Example fallback: "We could not
 
 Watch for key mismatches: app key, Reverb key, API keys, POS IP. Admin tooling should support a `woosoo:verify-integrity` command. Do not write secrets to `.env` without backup and review.
 
+## Obsidian vault (agents + operators)
+
+The platform repo is an **Obsidian vault** on the same markdown agents read and write.
+**Agents** refer to `docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`, and
+`docs/cases/CONTRACTS_HUB.md` when navigating cases; add `[[case-slug]]` wikilinks in case
+bodies for cross-references. Resume state stays in `docs/cases/<slug>.md` — not Obsidian UI.
+
+**Operators** pin `docs/cases/OPERATOR_HOME.md`; use `OPS_KANBAN`, Calendar daily logs in
+`docs/operator/daily/`. Bootstrap: `scripts/obsidian-bootstrap.ps1`.
+See `docs/obsidian-setup-guide.md` and `docs/USAGE_GUIDE.md § 6`.
+
 ## Workspace Boundary Rule
 
 One app per task unless documented integration. Cross-app changes require updating the relevant contract section in the corresponding audit doc first.
@@ -71,4 +96,4 @@ Run `scripts/pre-merge-check.sh --app <name>` (Bash) or `scripts/pre-merge-check
 
 ## Token Budget Discipline
 
-This file is loaded on demand. Do not paste its full contents into prompts — link to the relevant section instead. Detailed contracts and runtime facts live in the four audit docs above and are loaded only when the task requires them.
+This file is loaded on demand. Do not paste its full contents into prompts — link to the relevant section instead. Detailed contracts and runtime facts live in the audit docs above and are loaded only when the task requires them.

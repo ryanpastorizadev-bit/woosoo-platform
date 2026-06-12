@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Palisade / Woosoo platform CLI entry — root pipeline runner.
+# Usage: pld <target> [flags]     (preferred, after: bash scripts/install.sh)
+#        woosoo <target> [flags]  (deprecated alias)
+#        ./run <target> [flags]
+# Resolve symlinks (e.g. /usr/local/bin/pld -> .../run) so paths stay under platform root.
+_resolve_platform_root() {
+  local src="${BASH_SOURCE[0]}"
+  while [[ -L "$src" ]]; do
+    local dir target
+    dir="$(cd "$(dirname "$src")" && pwd)"
+    target="$(readlink "$src")"
+    [[ "$target" == /* ]] && src="$target" || src="$dir/$target"
+  done
+  cd "$(dirname "$src")" && pwd
+}
+PLATFORM_ROOT="$(_resolve_platform_root)"
+export WOOSOO_CLI_INVOKED_AS="$(basename "${0}")"
+exec bash "$PLATFORM_ROOT/scripts/pipeline.sh" "$@"

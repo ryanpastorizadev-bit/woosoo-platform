@@ -8,30 +8,57 @@ scope: ecosystem
 <!-- Consult this file only after the docs/cases resume check. -->
 <!-- It is a cache; docs/cases/<task-slug>.md is authoritative. -->
 <!-- Rewrite the fields below when task state changes.          -->
-<!-- Last updated: 2026-06-03 — Bucket A EMPTY; all stabilization gates cleared and merged to dev. -->
-<!-- Platform PR #36 (dev→staging) open; deploy docs and contract drift corrected. -->
+<!-- Last updated: 2026-06-08 — pi-stability-verify.sh added; Pi Bucket B is the gate. -->
+<!-- Bucket A EMPTY; promotion unblocked. Active orchestration = plt-case-stability-remediation. -->
+<!-- Obsidian operator UI: pin docs/cases/OPERATOR_HOME.md (embeds this file). See docs/obsidian-setup-guide.md -->
 
 ---
 
 ## Current Task
 
 ```yaml
-task_id:      promote-staging-main
+task_id:      plt-case-stability-remediation
 status:       in_progress
-tier:         3
-app:          ecosystem (governance / release)
-specialist:   claude-code (orchestration)
-branch:       dev → staging → main
-description:  Bucket A CLEAR — NEX-CASE-013 (+PR #160 detail-refresh), TAB-CASE-010, TAB-CASE-009,
-              INFRA-CASE-003 all APPROVED + merged to dev. Promote dev→staging→main across all repos.
-case_file:    (release) state/QUEUE.md is the authoritative backlog; no per-task case file
-next_action:  Platform: merge PR #36 (dev→staging) once review threads resolved; then staging→main.
-              App repos (nexus/tablet/print-bridge) are content-equivalent across dev/staging/main already.
-              Bucket B Pi ops are the remaining restaurant-rollout gate — see state/QUEUE.md.
-last_agent:   claude-code — 2026-06-03 — fixed runbook branch risk, contract drift, WORK.md stale gates.
+tier:         2
+app:          ecosystem (orchestration + Pi ops)
+specialist:   operator (Pi) | per-case specialists
+branch:       n/a (see sibling case branches in state/QUEUE.md)
+description:  Stabilize before KDS — Pi verify NEX-014/NEX-011/INFRA-003. NEX-CASE-015 + docs #156
+              COMPLETE 2026-06-07. TAB-CASE-011 landed (tablet PR #199). KDS deferred.
+case_file:    docs/cases/plt-case-stability-remediation.md
+next_action:  Pi: sudo bash scripts/deployment/pi-stability-verify.sh (P0/P1 auto-checks).
+              Then manual P1a one-ticket smoke + RELEASE_RUNBOOK Step 5; close #140/#136 if green.
+              INFRA-004 PR #45 merged. KDS blocked until Pi gates green.
+obsidian:     docs/cases/OPERATOR_HOME.md (dashboard) · OPS_KANBAN.md (Pi board) · Calendar daily log
+last_agent:   cursor — 2026-06-08 — pi-stability-verify.sh for P0/P1 Bucket B checks.
 ```
 
-## Reconciliation Findings (2026-05-30)
+## Parallel Active — Governance Hardening (fix before KDS / Admin UI)
+
+```yaml
+task_id:      plt-case-governance-hardening-2026-06-08
+status:       COMPLETE — Executioner APPROVED 2026-06-09
+tier:         3
+active_runner: claude-code
+case_file:    docs/cases/plt-case-governance-hardening-2026-06-08.md
+done:         (Cursor) classifier regression fix (anchored Get-CaseStatusToken) + registry summary
+              fix + obsidian-lint hardening + canvases + hub/callout wiring + whole-file ASCII
+              cleanup of all scripts (0 parse errors) + .gitignore un-ignore for the 2 hub-linked
+              canvases (were silently *.canvas-ignored). Lint 0/0/0; tests green.
+              (Claude Code Tier 3, 2026-06-09) recurrence-check.{ps1,sh} built (6 detectors) + wired
+              into pre-merge-check.{ps1,sh}; authority wiring done (AGENTS.md Immutable Rule mirrored
+              byte-identically to .cursor/rules; executioner reject clause; AGENT_DEFAULT promoted
+              rule; LESSONS Automated: pointers + L-012..L-015). Verifier PASS: 6/6 detectors,
+              per-detector fail-before/pass-after proven, parity diff identical.
+next_action:  Executioner APPROVED + shipped to origin/dev (332c46c..bcb90cf, 2026-06-09); registry
+              projection regenerated so this case reads COMPLETE. Remaining (Claude Code, post-APPROVED):
+              Must-Fix item 5 (non-COMPLETE audit closure via per-case Verifier/Executioner; do not
+              self-close) + item 6 (continual-learning / agents-memory-updater).
+gate:         SATISFIED — Executioner APPROVED. KDS (#137/#143-#148) + Admin UI (nex-case-012) are
+              UNBLOCKED at the governance gate (KDS build itself is Tier 3 = Claude Code Specialists).
+```
+
+## Reconciliation Findings (2026-05-30) <!-- historical snapshot — not current state; see state/QUEUE.md -->
 
 ```text
 DRIFT FOUND between agent-OS tracking and GitHub Issues:
@@ -56,11 +83,9 @@ none
 ## Last Agent
 
 ```
-role:         claude-code — 2026-06-03 — doc/governance fixes (this commit)
-left_off:     All Bucket A gates merged to dev. TAB-CASE-010 APPROVED (tablet PR #196, 2026-06-02).
-              NEX-CASE-013 APPROVED + merged (nexus PR #160 included). Platform PR #36 open (dev→staging).
-              Runbook WOOSOO_DEPLOY_BRANCH risk fixed. Contract drift for order.details.updated fixed.
-files_open:   state/QUEUE.md (Bucket B Pi ops pending)
+role:         cursor — 2026-06-08 — pi-stability-verify.sh (P0/P1 automated Pi checks)
+left_off:     Script ready on platform dev; operator must run on Pi hardware. KDS still blocked.
+files_open:   scripts/deployment/pi-stability-verify.sh, docs/cases/plt-case-stability-remediation.md
 ```
 
 ## On Completion of Next Task

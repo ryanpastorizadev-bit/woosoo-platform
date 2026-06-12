@@ -6,7 +6,9 @@
 
 ## Pre-execution checklist
 
-Read `state/WORK.md`. Confirm from the case file (`docs/cases/<slug>.md`):
+Read `state/WORK.md`. Confirm from the case file (`docs/cases/<slug>.md`).
+For related cases or contracts, consult `docs/cases/CASE_REGISTRY.md` and `docs/cases/CONTRACTS_HUB.md`
+(Obsidian vault hubs — same files on disk). Confirm:
 
 - [ ] `task_id` is set and matches an existing case file
 - [ ] Case `## Run State` status is `IN_PROGRESS`
@@ -16,6 +18,26 @@ Read `state/WORK.md`. Confirm from the case file (`docs/cases/<slug>.md`):
 - [ ] `next_agent` in the case file points to a Specialist
 
 If any check fails: stop. Report what is missing. Do not implement.
+
+---
+
+## Specialist gates (mandatory)
+
+### Before first file edit
+
+Load `hooks/pre-edit-gate.md` and complete its output.
+
+- Do not modify any file until the gate is complete.
+- Skim `docs/LESSONS.md` for failure modes tagged for the tools/app in scope.
+- Record in case `## Proposed Fix` (Claude Code) or chat + checkpoint (Cursor).
+
+### After all edits, before Verifier
+
+Load `hooks/post-edit-review.md` and complete its output.
+
+- Include contract check and rollback in case `## Specialist Investigation & Implementation`.
+- If this task hit or revealed a recurring failure mode, append an entry to `docs/LESSONS.md` (symptom → root cause → guard). Recurrence ⇒ promote the guard to a rule in `docs/AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules`.
+- Then proceed to **On implementation complete** below.
 
 ---
 
@@ -57,10 +79,10 @@ If any check fails: stop. Report what is missing. Do not implement.
 (Verifier omitted only when no code path changed — document the reason)
 
 ### Tier 2
-`Contrarian → Specialist → Verifier → Executioner`
+`Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner`
 
 ### Tier 3
-`Contrarian (written risk analysis) → Specialist → Verifier → Executioner`
+`Contrarian (written risk analysis) → Specialist → code-simplifier → Verifier → scribe → Executioner`
 
 For Tier 3: Specialist references the relevant `contracts/*.contract.md`. Executioner uses the strongest model.
 

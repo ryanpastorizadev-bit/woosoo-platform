@@ -11,7 +11,7 @@ Complete reference for driving the Woosoo 4-agent workflow system. Read this onc
 
 ## System Architecture in One Sentence
 
-Every task flows through a **4-agent chain** (Contrarian → Specialist → Verifier → Executioner), state is checkpointed to a **case file** (`docs/cases/<slug>.md`) after every phase, and any session can resume exactly where a previous one left off.
+Every task flows through the **agent chain** (Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner on Tier 2–3 code tasks), state is checkpointed to a **case file** (`docs/cases/<slug>.md`) after every phase, and any session can resume exactly where a previous one left off.
 
 ---
 
@@ -28,9 +28,9 @@ Every task flows through a **4-agent chain** (Contrarian → Specialist → Veri
 
 **Tier 1** (trivial — typo, single config line, comment): `Specialist → Executioner` — Contrarian declares Tier and exits immediately; no Verifier needed if no code path changed.
 
-**Tier 2** (standard — bug fix, new endpoint, UI component, doc rewrite): full `Contrarian → Specialist → Verifier → Executioner`.
+**Tier 2** (standard — bug fix, new endpoint, UI component, doc rewrite): `Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner`.
 
-**Tier 3** (high-risk — auth, POS DB writes, order state machine, payment lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture): full chain + Contrarian must write a *risk analysis*, Specialist must reference `contracts/*.md`, Executioner runs on opus.
+**Tier 3** (high-risk — auth, POS DB writes, order state machine, payment lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture): same chain + Contrarian must write a *risk analysis*, Specialist must reference `contracts/*.md`, Executioner runs on opus.
 
 ---
 
@@ -42,7 +42,7 @@ Every task flows through a **4-agent chain** (Contrarian → Specialist → Veri
 | Backend / API / Auth / POS / Reverb / order state | `ranpo-backend` (sonnet) | `woosoo-nexus/**` |
 | Frontend / Nuxt / PWA / UI / Pinia / tablet flow | `chuya-frontend` (sonnet) | `tablet-ordering-pwa/**` |
 | Printer relay / hardware / heartbeat / station | `relay-ops` (sonnet) | `woosoo-print-bridge/**` |
-| Docs / specs / handover / instructions | `dazai-docs` (haiku) | `docs/**`, root `*.md` |
+| Docs / specs / handover / instructions | `scribe` (haiku) | `docs/**`, root `*.md` |
 | Docker / Nginx / env / deployment / LAN / Pi | `infra` (sonnet) | `docker/**`, `nginx/**`, `scripts/**`, `compose*.yaml`, `.env.example` |
 
 **Hard limits enforced on every Specialist:**
@@ -56,7 +56,17 @@ Every task flows through a **4-agent chain** (Contrarian → Specialist → Veri
 
 ---
 
-### 3. Verifier (`haiku`) — Read-only
+### 3. Code Simplifier (`sonnet`)
+**Role:** Refine recently modified code for clarity and maintainability without changing behavior.
+
+- Runs after Specialist on Tier 2–3 code tasks (skipped on Tier 1 and pure-docs scribe tasks)
+- Applies per-app standards from the target `.agents.md` — not generic React/ESM defaults
+- Final internal sub-step: `dead-code-cleanup` hygiene checklist
+- Checkpoints `next_agent: verifier`
+
+---
+
+### 4. Verifier (`haiku`) — Read-only
 **Role:** Prove the change works. Never mutates the repo.
 
 Allowed commands only:
@@ -83,7 +93,7 @@ git status / diff / log --oneline
 
 ---
 
-### 4. Executioner (`opus`) — Read-only
+### 5. Executioner (`opus`) — Read-only
 **Role:** Final verdict gate. Returns exactly one of three verdicts.
 
 ```
@@ -111,7 +121,7 @@ SPLIT_REQUIRED    — task crosses app boundaries; no code modified until explic
 | Tier | Sequence | Token budget | Examples |
 |------|----------|--------------|---------|
 | 1 — Trivial | `Specialist → Executioner` | ≤ 5 files | typo, single-line config, comment, README link |
-| 2 — Standard | `Contrarian → Specialist → Verifier → Executioner` | ≤ 12 files | bug fix, new endpoint, UI component, doc rewrite |
+| 2 — Standard | `Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner` | ≤ 12 files | bug fix, new endpoint, UI component, doc rewrite |
 | 3 — High-risk | Full chain + written risk analysis | ≤ 25 files (each beyond 15 justified) | auth, POS DB writes, order state, payment, race conditions, printer dup-prevention, prod deploy |
 
 ---
@@ -140,7 +150,7 @@ SPLIT_REQUIRED    — task crosses app boundaries; no code modified until explic
 - status: IN_PROGRESS | BLOCKED | COMPLETE
 - last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
 - next_agent: contrarian | specialist:<name> | verifier | executioner | done
-- active_runner: claude-code
+- active_runner: <runner>   # claude-code | codex | copilot | cascade | cursor
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
 - updated: <YYYY-MM-DD HH:MM>
@@ -205,9 +215,10 @@ work
       └─ NO  → read QUEUE.md; pull first queued row where dep = none or confirmed
                 └─ Contrarian phase (new task)
                     └─ Specialist phase (implement change)
-                        └─ dead-code-cleanup (hygiene sweep)
+                        └─ code-simplifier (runs dead-code-cleanup internally)
                             └─ Verifier phase (prove it works)
-                                └─ Executioner phase (verdict)
+                                └─ scribe phase (docs sync — code specialists)
+                                    └─ Executioner phase (verdict)
                                     └─ APPROVED → handover → next task
                                        REJECTED → back to Specialist
                                        SPLIT_REQUIRED → no code modified; task split
@@ -242,7 +253,8 @@ work
 |-------|------------|
 | `agent-sequence` | **Every task** — mandatory |
 | `test-verification` | **Every code task** — mandatory |
-| `dead-code-cleanup` | **Every code task** — mandatory pre-completion hygiene |
+| `code-simplifier` | **Tier 2–3 code tasks** — clarity pass after Specialist (runs dead-code-cleanup internally) |
+| `dead-code-cleanup` | **Every code task** — final sub-step of code-simplifier; also incremental during Specialist |
 | `laravel-api-change` | Laravel routes/controllers/FormRequests/jobs/transactions |
 | `sanctum-auth-debug` | 419/CSRF, device tokens, Sanctum stateful domains |
 | `nuxt-pwa-flow` | Nuxt tablet flow, screen transitions, PWA update |
@@ -291,7 +303,7 @@ yes / no — <which contract if yes>
 6. **Escalate Tier 3 proactively** — auth, POS DB writes, order state, payment, race conditions, prod deploy
 7. **Checkpoint before handing off** — every agent writes Run State to case file before control passes
 8. **Branch naming:** Tier 2/3 = `agent/<slug>`; never merge until `APPROVED`
-9. **Model policy is automatic** — haiku for Contrarian/Verifier/Dazai; sonnet for Specialists; opus for Executioner; escalate Specialist to opus only for security/race/payment
+9. **Model policy is automatic** — haiku for Contrarian/Verifier/Scribe; sonnet for Specialists; opus for Executioner; escalate Specialist to opus only for security/race/payment
 10. **Case file beats everything** — chat history, `state/WORK.md`, memory — all secondary to `docs/cases/<slug>.md`
 
 ---
@@ -314,7 +326,7 @@ inbox/RAW.md                        — untriaged raw issues
 .claude/agents/ranpo-backend.md     — Backend Specialist definition
 .claude/agents/chuya-frontend.md    — Frontend Specialist definition
 .claude/agents/relay-ops.md         — Print Bridge Specialist definition
-.claude/agents/dazai-docs.md        — Docs Specialist definition
+.claude/agents/scribe.md        — Docs Specialist definition
 .claude/agents/infra.md             — Infrastructure Specialist definition
 .claude/agents/verifier.md          — Verifier agent definition
 .claude/agents/executioner.md       — Executioner agent definition

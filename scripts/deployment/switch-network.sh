@@ -20,13 +20,26 @@
 
 set -euo pipefail
 
-CONFIG_FILE="/etc/woosoo/woosoo.env"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if [[ ! -f "$CONFIG_FILE" ]]; then
-  echo "ERROR: secrets file not found: $CONFIG_FILE" >&2
-  echo "Copy docs/deployment/examples/woosoo.env.example to $CONFIG_FILE first." >&2
+# Resolve operator config (same order as apply-woosoo-config.sh / doctor.sh).
+PLATFORM_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CONFIG_FILE=""
+if [[ -f "$PLATFORM_DIR/woosoo.env" ]]; then
+  CONFIG_FILE="$PLATFORM_DIR/woosoo.env"
+elif [[ -f /etc/woosoo/woosoo.env ]]; then
+  CONFIG_FILE="/etc/woosoo/woosoo.env"
+else
+  echo "ERROR: woosoo.env not found (neither $PLATFORM_DIR/woosoo.env nor /etc/woosoo/woosoo.env)" >&2
+  echo "Run: bash scripts/deployment/init-woosoo-env.sh" >&2
+  echo "Or copy docs/deployment/examples/woosoo.env.example to /etc/woosoo/woosoo.env" >&2
   exit 1
 fi
+echo "Using operator config: $CONFIG_FILE"
+
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 # shellcheck source=/dev/null
 source "$CONFIG_FILE"
@@ -67,7 +80,6 @@ case "$LOC" in
     ;;
 esac
 
-PLATFORM_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 ENV_FILE="${PLATFORM_DIR}/woosoo-nexus/.env"
 
 if [[ ! -f "$ENV_FILE" ]]; then

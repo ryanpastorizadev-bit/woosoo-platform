@@ -95,6 +95,9 @@ case "$APP" in
     ;;
 esac
 
+# Governance gate (app-independent): the recurrence-check guards must pass for every merge.
+run_step "recurrence-check (governance guards)" bash "$ROOT_DIR/scripts/recurrence-check.sh"
+
 echo
 echo "================================================================"
 echo "  pre-merge-check OK ($APP)"

@@ -1,0 +1,17 @@
+{
+  "alwaysUpdatePlugins": true,
+  "showViewHeader": true,
+  "promptDelete": false,
+  "defaultViewMode": "preview",
+  "livePreview": true,
+  "userIgnoreFilters": [
+    "woosoo-nexus/",
+    "tablet-ordering-pwa/",
+    "woosoo-print-bridge/",
+    "Woosoo Food Assets/",
+    "node_modules/",
+    "vendor/",
+    ".git/",
+    "APPLICATION_MATERIALS.md"
+  ]
+}

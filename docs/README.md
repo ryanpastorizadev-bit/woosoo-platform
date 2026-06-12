@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-18
+last_reviewed: 2026-06-06
 scope: ecosystem
 ---
 
@@ -8,11 +8,20 @@ scope: ecosystem
 
 This is the canonical entry point for all Woosoo platform documentation. Only docs listed here with `status: canonical` are source of truth.
 
+## Obsidian vault (agents + operators)
+
+- [VAULT_INDEX.md](VAULT_INDEX.md) — **vault entry** — navigation hubs, orphan policy
+- [cases/CASE_REGISTRY.md](cases/CASE_REGISTRY.md) — full case wikilink index (graph hub)
+- [cases/OPERATOR_HOME.md](cases/OPERATOR_HOME.md) — operator daily dashboard (pin in Obsidian)
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — bootstrap + plugins
+- Maintenance: `scripts/obsidian-case-registry.ps1`, `scripts/obsidian-lint.ps1` (target: 0 actionable orphans in `docs/`)
+
 ## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
+- [WOOSOO_ECOSYSTEM_OVERVIEW.md](WOOSOO_ECOSYSTEM_OVERVIEW.md) — **ecosystem map**: all five components, delivered vs prototype, flows, naming
 - [AI_CONTEXT.md](AI_CONTEXT.md) — Business and architecture context
-- [WOOSOO_DOCUMENT_CONTEXT.md](WOOSOO_DOCUMENT_CONTEXT.md) — Concise context for the platform, Nexus, Tablet PWA, and Print Bridge
+- [WOOSOO_DOCUMENT_CONTEXT.md](WOOSOO_DOCUMENT_CONTEXT.md) — Concise context for the platform, Nexus, Tablet PWA, Print Bridge, and Portal
 
 ## Agent operating system (Lite, 4-agent)
 
@@ -20,11 +29,14 @@ The Lite 4-agent operating system (Contrarian → Specialist → Verifier → Ex
 in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 
 - [USAGE_GUIDE.md](USAGE_GUIDE.md) — **operator runbook**: how to drive the system, common-scenario protocol index, and the anti-degradation loop
+- [CONTEXT7_GUIDE.md](CONTEXT7_GUIDE.md) — **Cursor Context7 plugin**: fetch up-to-date library docs (Nuxt, Laravel, Flutter, etc.)
 - [AGENT_USAGE_GUIDE.md](AGENT_USAGE_GUIDE.md) — **technical reference**: 4-agent chain detail, skill routing, evidence standards, and hook trigger map
 - Claude subagents: `.claude/agents/*.md` — agent definitions (single source of truth)
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption
   recovery; case file is the durable state)
+- [LESSONS.md](LESSONS.md) — **Lessons Ledger**: recurring issues + guards. Read before non-trivial
+  work; append after any mistake. Recurrence promotes a guard to an enforced rule.
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
 - [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
@@ -45,6 +57,7 @@ Authoritative cross-app contracts. Implementation must be verified against actua
 - [printer-relay.contract.md](../contracts/printer-relay.contract.md) — heartbeat & print idempotency
 - [pos-db.contract.md](../contracts/pos-db.contract.md) — POS DB access safety
 - [auth-session.contract.md](../contracts/auth-session.contract.md) — Sanctum/device auth boundaries
+- [websocket-events.contract.md](../contracts/websocket-events.contract.md) — Reverb channels and `broadcastAs` event map
 
 ## Business Requirements Documents
 
@@ -72,14 +85,26 @@ claim against live source and contracts before relying on those older audit file
 ## Per-app documentation indexes
 
 - [woosoo-nexus/docs/INDEX.md](../woosoo-nexus/docs/INDEX.md) — Nexus-side detailed docs
-- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation *(pending merge to Nexus dev; files exist locally on the nexus ui-handoff branch)*
+- [woosoo-nexus/docs/software-development/](https://github.com/tech-artificer/woosoo-nexus/tree/dev/docs/software-development) — software development documentation package: process, product, and user documentation
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 
-## Deployment
+## Ecosystem components (5 repos)
 
-Docker orchestration authority is the **platform repo root** (3-repo sibling model).
+Production runs as sibling repos orchestrated from this platform root. See
+[WOOSOO_ECOSYSTEM_OVERVIEW.md](WOOSOO_ECOSYSTEM_OVERVIEW.md) for delivery status and flows.
 
+| Component | Path / repo |
+| --- | --- |
+| Platform (this repo) | `ryanpastorizadev-bit/woosoo-platform` |
+| Nexus | `woosoo-nexus/` → `tech-artificer/woosoo-nexus` |
+| Tablet PWA | `tablet-ordering-pwa/` → `tech-artificer/tablet-ordering-pwa` |
+| Print Bridge | `woosoo-print-bridge/` → `tech-artificer/woosoo-print-bridge` |
+| Owner portal | `ryanpastorizadev-bit/woosoo-portal` (UI prototype; local dev often `woosoo-cloud-portal`) |
+
+Docker orchestration authority is the **platform repo root** (sibling model — not a monorepo).
+
+- [architecture/pld-cli-decision.md](architecture/pld-cli-decision.md) — **ADR (canonical)**: Palisade `pld` CLI vs Woosoo Bash, multi-OS strategy, migration phases
 - [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
 - `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
@@ -104,6 +129,9 @@ Documents in `docs/archive/` and per-app `docs/archive/` directories are histori
 
 ## Tooling
 
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: `scripts/obsidian-bootstrap.ps1`,
+  pin [OPERATOR_HOME.md](cases/OPERATOR_HOME.md), [OPS_KANBAN.md](cases/OPS_KANBAN.md),
+  [CONTRACTS_HUB.md](cases/CONTRACTS_HUB.md); Calendar → `docs/operator/daily/`
 - `scripts/pre-merge-check.sh` — Bash pre-merge validation
 - `scripts/pre-merge-check.ps1` — PowerShell wrapper for Windows
 - `scripts/case-status.sh` / `scripts/case-status.ps1` — print/update the `## Run State` block

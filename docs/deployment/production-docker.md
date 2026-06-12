@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-18
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -75,18 +75,44 @@ host-provided; only `generate-dev-certs.sh` + `README.md` are tracked.
 
 `scripts/deployment/` (run from platform root):
 
-- `deploy.sh` — pulls each app repo in place (`WOOSOO_NEXUS_BRANCH`,
-  `WOOSOO_TABLET_BRANCH`), runs `apply-woosoo-config.sh`, builds, starts,
-  warms caches. **Migrated; syntax-checked; Pi runtime verification PENDING.**
-- `apply-woosoo-config.sh` — `WOOSOO_PLATFORM_PATH` (default = parent of
-  `WOOSOO_NEXUS_PATH`); still writes `woosoo-nexus/.env`; runs compose from the
-  platform path. **Migrated; syntax-checked; Pi runtime verification PENDING.**
-- The other 7 scripts are copied but **not yet platform-migrated** — see
-  `scripts/deployment/README.md` for per-script status.
+- `check.sh` — no-sudo pre-deploy readiness check. Reports anything missing
+  (tools, certs, config, app repos, built images, not-running containers) with a
+  FIX command for each. Run it first on any machine.
+- `init-woosoo-env.sh` — seeds `./woosoo.env` from the app `.env` files and
+  prompts to confirm each value; re-runnable. Writes the file `chmod 600`. No sudo.
+- `deploy-all.sh` — the single full-deploy command: `check → backup → deploy →
+  health`. **Use this** instead of calling `deploy.sh` directly. The `deploy` step
+  pulls each app repo, applies config, runs the `doctor.sh` gate, hydrates
+  dependencies (composer/npm), builds **fresh** images (tablet UI cache-busted by
+  build sha), migrates, starts, and warms caches — with retry on the flaky
+  network/build steps.
+- `deploy.sh` — the workhorse the wrapper calls. It runs the `doctor.sh` gate
+  itself, **right after `apply-woosoo-config.sh` writes `woosoo-nexus/.env`** — so
+  the gate validates the generated env and is never blocked on a fresh machine.
+  Always runs (no skip flag); the placeholder/empty-secret gate cannot be bypassed
+  by calling `deploy.sh` directly, and it gates build/migrate/up.
+- `apply-woosoo-config.sh` — writes `woosoo-nexus/.env` (`chmod 600`) and runs
+  compose from `WOOSOO_PLATFORM_PATH` (default = parent of `WOOSOO_NEXUS_PATH`).
 
-Config contract: `/etc/woosoo/woosoo.env` (root-owned, mode 0600). Template:
-`docs/deployment/examples/woosoo.env.example` (now includes
-`WOOSOO_PLATFORM_PATH`, `WOOSOO_NEXUS_BRANCH`, `WOOSOO_TABLET_BRANCH`).
+See `scripts/deployment/README.md` for the full per-script reference.
+
+Config contract — secrets live in **one** operator file, resolved in this order:
+1. `./woosoo.env` (platform root, user-owned, mode 0600) — **primary**; written by
+   `init-woosoo-env.sh`, no sudo required.
+2. `/etc/woosoo/woosoo.env` (root-owned, mode 0640) — optional system-path
+   alternative for a locked-down production host.
+
+**First-time setup** — generate `./woosoo.env`, confirming each value
+(re-runnable; loads existing values as defaults):
+
+```bash
+bash scripts/deployment/check.sh          # see what's missing first
+bash scripts/deployment/init-woosoo-env.sh
+```
+
+Then deploy: `sudo bash scripts/deployment/deploy-all.sh`.
+
+Manual template (if you prefer hand-editing): `docs/deployment/examples/woosoo.env.example`.
 
 ## Verification status
 
@@ -107,7 +133,7 @@ override, production path untouched):
 # main stack up (for API/Reverb), then:
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   --profile dev up tablet-pwa-dev
-# open http://localhost:3000 — edits in ./tablet-ordering-pwa hot-reload
+# open http://localhost:3000 on the dev host — tablet hot-reload only (not nexus admin URL)
 ```
 
 `tablet-pwa-dev` runs `Dockerfile.dev` (Nuxt dev server) with `./tablet-ordering-pwa`

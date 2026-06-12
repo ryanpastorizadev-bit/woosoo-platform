@@ -1,0 +1,5 @@
+{
+  "folder": "docs/operator/daily",
+  "template": "Templates/OPERATOR_LOG.md",
+  "format": "YYYY-MM-DD"
+}

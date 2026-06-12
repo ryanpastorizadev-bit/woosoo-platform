@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-31
+last_reviewed: 2026-06-10
 scope: ecosystem
 ---
 
@@ -20,10 +20,10 @@ The backing enum is a string enum with nine cases:
 | `CONFIRMED` | `confirmed` | Accepted and dispatched to kitchen/print. Default state of a new `DeviceOrder`; the tablet enters in-session here. |
 | `IN_PROGRESS` | `in_progress` | Kitchen working the order. |
 | `READY` | `ready` | Order prepared. |
-| `SERVED` | `served` | Order delivered to the table. |
+| `SERVED` | `served` | Order delivered to the table. Non-terminal; recall permitted (KDS-driven only). |
 | `COMPLETED` | `completed` | **Terminal.** Order fulfilled (POS-driven). |
 | `CANCELLED` | `cancelled` | **Terminal.** Order cancelled. |
-| `VOIDED` | `voided` | **Terminal.** Order voided after confirmation (POS-driven). |
+| `VOIDED` | `voided` | **Terminal.** Order voided after confirmation (POS-driven). Cannot be recalled. |
 | `ARCHIVED` | `archived` | **Terminal.** Order archived. |
 
 ## State machine (`OrderStatus::canTransitionTo`)
@@ -33,7 +33,7 @@ PENDING      → CONFIRMED | VOIDED | CANCELLED
 CONFIRMED    → IN_PROGRESS | COMPLETED | VOIDED
 IN_PROGRESS  → READY | VOIDED
 READY        → SERVED | VOIDED
-SERVED       → COMPLETED | VOIDED
+SERVED       → IN_PROGRESS | COMPLETED | VOIDED   ← recall edge (KDS P2, 2026-06-10)
 COMPLETED    → (terminal — no transitions)
 CANCELLED    → (terminal — no transitions)
 VOIDED       → (terminal — no transitions)
@@ -48,6 +48,15 @@ Every non-terminal state can transition to `VOIDED`. The four terminal states
 > batch/admin housekeeping path (archiving old terminal orders), not by the in-session state
 > machine. This is intentional; do not add a runtime transition into `ARCHIVED`.
 
+## Recall edge: `SERVED → IN_PROGRESS`
+
+**Added in KDS P2 (2026-06-10, branch `agent/kds-p2-recall`).**
+
+- This edge is **KDS-driven only** — only `KdsController::recall()` may use it.
+- Payment/POS paths (`PosController`, `ProcessOrderLogs`, `PosOrderStatusFinalizer`) must not use this edge.
+- `VOIDED → IN_PROGRESS` is **rejected**. A voided order must create a new kitchen ticket; voided is terminal and cannot be un-voided.
+- After recall, `device_orders.recalled` counter is incremented atomically inside the same DB transaction.
+
 ## Order identifier (canonical)
 
 **`krypton_woosoo.orders.id` (the POS order id) is the single global order reference.** The POS is
@@ -60,6 +69,28 @@ the source of truth for identity, so every POS-sourced id is canonical — `orde
   always `orders.{order_id}`. No consumer (tablet, admin, print-bridge) may use the local
   `device_orders.id` as the order reference. See `contracts/websocket-events.contract.md`.
 - Payloads may include the local `id` for debugging, but `order_id` is the authoritative key.
+
+## Nexus active-order scope
+
+`DeviceOrder::scopeActiveOrder()` (`app/Models/DeviceOrder.php`) defines the server-side
+non-terminal set used for order recovery and active-session queries:
+
+| Status | Included |
+|---|---|
+| `pending` | ✅ |
+| `confirmed` | ✅ |
+| `in_progress` | ✅ |
+| `ready` | ✅ |
+| `served` | ✅ |
+| `completed` | ❌ terminal |
+| `cancelled` | ❌ terminal |
+| `voided` | ❌ terminal |
+| `archived` | ❌ terminal |
+
+**Implication for tablet recovery (TAB-CASE-011):** the tablet active-order recovery filter in
+`stores/Order.ts` must include all five non-terminal states above. Filtering on only
+`pending,confirmed,ready` (current behaviour) incorrectly excludes `in_progress` and `served`
+orders, causing in-flight orders to drop from the tablet session.
 
 ## What the tablet sees
 
@@ -79,3 +110,10 @@ the source of truth for identity, so every POS-sourced id is canonical — `orde
 - A failed local transaction must not leave a partial order state; POS rows remain authoritative.
 - When citing transitions in code review, check them against
   `OrderStatus::canTransitionTo()` — that method is the executable source of this table.
+
+## References
+
+- `woosoo-nexus/app/Enums/OrderStatus.php` — source of truth (enum cases + `canTransitionTo`)
+- `woosoo-nexus/app/Http/Controllers/Admin/KdsController.php` — `recall()` method (only consumer of recall edge)
+- `woosoo-nexus/contracts/order-state.contract.md` — Nexus-local mirror (KDS P2 decisions documented)
+- `docs/cases/kds-implementation-plan.md` § B5 — decision log (B5.1a/B5.1b)

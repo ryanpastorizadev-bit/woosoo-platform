@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_FILE="/etc/woosoo/woosoo.env"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$_PLATFORM_ROOT/woosoo.env" ]]; then
+    CONFIG_FILE="$_PLATFORM_ROOT/woosoo.env"
+  else
+    CONFIG_FILE="/etc/woosoo/woosoo.env"
+  fi
+fi
 
 if [[ $EUID -ne 0 ]]; then
   echo "Run as root: sudo bash scripts/deployment/woosoo-backup.sh"
@@ -9,9 +18,14 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
-  echo "Missing $CONFIG_FILE"
+  echo "Missing $CONFIG_FILE — run: bash scripts/deployment/init-woosoo-env.sh"
   exit 1
 fi
+
+# Validate the config before this root process sources it.
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
 
 set -a
 # shellcheck source=/dev/null
@@ -63,6 +77,22 @@ if [[ ! -d "$WOOSOO_PLATFORM_PATH" ]]; then
 fi
 
 cd "$WOOSOO_PLATFORM_PATH"
+
+# Backup-target detection. We must NEVER silently skip a backup when real DB data
+# exists — only a truly fresh machine (no data volume at all) is allowed to no-op.
+if ! docker_compose ps --status running --services 2>/dev/null | grep -qx "$MYSQL_SERVICE"; then
+  # Container isn't running. Is there a MySQL data volume holding real data?
+  db_volume="$(docker volume ls --format '{{.Name}}' 2>/dev/null | grep -E '(^|_)mysql_data$' | head -n1 || true)"
+  if [[ -z "$db_volume" ]]; then
+    echo "No '$MYSQL_SERVICE' container and no MySQL data volume — first deploy. Skipping backup."
+    exit 0
+  fi
+  echo "ERROR: MySQL data volume '$db_volume' exists but the '$MYSQL_SERVICE' container is not running." >&2
+  echo "       Refusing to deploy without backing up existing database data." >&2
+  echo "       Start the database first, then re-run the deploy:" >&2
+  echo "         (cd \"$WOOSOO_PLATFORM_PATH\" && $WOOSOO_DOCKER_COMPOSE up -d $MYSQL_SERVICE)" >&2
+  exit 1
+fi
 
 BACKUP_FILE="$WOOSOO_BACKUP_DIR/db/${DB_NAME}_$(date +%F_%H%M%S).sql.gz"
 TEMP_SQL_FILE="${BACKUP_FILE%.gz}.tmp"

@@ -6,9 +6,13 @@ Raw intake records reports only. It does not create case files and does not impl
 
 ---
 
-## Step 1 — Read `inbox/RAW.md`
+## Step 1 — Read `inbox/RAW.md` and `docs/LESSONS.md`
 
 Check whether the same issue already has a RAW entry.
+
+Also check `docs/LESSONS.md`: if this report matches a known failure mode, reference the `L-NNN`
+entry. A **recurrence of an already-logged issue** is a signal the existing guard failed — note
+that in the RAW entry so triage can escalate the guard (test/lint/rule), not just re-fix.
 
 If a duplicate exists:
 - reference the existing RAW ID
@@ -89,4 +93,7 @@ Missing to confirm:
 
 Recommended next step:
 Run `triage RAW-YYYYMMDD-NNN` to convert this into a flat case file under `docs/cases/`.
+
+Operator (Obsidian): after triage, Templater → `Templates/CASE_FILE.md` → save as
+`docs/cases/<slug>.md`; add a row to `state/QUEUE.md`. Pin [[OPERATOR_HOME]] for queue embeds.
 ```

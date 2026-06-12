@@ -37,6 +37,10 @@ Create:
 docs/cases/<task-slug>.md
 ```
 
+After creation: run `scripts/obsidian-case-registry.ps1` (or add `[[<task-slug>]]` to
+`docs/cases/CASE_REGISTRY.md`) so the case is not an Obsidian graph orphan. Add `[[related-case]]`
+wikilinks in the case body when dependencies exist.
+
 Required sections:
 - YAML frontmatter with `status: canonical`, `last_reviewed`, and `scope`
 - `## Run State`
@@ -62,7 +66,7 @@ Initial Run State:
 - status: IN_PROGRESS
 - last_completed_agent: contrarian
 - next_agent: specialist:<name>
-- active_runner: claude-code
+- active_runner: claude-code   # the runner that created the case; flips to the Specialist's runner on handoff
 - interrupted: false
 - interrupt_reason: none
 - updated: YYYY-MM-DD

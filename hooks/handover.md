@@ -21,7 +21,17 @@ If these are missing, stop. Do not write to `state/DONE.md`.
 
 ---
 
-## Step 2 — Update State Files
+## Step 2 — Obsidian hygiene + Lessons capture
+
+Ensure `docs/cases/CASE_REGISTRY.md` lists the case (`scripts/obsidian-case-registry.ps1`).
+Operator can track completion on `docs/cases/OPS_KANBAN.md` or `docs/cases/OPERATOR_HOME.md`.
+
+**Lessons capture (mandatory check):** if this task involved a mistake, a wrong assumption, a
+repeated failure, or a non-obvious gotcha, append an entry to `docs/LESSONS.md` (symptom → root
+cause → guard). If the same root cause has now appeared twice, promote its guard to an enforced
+rule in `docs/AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules` and link it from the ledger.
+
+## Step 3 — Update State Files
 
 Append to `state/DONE.md`:
 
@@ -43,7 +53,7 @@ Update `state/WORK.md`:
 
 ---
 
-## Step 3 — Prune If Needed
+## Step 4 — Prune If Needed
 
 - Keep the last 30 approved rows in `state/DONE.md`
 - Move older approved rows to `docs/archive/DONE_ARCHIVE.md`
@@ -51,7 +61,7 @@ Update `state/WORK.md`:
 
 ---
 
-## Step 4 — Output
+## Step 5 — Output
 
 ```markdown
 ## Handover Complete

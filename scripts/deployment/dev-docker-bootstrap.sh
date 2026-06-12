@@ -34,13 +34,26 @@ NEXUS_DIR="$PLATFORM_ROOT/woosoo-nexus"
 TABLET_DIR="$PLATFORM_ROOT/tablet-ordering-pwa"
 
 # Dev-mode defaults. Override by setting these env vars before invocation.
-DEV_PUBLIC_HOST="${DEV_PUBLIC_HOST:-192.168.100.7}"     # this PC (also home POS)
+# shellcheck source=scripts/lib/host-network.sh
+source "$PLATFORM_ROOT/scripts/lib/host-network.sh"
+_detected_lan_ip="$(woosoo_detect_lan_ip 2>/dev/null || true)"
+_detected_lan_ip="${_detected_lan_ip//$'\r'/}"
+_detected_lan_ip="${_detected_lan_ip//$'\n'/}"
+if [[ -z "${DEV_PUBLIC_HOST:-}" && -z "${WOOSOO_PUBLIC_HOST:-}" && -z "$_detected_lan_ip" ]]; then
+  echo "ERROR: Could not detect LAN IP for PUBLIC_HOST." >&2
+  echo "       Set DEV_PUBLIC_HOST or WOOSOO_PUBLIC_HOST before running bootstrap." >&2
+  exit 1
+fi
+DEV_PUBLIC_HOST="${DEV_PUBLIC_HOST:-${WOOSOO_PUBLIC_HOST:-$_detected_lan_ip}}"
 DEV_PUBLIC_SCHEME="${DEV_PUBLIC_SCHEME:-https}"
-DEV_SERVER_IP="${DEV_SERVER_IP:-192.168.100.7}"
+DEV_SERVER_IP="${DEV_SERVER_IP:-$DEV_PUBLIC_HOST}"
 DEV_TIMEZONE="${DEV_TIMEZONE:-Asia/Manila}"
 
-# POS DB connection (krypton_woosoo on the same dev PC).
-DEV_POS_HOST="${DEV_POS_HOST:-host.docker.internal}"   # reach Windows host from container
+# POS DB connection (krypton_woosoo on the Windows host when using WSL2 Docker Engine).
+# WSL2 Docker Engine: host.docker.internal resolves to the WSL VM, not Windows — use the
+# detected Windows LAN IP (same as PUBLIC_HOST) so containers reach Krypton on :3308.
+# Docker Desktop on Windows: override with DEV_POS_HOST=host.docker.internal if that works.
+DEV_POS_HOST="${DEV_POS_HOST:-$DEV_PUBLIC_HOST}"
 DEV_POS_PORT="${DEV_POS_PORT:-3308}"
 DEV_POS_DATABASE="${DEV_POS_DATABASE:-krypton_woosoo}"
 DEV_POS_USERNAME="${DEV_POS_USERNAME:-krypton_readonly}"
@@ -140,6 +153,7 @@ NEXUS_ENV="$NEXUS_DIR/.env"
 if [[ -f "$NEXUS_ENV" ]]; then
   BACKUP_NAME="$NEXUS_ENV.bak.$(date +%F_%H%M%S)"
   cp "$NEXUS_ENV" "$BACKUP_NAME"
+  chmod 600 "$BACKUP_NAME"
   echo "Backed up existing .env -> $BACKUP_NAME"
 fi
 
@@ -193,7 +207,7 @@ set_env "DB_USERNAME"       "$DEV_DB_USERNAME"
 set_env "DB_PASSWORD"       "$DEV_DB_PASSWORD"
 set_env "DB_ROOT_PASSWORD"  "$DEV_DB_ROOT_PASSWORD"
 
-# POS DB (krypton_woosoo) — reach Windows host from container
+# POS DB (krypton_woosoo) — Windows LAN IP for WSL2 Docker Engine; override for Docker Desktop
 set_env "DB_POS_HOST"     "$DEV_POS_HOST"
 set_env "DB_POS_PORT"     "$DEV_POS_PORT"
 set_env "DB_POS_DATABASE" "$DEV_POS_DATABASE"
@@ -235,6 +249,9 @@ set_env "CORS_ALLOWED_ORIGINS"     "${DEV_PUBLIC_SCHEME}://${DEV_PUBLIC_HOST},${
 
 # Device auth
 set_env "DEVICE_AUTH_PASSCODE" "$DEV_DEVICE_AUTH_PASSCODE"
+
+# Lock down the secret-bearing .env (mirrors apply-woosoo-config.sh on the Pi).
+chmod 600 "$NEXUS_ENV"
 
 echo "OK: nexus/.env written"
 echo

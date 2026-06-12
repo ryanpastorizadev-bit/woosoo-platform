@@ -15,7 +15,21 @@
 # =============================================================================
 set -euo pipefail
 
-CONFIG_FILE="${CONFIG_FILE:-/etc/woosoo/woosoo.env}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PLATFORM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ -z "${CONFIG_FILE:-}" ]]; then
+  if [[ -f "$_PLATFORM_ROOT/woosoo.env" ]]; then
+    CONFIG_FILE="$_PLATFORM_ROOT/woosoo.env"
+  else
+    CONFIG_FILE="/etc/woosoo/woosoo.env"
+  fi
+fi
+
+# Validate the config before sourcing it (doctor runs under sudo via deploy/deploy-all).
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/_config-guard.sh"
+woosoo_assert_safe_config "$CONFIG_FILE" || exit 1
+
 PASS=0
 WARN=0
 FAIL=0
@@ -191,6 +205,21 @@ if [[ -n "$WOOSOO_PLATFORM_PATH" ]]; then
   # fullchain.pem; in production it is the mkcert CA root.
   if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" ]]; then
     pass "docker/certs/rootCA.crt exists (bootstrap endpoint will resolve)"
+    if [[ -f "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" ]] && command -v openssl >/dev/null 2>&1; then
+      # A device installs rootCA.crt as its trust anchor; nginx serves fullchain.pem.
+      # Trust holds in two valid topologies: dev self-signed (rootCA is a byte copy of
+      # fullchain) and production mkcert (rootCA is the CA that signed fullchain). Only
+      # warn when rootCA is NEITHER — e.g. a stale dev copy left after regenerating
+      # fullchain. Fingerprint equality alone would false-positive on the prod CA root.
+      root_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" -noout -fingerprint -sha256 2>/dev/null || true)"
+      chain_fp="$(openssl x509 -in "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" -noout -fingerprint -sha256 2>/dev/null || true)"
+      if [[ "$root_fp" != "$chain_fp" ]] \
+         && ! openssl verify -CAfile "$WOOSOO_PLATFORM_PATH/docker/certs/rootCA.crt" \
+              "$WOOSOO_PLATFORM_PATH/docker/certs/fullchain.pem" >/dev/null 2>&1; then
+        warn "rootCA.crt neither matches nor signed fullchain.pem — devices that install the CA will still distrust HTTPS"
+        warn "Dev: re-run docker/certs/generate-dev-certs.sh. Prod: ensure rootCA.crt is the CA that issued fullchain.pem."
+      fi
+    fi
   else
     fail "docker/certs/rootCA.crt missing — /woosoo-ca.crt will 404. Run docker/certs/generate-dev-certs.sh or copy the mkcert CA."
   fi

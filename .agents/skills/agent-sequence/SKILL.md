@@ -9,7 +9,7 @@ Mandatory order for every non-trivial task:
 
 ```txt
 1. Contrarian   — challenge the request, classify tier, decide path
-2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | dazai-docs | infra)
+2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
 3. Verifier     — prove it works (tests / build / lint / health)
 4. Executioner  — final verdict gate
 ```

@@ -98,6 +98,9 @@ services:
     volumes:
       - ./woosoo-nexus:/var/www/html  # dev/staging: bind-mount; remove for immutable production image
       - /var/www/html/node_modules    # anonymous: use image's Linux node_modules, never the host's
+      # Platform TLS certs (same files nginx mounts at /etc/nginx/certs). Required for the public
+      # welcome page + devices.download-certificate; woosoo-nexus/docker/certs is not in the app repo.
+      - ./docker/certs:/var/www/html/docker/certs:ro
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
       - storage_data:/var/www/html/storage
     depends_on:
@@ -194,7 +197,7 @@ services:
       # TCP probe on the WS port — proves the Reverb server is actually
       # accepting connections, not just that the PHP process is alive.
       # Same fsockopen pattern as the `app` service's PHP-FPM probe.
-      test: ["CMD-SHELL", "php -r \"if(!($$s=fsockopen('127.0.0.1',8080,$$e,$$m,3)))exit(1);fclose($$s);\""]
+      test: ["CMD", "php", "-r", "if(!($$s=fsockopen('127.0.0.1',8080,$$e,$$m,3)))exit(1);fclose($$s);"]
       interval: 15s
       timeout: 5s
       retries: 5
