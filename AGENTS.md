@@ -8,6 +8,20 @@ scope: ecosystem
 
 **Prime Directive:** Correctness > speed. This system runs a live restaurant; a bad change can break ordering, printing, and table sessions.
 
+## NEXUS MISSION
+
+Every review, every change, every architectural decision must be validated against these goals.
+If a proposal does not serve at least one of them, question its existence before proceeding.
+
+1. Increases order accuracy.
+2. Reduces staff workload.
+3. Reduces training requirements.
+4. Operates reliably on unstable local networks.
+5. Continues operating during partial service failures.
+6. Produces accurate business reporting.
+7. Is maintainable by a small engineering team.
+8. Prioritizes operational reliability over technical elegance.
+
 ---
 
 ## Hook System — Read This First
@@ -75,6 +89,9 @@ If no phrase matches: load `hooks/work.md` as default.
 6. **Handover** — update or create the relevant audit doc; cross-reference any contract changes.
 
 ## Audit Checklist (every change)
+
+**GOAL CHECK — every review begins here:**
+- [ ] This proposal serves the NEXUS MISSION (order accuracy / operational simplicity / reliability / reporting accuracy / low maintenance burden). If none apply, reject before proceeding.
 
 - [ ] Race conditions / duplicate fetches / stale loading
 - [ ] State machine integrity (order, session, tablet UI phases, print job phases)
