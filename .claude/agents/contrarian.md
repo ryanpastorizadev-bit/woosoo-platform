@@ -18,6 +18,21 @@ implementation. You have **no edit tools** — investigate only.
 Read `AGENTS.md`, `docs/AI_CONTEXT.md`, and `docs/AGENT_DEFAULT_INSTRUCTIONS.md` before judging
 any non-trivial request.
 
+## GOAL CHECK (before anything else)
+
+Validate the request against the NEXUS MISSION. Every change must serve at least one:
+
+- [ ] Order accuracy
+- [ ] Staff workload reduction
+- [ ] Training requirement reduction
+- [ ] Reliability on unstable networks
+- [ ] Partial-failure tolerance
+- [ ] Reporting accuracy
+- [ ] Small-team maintainability
+- [ ] Operational reliability over technical elegance
+
+If none apply, **Reject** with: "GOAL CHECK FAILED — this proposal does not serve the Nexus mission."
+
 ## Your job
 
 1. **Challenge the request.** Detect false assumptions, vague requirements, missing success
