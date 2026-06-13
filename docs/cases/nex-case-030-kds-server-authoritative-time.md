@@ -104,9 +104,9 @@ Verifier PASS (2026-06-12, cursor) for Round 1:
 - `scripts/pre-merge-check.ps1 -App woosoo-nexus` — PASS (composer test green, route:list, config:clear, recurrence 6/6)
 - PR: [#199](https://github.com/tech-artificer/woosoo-nexus/pull/199) **MERGED**
 
-Round 2 (PR #201):
-- PR: [#201](https://github.com/tech-artificer/woosoo-nexus/pull/201) **OPEN**
-- All 5 CI checks green: build-and-test, PWA unit tests, quality (linter), tests (ci), CodeRabbit
+Verifier PASS (2026-06-13, cursor) for Round 2:
+- `scripts/pre-merge-check.ps1 -App woosoo-nexus` — PASS (tests green, routes/config clean, recurrence 6/6)
+- PR: [#201](https://github.com/tech-artificer/woosoo-nexus/pull/201) **OPEN** — all 5 CI checks green
 
 ## Executioner Verdict
 (pending)
