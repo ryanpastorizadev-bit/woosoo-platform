@@ -26,8 +26,8 @@ tags: [app/platform, status/in-progress, tier/2]
 - tier: 2
 - branch: dev
 - status: IN_PROGRESS
-- last_completed_agent: contrarian
-- next_agent: specialist:scribe
+- last_completed_agent: specialist:scribe
+- next_agent: verifier
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -176,10 +176,29 @@ changes included.
 | `.claude/settings.json` | Add `UserPromptSubmit` hook |
 | `docs/LESSONS.md` | Add L-016: workflow bypass prohibition |
 
+## Scribe Implementation
+
+**Commit:** `a819dc7` on `dev` (2026-06-14)
+
+**Files changed:**
+- `AGENTS.md` — Step 1 rewritten as mandatory vault read; Step 1b is now resume check; Step 1c is hub navigation table (unchanged content, updated framing)
+- `hooks/work.md` — Step 0b replaced: "Agents do not open Obsidian" removed; vault read is now mandatory; slug derivation from WORK.md documented; hook injection note added
+- `scripts/vault-inject.ps1` — new 45-line fail-safe script; reads state/WORK.md + OPERATOR_HOME "Right now" section; resolves `![[state/WORK#Current Task]]` embed inline; outputs `<vault-state>` block to stdout; exits 0 on any error (missing files, permission errors)
+
+**Blocked (operator action required):**
+- `.claude/settings.json` `UserPromptSubmit` hook — self-modification hard block prevents agent from editing this file. Operator must add manually:
+```json
+"hooks": {
+  "UserPromptSubmit": [
+    { "matcher": "", "hooks": [{ "type": "command", "command": "powershell -NonInteractive -NoProfile -File scripts/vault-inject.ps1" }] }
+  ]
+}
+```
+
 ## Code Simplification
 
-Applicable to `scripts/vault-inject.ps1` — keep it under 50 lines; no external dependencies;
-pure file reads + stdout. code-simplifier reviews for dead paths and redundant logic.
+`scripts/vault-inject.ps1` — 45 lines, no external dependencies, pure file reads + stdout. No redundant logic or dead paths identified. SKIPPED formal review pass (below threshold for standalone review).
+SKIPPED: AGENTS.md and hooks/work.md are docs/prose — no dead-code-cleanup applicable.
 
 ## Verification
 
