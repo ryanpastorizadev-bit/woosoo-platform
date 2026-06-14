@@ -113,6 +113,8 @@ Docker orchestration authority is the **platform repo root** (sibling model — 
 ## Strategic
 
 - [WOOSOO_ROADMAP_REVIEW.md](WOOSOO_ROADMAP_REVIEW.md) — strategic roadmap, reconciled with the four 2026-05-14 audits (Audit reconciliation section is canonical; original analysis preserved)
+- [WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14.md](WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14.md) — five-thread productivity and delivery improvement program (tooling, WSL staging, docs gaps, UI tests, dashboard)
+- [business/WOOSOO_DELIVERY_DASHBOARD.md](business/WOOSOO_DELIVERY_DASHBOARD.md) — stakeholder delivery dashboard: 4 lenses, feature inventory, cost model
 
 ## Audit trail
 
