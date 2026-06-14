@@ -68,6 +68,7 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 | P2 | NEX-CASE-015 | woosoo-nexus | Intent-only device order payload — **COMPLETE 2026-06-07** (merged PR #178 `f3f79d8`). Case: `nex-case-015-tablet-intent-payload-hardening.md` | 2 | none | complete | — |
 | P3 | PLT-CASE-EXECUTIONER-SIMPLIFIER-GATE | woosoo-platform | Add reject clause to `executioner.md`: missing `## Code Simplification` without documented reason → REJECTED. Case: `plt-case-executioner-simplifier-gate.md` | 1 | none | queued | — |
 | P3 | PLT-CASE-CHAIN-DOC-SYNC | woosoo-platform | Sync `AGENTS.md` inline summary (omits scribe) + `hooks/execute.md` + `PROTOCOL.md` to the 6-step chain. Case: `plt-case-chain-doc-sync.md` | 1 | none | queued | — |
+| P3 | PLT-CASE-TOOLING-IMPROVEMENT-PROGRAM | woosoo-platform | Five-thread improvement program (tooling wiring, WSL staging, docs gaps, UI tests, delivery dashboard). Sub-cases routed per table in `plt-case-tooling-improvement-program.md`. | 1 | none | in_progress | — |
 
 ### Bucket C — Deferred (post-stabilization features; do NOT gate any promotion)
 

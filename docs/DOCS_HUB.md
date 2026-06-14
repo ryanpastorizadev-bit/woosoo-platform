@@ -28,6 +28,7 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[WOOSOO_DOCUMENT_CONTEXT]]
 - [[WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14]]
 - [[WOOSOO_ROADMAP_REVIEW]]
+- [[WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14]] — five-thread productivity + delivery improvement program (Threads A-E)
 
 ## Architecture
 
@@ -46,6 +47,7 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[business/WOOSOO_PLATFORM_BRD_SUPPLEMENT]]
 - [[business/WOOSOO_ORIGIN_SPECIFICATION]]
 - [[business/WOOSOO_SPEC_DELTA]]
+- [[business/WOOSOO_DELIVERY_DASHBOARD]] — stakeholder delivery dashboard (4 lenses, feature inventory, cost model)
 - [[audits/DOCS_AUDIT_2026-05-14]]
 - [[audits/infra-assessment-validated-2026-05-19]]
 

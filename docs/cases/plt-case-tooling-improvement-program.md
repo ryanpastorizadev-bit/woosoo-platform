@@ -7,7 +7,7 @@ app: platform
 run_status: IN_PROGRESS
 tier: 1
 next_agent: specialist:infra
-branch: claude/improvement-program-2026-06-14
+branch: docs/improvement-program-2026-06-14
 interrupted: false
 updated: 2026-06-14
 tags: [app/platform, status/in-progress, tier/1]
@@ -29,7 +29,7 @@ buildable item as a case through the standard agent chain; nothing bypasses Tier
 
 - task_slug: plt-case-tooling-improvement-program
 - tier: 1
-- branch: claude/improvement-program-2026-06-14
+- branch: docs/improvement-program-2026-06-14
 - status: IN_PROGRESS
 - last_completed_agent: specialist:infra
 - next_agent: verifier
@@ -70,7 +70,7 @@ This handoff note was relayed from the web Claude session (claude.ai) that resea
 
 ## Branch
 
-claude/improvement-program-2026-06-14
+docs/improvement-program-2026-06-14
 
 ## Problem
 
