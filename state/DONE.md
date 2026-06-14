@@ -35,6 +35,7 @@ scope: ecosystem
 | NEX-CASE-006 | woosoo-nexus | 2026-05-20 | HealthBroadcastingTest (143 lines) + VerifyIntegrityCommandTest (128 lines); /api/health broadcasting key/config consistency; VerifyIntegrityCommand artisan command; merged to staging via PR #120 | APPROVED (retrospective) | none | Broadcast integrity check — was QUARANTINE branch; retrospectively closed |
 | PLT-CASE-008 | woosoo-platform | 2026-05-20 | PROTOCOL.md + docs multi-repo terminology corrected; apply-woosoo-config.sh require_var guards + REVERB_HOST=reverb; PR #10 merged | APPROVED | none | GitHub Issue #9 P1 remediation — multi-repo terminology + deploy script hardening |
 | PLT-CASE-009 | woosoo-platform | 2026-05-19 | REVERB_HOST set_env corrected to Docker service DNS `reverb`; single set_env/no duplicate checks green; woosoo-nexus full suite 398 passed (1386 assertions) | APPROVED | none | Docker MySQL/Redis code case closed; Pi logs/health checks remain post-deploy operational follow-up |
+| PLT-CASE-GOVERNANCE-HARDENING-2026-06-08 | woosoo-platform | 2026-06-09 | recurrence-check.{ps1,sh} 6/6 detectors; authority wiring (AGENTS.md ↔ .cursor/rules); LESSONS L-012..L-015; Lint 0/0/0; Verifier PASS. Shipped 332c46c..bcb90cf on origin/dev. | APPROVED | none | Executioner APPROVED 2026-06-09. Remaining Must-Fix items 5+6 tracked in plt-case-non-complete-audit. |
 
 ---
 <!--
