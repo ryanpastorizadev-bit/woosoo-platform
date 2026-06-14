@@ -105,6 +105,8 @@ Five threads (full detail in the session strategy / plan). Sub-case breakdown to
 ## Files Changed
 - `docs/cases/plt-case-tooling-improvement-program.md` — new (this file).
 - `state/QUEUE.md` — one Bucket C program row.
+- `docs/WOOSOO_IMPROVEMENT_STRATEGY_2026-06-07.md` — new (threads A–D strategy).
+- `docs/business/WOOSOO_DELIVERY_DASHBOARD.md` — new (thread E populated dashboard).
 
 ## Verification
 - Per `documentation-truth-audit`: every path/hook/skill/script/command referenced exists; dashboard %/₱ trace to named sources (`WOOSOO_SPEC_DELTA.md`, `QUEUE.md`/`DONE.md`, deploy gates); forward numbers labeled *estimate*.
@@ -112,9 +114,11 @@ Five threads (full detail in the session strategy / plan). Sub-case breakdown to
 - Reading test: an operator can find, per thread, the next action + Bucket/case + axis in under a minute.
 
 ## Documentation Sync
-This case file is the documentation artifact. The strategy doc (`docs/WOOSOO_IMPROVEMENT_STRATEGY_2026-06-07.md`)
-and dashboard (`docs/business/WOOSOO_DELIVERY_DASHBOARD.md`) are to be authored under their own
-sub-cases (`plt-case-delivery-dashboard`, `scribe-case-*`) and are intentionally not created here.
+This case file is the documentation artifact. The strategy doc
+(`docs/WOOSOO_IMPROVEMENT_STRATEGY_2026-06-07.md`, threads A–D) and the populated dashboard
+(`docs/business/WOOSOO_DELIVERY_DASHBOARD.md`, thread E) were authored alongside this case
+(2026-06-14). The Google Sheet mirror and the remaining gap-fill docs are deferred to their
+sub-cases (`plt-case-delivery-dashboard`, `scribe-case-*`).
 
 ## Executioner Verdict
 N/A — planning/handoff case. Verdicts are rendered per sub-case as they complete locally.
