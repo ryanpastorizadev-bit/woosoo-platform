@@ -10,7 +10,7 @@ next_agent: done
 branch: agent/tab-case-packages-api-v2
 interrupted: false
 updated: 2026-06-14
-tags: [app/tablet, status/in-progress, tier/2]
+tags: [app/tablet, status/complete, tier/2]
 ---
 
 # CASE: tab-case-014-packages-api-v2-compatibility
