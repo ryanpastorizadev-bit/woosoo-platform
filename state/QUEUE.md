@@ -71,6 +71,7 @@ _(empty — all stabilization gates cleared; promote `dev → staging → main`)
 
 | Priority | Case ID | App | Description | Tier | Dep | Status | GH |
 |---|---|---|---|---|---|---|---|
+| P3 | PLT-CASE-TOOLING-PROGRAM | woosoo-platform | **Umbrella/handoff** — Cursor-tooling + delivery-improvement program (5 threads A–E): Cursor tool integration, MCP topology (WSL staging mirror), docs gap-fill + GDocs mirror, UI-accuracy test suite, delivery dashboard. Splits into per-app sub-cases (see case file table); **implemented locally in Cursor**. Datadog deferred. Case: `plt-case-tooling-improvement-program.md` | 2 | none | planned (manual-handoff) | — |
 | P3 | PLT-CASE-003 | woosoo-platform | Cross-app orchestration — **deferred by priority, not dep-blocked** (DEP-001/002/003 all `confirmed`) | 3 | none (deps confirmed) | deferred | — |
 | P3 | KDS-EPIC | woosoo-nexus | Kitchen Display System v1.0 (PR-0A…PR-7). Spec: `docs/cases/kds-implementation-plan.md`. Gate: complete plt-case-stability-remediation Pi ops first | 3 | none | deferred | #137,#143,#144,#145,#146,#147,#148 |
 | P3 | — | woosoo-nexus | Device telemetry feature (battery/online detail) | 2 | none | deferred | #152 |
