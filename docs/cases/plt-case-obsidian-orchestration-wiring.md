@@ -26,8 +26,8 @@ tags: [app/platform, status/in-progress, tier/2]
 - tier: 2
 - branch: dev
 - status: IN_PROGRESS
-- last_completed_agent: specialist:scribe
-- next_agent: verifier
+- last_completed_agent: verifier
+- next_agent: executioner
 - active_runner: claude-code
 - interrupted: false
 - interrupt_reason: none
@@ -210,9 +210,22 @@ SKIPPED: AGENTS.md and hooks/work.md are docs/prose — no dead-code-cleanup app
 5. Add a LESSONS entry and confirm `recurrence-check` governance guards still pass:
    `.\scripts\recurrence-check.ps1`
 
+## Verification
+
+**Verifier run: 2026-06-14 — PASS**
+
+1. `hooks/work.md` Step 0b — "Agents do not open Obsidian" phrase: **NOT FOUND (correct)** ✅
+2. `AGENTS.md` Step 1 heading contains "mandatory": **CONFIRMED** ✅
+3. `scripts/recurrence-check.ps1` — 6/6 guards PASS (CHK-PS-ASCII, CHK-PS-PARSE both PASS after two fix commits: em dash removal + `$home` → `$homeContent` reserved-var rename) ✅
+4. `scripts/vault-inject.ps1` produces `<vault-state>` block with WORK.md content when run from platform root ✅
+5. `docs/LESSONS.md` L-016 entry present (committed `e57f06c`) ✅
+
+**Blocked (operator action required — not a verifier failure):**
+- `.claude/settings.json` UserPromptSubmit hook must be added manually. Self-modification classifier prevents agent from editing this file. Hook command: `powershell -NonInteractive -NoProfile -File scripts/vault-inject.ps1`
+
 ## Executioner Verdict
 
-_Awaiting specialist + verifier._
+_Awaiting executioner._
 
 ## Remaining Risks
 
