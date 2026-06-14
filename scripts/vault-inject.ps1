@@ -18,9 +18,9 @@ try {
     $work = Get-Content $workFile -Raw -ErrorAction Stop
 
     # Extract the "Right now" section from OPERATOR_HOME (up to next --- divider)
-    $home = Get-Content $homeFile -Raw -ErrorAction Stop
+    $homeContent = Get-Content $homeFile -Raw -ErrorAction Stop
     $rightNow = ''
-    if ($home -match '(?s)## Right now\r?\n(.*?)(\r?\n---\r?\n|\z)') {
+    if ($homeContent -match '(?s)## Right now\r?\n(.*?)(\r?\n---\r?\n|\z)') {
         $rightNow = $Matches[1].Trim()
     }
 
