@@ -8,7 +8,7 @@
     Case: plt-case-obsidian-orchestration-wiring
 #>
 
-$root = $PSScriptRoot ? (Split-Path $PSScriptRoot -Parent) : (Get-Location).Path
+if ($PSScriptRoot) { $root = Split-Path $PSScriptRoot -Parent } else { $root = (Get-Location).Path }
 $workFile   = Join-Path $root 'state\WORK.md'
 $homeFile   = Join-Path $root 'docs\cases\OPERATOR_HOME.md'
 
@@ -29,13 +29,13 @@ try {
 
     $out = @"
 <vault-state>
-<!-- Auto-injected by scripts/vault-inject.ps1 — do not edit this block -->
+<!-- Auto-injected by scripts/vault-inject.ps1 - do not edit this block -->
 
 ## Active work (state/WORK.md)
 
 $($work.Trim())
 
-## Operator context (OPERATOR_HOME — Right now)
+## Operator context (OPERATOR_HOME - Right now)
 
 $rightNow
 </vault-state>
