@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**115 cases** · 93 complete · 20 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**116 cases** · 95 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -61,7 +61,8 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[tab-case-010-canonical-order-id-and-detail-sync]] | ✅ COMPLETE | 2026-06-02 | Make the tablet use the canonical POS order_id consistently, and consume the new |
 | [[tab-case-011-active-order-recovery-filter]] | ✅ COMPLETE | 2026-06-07 | The tablet active-order recovery filter at stores/Order.ts (~line 807) queries only |
 | [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | pages/settings.vue:1176 renders raw testOrderError text in a <pre> block inside the |
-| [[tab-case-013-packages-api-v2-compatibility]] | 🟡 IN_PROGRESS | 2026-06-14 | > PWA adaptation to the new v2 packages API shape introduced by nex-case-032 (PR #216). The |
+| [[tab-case-013-settings-device-ip-display]] | ✅ COMPLETE | 2026-06-14 | Settings IP field showed WSL2 gateway instead of real LAN IP — WebRTC-first + private-IP filter fix. PR #205 merged. |
+| [[tab-case-014-packages-api-v2-compatibility]] | ✅ COMPLETE | 2026-06-14 | PWA adaptation to the new v2 packages API shape (PR #207). `allowed_menus[]` replaces `modifiers[]`; `base_price` replaces `price`. Executioner APPROVED. |
 
 ## Print bridge (`prn-*`)
 
