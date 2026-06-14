@@ -12,25 +12,31 @@ scope: ecosystem
 
 ## Hook System — Read This First
 
-**Step 1 — Resume check (mandatory, per `docs/RESUME_PROTOCOL.md`).**
-Derive the task slug and check `docs/cases/<task-slug>.md`.
+**Step 1 — Read vault state (mandatory first, before anything else).**
+The platform vault already knows what is active. Read these two files; do not search.
+- `state/WORK.md` → `task_id`, `status`, `tier`, `case_file`, `next_action`
+- `docs/cases/OPERATOR_HOME.md` → P0/P1/P2 gates, deploy queue, priority table
+
+If `task_id` is non-empty and `status` is `in_progress`: use that slug as the resume target.
+Do not derive the slug from the user's message — the vault is authoritative.
+
+> **Note:** `state/WORK.md` is injected automatically via `UserPromptSubmit` hook. If already
+> present in your context, skip the manual read and proceed directly to Step 1b.
+
+**Step 1b — Resume check (mandatory, per `docs/RESUME_PROTOCOL.md`).**
+Using the slug from Step 1, check `docs/cases/<task-slug>.md`.
 - Exists with `IN_PROGRESS` or `BLOCKED`: resume from `## Run State → next_agent`. Do not restart.
-- Exists with `COMPLETE`: do not reopen.
+- Exists with `COMPLETE`: do not reopen. Pull next task from `state/QUEUE.md`.
 - Absent: start fresh as Contrarian. Create case file from `docs/cases/_TEMPLATE.md`.
 
-**Step 1b — Consult `state/WORK.md` for quick routing after the resume check.**
-`state/WORK.md` is a convenience cache mirroring the active case's Run State.
-It is NOT the authoritative durable state — `docs/cases/<slug>.md` is.
-It tells you the active task, current status, and exact next action when you already know no resume is needed.
-
-**Step 1c — Obsidian vault map (navigation, same files).**
-The platform repo is an Obsidian vault. Agents **refer to** these hubs when finding cases,
-contracts, or related work — do not duplicate state elsewhere.
+**Step 1c — Vault hub map (navigation when needed).**
+The platform repo is an Obsidian vault. Use these hubs when finding related cases or contracts.
+Do not duplicate state from these hubs — they are read-only navigation sources.
 
 | Hub | Path | Use when |
 |-----|------|----------|
 | Vault index | `docs/VAULT_INDEX.md` | First-time navigation; orphan policy |
-| Operator home | `docs/cases/OPERATOR_HOME.md` | Active work embeds (`state/WORK`, queue) |
+| Operator home | `docs/cases/OPERATOR_HOME.md` | Active work, priority table, queue (already read in Step 1) |
 | Case registry | `docs/cases/CASE_REGISTRY.md` | Full case list + wikilink graph |
 | Case index | `docs/cases/CASE_INDEX.md` | Dataview — recently reviewed cases |
 | Contracts | `docs/cases/CONTRACTS_HUB.md` | Cross-app contract links |

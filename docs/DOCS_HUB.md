@@ -48,7 +48,6 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[business/WOOSOO_SPEC_DELTA]]
 - [[audits/DOCS_AUDIT_2026-05-14]]
 - [[audits/infra-assessment-validated-2026-05-19]]
-- [[CASE_AUDIT_2026-05-18]]
 
 ## Operator logs
 
@@ -56,5 +55,6 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 
 ## Archive (historical)
 
+- [[CASE_AUDIT_2026-05-18]] — point-in-time snapshot (11 cases, 2026-05-18); live view is [[cases/CASE_DASHBOARD|CASE_DASHBOARD]]
 - [[archive/agent-sessions-2026-05]] — not source of truth
 - [[archive/refactor-woosoo-nexus-n1-query-fixes-plan-2026-05-16]] — N+1 query refactor plan (planned; not yet a case)

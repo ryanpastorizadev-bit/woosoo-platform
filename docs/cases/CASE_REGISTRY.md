@@ -1,12 +1,12 @@
 ---
 status: canonical
-last_reviewed: 2026-06-12
+last_reviewed: 2026-06-14
 scope: ecosystem
 ---
 
 # Case Registry (summarized wikilink index)
 
-**107 cases** · 83 complete · 22 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**116 cases** · 95 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -25,7 +25,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-009-admin-menus-filters]] | ✅ COMPLETE | 2026-05-23 | MenuController@index returns course, group, category, is_available, and has_uploaded_image for every menu row, but th… |
 | [[nex-case-010-immutable-image-production-migration]] | ⛔ BLOCKED | 2026-05-31 | Track (do NOT yet implement) the migration to immutable production images so served assets come |
 | [[nex-case-011-duplicate-order-printing]] | code-complete | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
-| [[nex-case-012-admin-ui-prototype-impl]] | ⛔ BLOCKED | 2026-05-31 | > **Deferred — Bucket C feature.** Does NOT gate the dev→staging→main stabilization merge. |
+| [[nex-case-012-admin-ui-prototype-impl]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded.** Deliverable 3 (Vue SFCs for Packages and Tablet Categories) was |
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
@@ -34,11 +34,16 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-019-debug-endpoint-hardening]] | ✅ COMPLETE | 2026-06-09 | routes/api.php:378 returns 'Stored procedure call failed: '.$e->getMessage() when the POS |
 | [[nex-case-020-admin-ui-audit-fixes]] | ✅ COMPLETE | 2026-06-10 | A 24-item UI/UX + functionality audit across the woosoo-nexus admin panel (POS, Devices, Tablet Categories, Package C… |
 | [[nex-case-021-pos-connection-hardening]] | ✅ COMPLETE | 2026-06-09 | GET /pos returned a raw 500 QueryException when the pos connection used krypton_readonly with an empty password (usin… |
-| [[nex-case-022-nexus-full-review]] | 🟡 IN_PROGRESS | 2026-06-10 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
+| [[nex-case-022-nexus-full-review]] | ✅ COMPLETE | 2026-06-12 | Operator requested a full-stack review of woosoo-nexus: all admin features/pages, backend logic, bugs, edge cases, an… |
 | [[nex-case-024-kds-workflow]] | ✅ COMPLETE | 2026-06-10 | Kitchen Display used a 4-step workflow (New → Preparing → Ready → Served) with local-only state mutation (no backend… |
 | [[nex-case-025-admin-shell-migration]] | ✅ COMPLETE | 2026-06-10 | The STEP 1 partial shadcn sidebar implementation does not match the spec: |
-| [[nex-case-026-kds-visual-polish]] | 🟡 IN_PROGRESS | 2026-06-11 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
+| [[nex-case-026-kds-visual-polish]] | ✅ COMPLETE | 2026-06-12 | CSS-only KDS visual polish: overdue pulse, item-done affordance, readability tweaks, and dead .is-recall removal. One… |
 | [[nex-case-027-admin-pages-ui-redesign]] | ✅ COMPLETE | 2026-06-12 | Admin pages (Orders, POS, Packages, Dining Tiers, Menu Sync, Devices) needed presentational redesign aligned with nex… |
+| [[nex-case-028-admin-ui-handoff-completion]] | ✅ COMPLETE | 2026-06-12 | > Continues from nex-case-012 (superseded) and nex-case-027 (6-page redesign). |
+| [[nex-case-029-kds-action-payload-optimistic]] | ✅ COMPLETE | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
+| [[nex-case-030-kds-server-authoritative-time]] | ✅ COMPLETE | 2026-06-14 | > KDS P3 closeout. Two rounds on one branch: (1) server-authoritative elapsed time so |
+| [[nex-case-031-admin-functional-gap-fill]] | 🟡 IN_PROGRESS | 2026-06-13 | > Functional checklist gap-fill for Laravel/Vue admin console. React prototype handoff ignored; real app is target. |
+| [[nex-case-032-packages-dining-tier-consolidation]] | ✅ COMPLETE | 2026-06-14 | > Schema-level completion of the packages consolidation begun in PR #200. PR #216 merged; operator must run migrate + cache:clear. |
 
 ## Tablet (`tab-case-*`)
 
@@ -56,6 +61,8 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[tab-case-010-canonical-order-id-and-detail-sync]] | ✅ COMPLETE | 2026-06-02 | Make the tablet use the canonical POS order_id consistently, and consume the new |
 | [[tab-case-011-active-order-recovery-filter]] | ✅ COMPLETE | 2026-06-07 | The tablet active-order recovery filter at stores/Order.ts (~line 807) queries only |
 | [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | pages/settings.vue:1176 renders raw testOrderError text in a <pre> block inside the |
+| [[tab-case-013-settings-device-ip-display]] | ✅ COMPLETE | 2026-06-14 | Settings IP field showed WSL2 gateway instead of real LAN IP — WebRTC-first + private-IP filter fix. PR #205 merged. |
+| [[tab-case-014-packages-api-v2-compatibility]] | ✅ COMPLETE | 2026-06-14 | PWA adaptation to the new v2 packages API shape (PR #207). `allowed_menus[]` replaces `modifiers[]`; `base_price` replaces `price`. Executioner APPROVED. |
 
 ## Print bridge (`prn-*`)
 
@@ -96,7 +103,9 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[plt-case-non-complete-audit-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Accuracy audit of every **non-COMPLETE** case file in docs/cases/. For each case the audit |
 | [[plt-case-obsidian-dataview-hardening]] | 🟡 IN_PROGRESS | 2026-06-10 | Follow-up to [[plt-case-obsidian-operator-wiring]] — operator reported empty Dataview tables and |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
+| [[plt-case-obsidian-orchestration-wiring]] | ✅ COMPLETE | 2026-06-14 | The agent orchestration workflow treats Obsidian as a human-only UI. hooks/work.md Step 0b |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
+| [[plt-case-vault-audit-live-2026-06-14]] | ✅ COMPLETE | 2026-06-14 | docs/CASE_AUDIT_2026-05-18.md is a static point-in-time snapshot (11 cases, dated 2026-05-18) now |
 | [[plt-case-vault-doc-automation]] | ✅ COMPLETE | 2026-06-10 | Widespread vault doc staleness with no single operator-runnable hygiene entry-point. |
 
 ## Infra numbered (`infra-case-*`)
@@ -128,10 +137,10 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[dev-branch-markdown-stabilization-audit-review]] | ✅ COMPLETE | 2026-06-06 | Review the pasted "Dev Branch Markdown Stabilization Audit" plan review against the current source tree and identify… |
 | [[HANDOFF-infra-vite-build-conditional]] | - | - | Complete, copy-paste-ready implementation instructions for the infra Specialist. |
 | [[kds-implementation-plan]] | 🟡 IN_PROGRESS | 2026-06-11 | Kitchen Display System (KDS) implementation spec for woosoo-nexus. **Deferred** until |
-| [[kds-p2-recall]] | 🟡 IN_PROGRESS | 2026-06-10 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
+| [[kds-p2-recall]] | ✅ COMPLETE | 2026-06-12 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
-| [[nexus-ui-handoff-visual-implementation]] | 🟡 IN_PROGRESS | 2026-06-03 | The Nexus admin UI handoff is partially applied and has stale review findings. The remaining visual alignment work ne… |
+| [[nexus-ui-handoff-visual-implementation]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded by [[nex-case-028-admin-ui-handoff-completion]].** The handoff brand-alignment work scoped he… |
 | [[nexus-vite-entrypoint-rebuild]] | ✅ COMPLETE | 2026-05-30 | PR comment on woosoo-nexus/docker/docker-entrypoint.sh: the current entrypoint skips npm run build when public/build… |
 | [[pi-docker-runtime-diagnostics]] | ✅ COMPLETE | 2026-05-22 | The Raspberry Pi deployment needs production-ready diagnostics that enforce the Docker-only runtime model and catch R… |
 | [[pld-cli-hardening]] | ✅ COMPLETE | 2026-06-08 | Four MEDIUM hardening gaps in the pld CLI: |

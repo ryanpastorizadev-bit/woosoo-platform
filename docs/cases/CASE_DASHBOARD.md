@@ -22,6 +22,27 @@ script after run-state edits**. Hub links: [[CASE_INDEX]] · [[CASE_REGISTRY]] �
 > **Live deploy work** = [[OPERATOR_HOME]] + `state/QUEUE.md` (Bucket B). This dashboard shows
 > every non-COMPLETE case file — many are stale/deferred, not active tasks.
 
+## At a glance
+
+Total cases and completion breakdown — auto-updates when `obsidian-case-registry.ps1` is run after any Run State edit.
+
+```dataview
+TABLE WITHOUT ID rows.run_status AS Status, length(rows) AS Count
+FROM "docs/cases"
+WHERE run_status
+GROUP BY run_status
+SORT run_status ASC
+```
+
+```dataview
+LIST WITHOUT ID length(rows) + " total cases tracked"
+FROM "docs/cases"
+WHERE run_status
+GROUP BY true
+```
+
+---
+
 ## Bucket B deploy readiness (Pi ops)
 
 Cases tied to `state/QUEUE.md` Bucket B. For the live queue table see [[OPERATOR_HOME#Deploy queue (Bucket B)]].
@@ -79,12 +100,3 @@ WHERE status = "canonical" AND last_reviewed AND (date(today) - last_reviewed) >
 SORT last_reviewed ASC
 ```
 
-## Counts by status
-
-```dataview
-TABLE WITHOUT ID rows.run_status AS Status, length(rows) AS Count
-FROM "docs/cases"
-WHERE run_status
-GROUP BY run_status
-SORT run_status ASC
-```
