@@ -18,10 +18,22 @@ Per `docs/RESUME_PROTOCOL.md`:
 
 ---
 
-## Step 0b — Operator Obsidian (human only, optional)
+## Step 0b — Read vault state (mandatory for agents)
 
-If the operator uses Obsidian: pin `docs/cases/OPERATOR_HOME.md` for the same `state/WORK` and
-queue embeds this hook reads from disk. Kanban: `docs/cases/OPS_KANBAN.md`. Agents do not open Obsidian.
+The vault already knows what is active. Read these two files before anything else — they replace
+codebase searching entirely.
+
+1. `state/WORK.md` — `task_id`, `status`, `tier`, `case_file`, `next_action`
+2. `docs/cases/OPERATOR_HOME.md` — P0/P1/P2 operator gates, priority table, deploy queue
+
+If `task_id` is non-empty and `status` is `in_progress`: use that slug as the resume target in
+Step 0. Do not derive the task slug from the user's message — the vault is authoritative.
+
+> If `state/WORK.md` content was already injected into context via the `UserPromptSubmit` hook,
+> skip the manual read. The hook auto-injects vault state at session start.
+
+Human operators: pin `docs/cases/OPERATOR_HOME.md` in Obsidian for the live dashboard.
+Kanban: `docs/cases/OPS_KANBAN.md`.
 
 ## Step 0c — Lessons check
 
