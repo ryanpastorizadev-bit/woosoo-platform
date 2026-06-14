@@ -27,6 +27,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-011-duplicate-order-printing]] | code-complete | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
 | [[nex-case-012-admin-ui-prototype-impl]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded.** Deliverable 3 (Vue SFCs for Packages and Tablet Categories) was |
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
+| [[nex-case-014-session-domain-login-419]] | ✅ COMPLETE | 2026-06-05 | > **Cross-repo stub.** This case was implemented in woosoo-nexus. The authoritative case file lives at woosoo-nexus/d… |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
 | [[nex-case-017-refill-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-09 | RefillOrderRequest.php:64 allows items.*.price as a nullable/numeric field. |
@@ -142,7 +143,6 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[kds-p2-recall]] | ✅ COMPLETE | 2026-06-12 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
-| [[nexus-ui-handoff-visual-implementation]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded by [[nex-case-028-admin-ui-handoff-completion]].** The handoff brand-alignment work scoped he… |
 | [[nexus-vite-entrypoint-rebuild]] | ✅ COMPLETE | 2026-05-30 | PR comment on woosoo-nexus/docker/docker-entrypoint.sh: the current entrypoint skips npm run build when public/build… |
 | [[pi-docker-runtime-diagnostics]] | ✅ COMPLETE | 2026-05-22 | The Raspberry Pi deployment needs production-ready diagnostics that enforce the Docker-only runtime model and catch R… |
 | [[pld-cli-hardening]] | ✅ COMPLETE | 2026-06-08 | Four MEDIUM hardening gaps in the pld CLI: |

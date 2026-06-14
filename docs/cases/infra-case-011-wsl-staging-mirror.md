@@ -7,7 +7,7 @@ app: infra
 run_status: IN_PROGRESS
 tier: 2
 next_agent: contrarian
-branch: claude/improvement-program-2026-06-14
+branch: agent/infra-case-011-wsl-staging-mirror
 interrupted: false
 updated: 2026-06-14
 tags: [app/infra, status/in-progress, tier/2]
@@ -30,7 +30,7 @@ Related: [[infra-case-007-wsl-pos-db-host]] · [[infra-case-010-wsl-lan-bridge-r
 
 - task_slug: infra-case-011-wsl-staging-mirror
 - tier: 2
-- branch: claude/improvement-program-2026-06-14
+- branch: agent/infra-case-011-wsl-staging-mirror
 - status: IN_PROGRESS
 - last_completed_agent: none
 - next_agent: contrarian
@@ -45,7 +45,7 @@ Related: [[infra-case-007-wsl-pos-db-host]] · [[infra-case-010-wsl-lan-bridge-r
 
 ## Branch
 
-claude/improvement-program-2026-06-14
+agent/infra-case-011-wsl-staging-mirror
 
 ## Problem
 
@@ -71,9 +71,16 @@ Task is done when: `php artisan boost:mcp` (with `--env=local`) successfully ret
 
 ## Proposed Fix
 
+> [!important] Agent path rule
+> All commands in this case run **from `E:\Projects\woosoo-platform\woosoo-nexus\` on Windows**
+> (PowerShell). Use `git -C woosoo-nexus <cmd>` from platform root or `cd woosoo-nexus` in a
+> PowerShell sub-shell. **Never** use a WSL clone (`~/projects/woosoo-platform/`) or `/mnt/e/` path.
+> Steps that require a running Docker daemon (Sail `up -d`) are human operator actions — flag them
+> if encountered during automated execution.
+
 ### Option A — Laravel Sail (recommended)
 
-1. Ensure Docker Desktop / WSL2 Docker is running on the dev machine.
+1. Ensure Docker Desktop / WSL2 Docker is running on the dev machine (human operator step).
 2. In `woosoo-nexus/`, run `php artisan sail:install` with MySQL selected.
 3. Create a staging `.env` (`.env.staging.local`) — copy `.env` and change:
    - `APP_ENV=local`
@@ -124,7 +131,7 @@ SKIPPED — infrastructure and env setup only; no app code paths changed.
 ## Agent Chain
 
 - Tier: 2
-- Branch: claude/improvement-program-2026-06-14
+- Branch: agent/infra-case-011-wsl-staging-mirror
 - Contrarian: (pending)
 - Specialist: infra
 - Verifier: (pending)
