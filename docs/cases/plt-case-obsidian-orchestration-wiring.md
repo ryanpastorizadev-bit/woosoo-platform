@@ -6,7 +6,7 @@ scope: ecosystem
 app: platform
 run_status: IN_PROGRESS
 tier: 2
-next_agent: specialist:scribe
+next_agent: 'specialist:scribe'
 branch: dev
 interrupted: false
 updated: 2026-06-14

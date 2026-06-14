@@ -1,12 +1,12 @@
 ---
 status: canonical
-last_reviewed: 2026-06-12
+last_reviewed: 2026-06-14
 scope: ecosystem
 ---
 
 # Case Registry (summarized wikilink index)
 
-**109 cases** · 90 complete · 17 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**114 cases** · 91 complete · 21 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -41,6 +41,9 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-027-admin-pages-ui-redesign]] | ✅ COMPLETE | 2026-06-12 | Admin pages (Orders, POS, Packages, Dining Tiers, Menu Sync, Devices) needed presentational redesign aligned with nex… |
 | [[nex-case-028-admin-ui-handoff-completion]] | ✅ COMPLETE | 2026-06-12 | > Continues from nex-case-012 (superseded) and nex-case-027 (6-page redesign). |
 | [[nex-case-029-kds-action-payload-optimistic]] | ✅ COMPLETE | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
+| [[nex-case-030-kds-server-authoritative-time]] | ✅ COMPLETE | 2026-06-14 | > KDS P3 closeout. Two rounds on one branch: (1) server-authoritative elapsed time so |
+| [[nex-case-031-admin-functional-gap-fill]] | 🟡 IN_PROGRESS | 2026-06-13 | > Functional checklist gap-fill for Laravel/Vue admin console. React prototype handoff ignored; real app is target. |
+| [[nex-case-032-packages-dining-tier-consolidation]] | 🟡 IN_PROGRESS | 2026-06-13 | > Schema-level completion of the packages consolidation begun in PR #200. Gives the canonical |
 
 ## Tablet (`tab-case-*`)
 
@@ -98,7 +101,9 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[plt-case-non-complete-audit-2026-06-08]] | 🟡 IN_PROGRESS | 2026-06-08 | Accuracy audit of every **non-COMPLETE** case file in docs/cases/. For each case the audit |
 | [[plt-case-obsidian-dataview-hardening]] | 🟡 IN_PROGRESS | 2026-06-10 | Follow-up to [[plt-case-obsidian-operator-wiring]] — operator reported empty Dataview tables and |
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
+| [[plt-case-obsidian-orchestration-wiring]] | 🟡 IN_PROGRESS | 2026-06-14 | The agent orchestration workflow treats Obsidian as a human-only UI. hooks/work.md Step 0b |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
+| [[plt-case-vault-audit-live-2026-06-14]] | 🟡 IN_PROGRESS | 2026-06-14 | docs/CASE_AUDIT_2026-05-18.md is a static point-in-time snapshot (11 cases, dated 2026-05-18) now |
 | [[plt-case-vault-doc-automation]] | ✅ COMPLETE | 2026-06-10 | Widespread vault doc staleness with no single operator-runnable hygiene entry-point. |
 
 ## Infra numbered (`infra-case-*`)
