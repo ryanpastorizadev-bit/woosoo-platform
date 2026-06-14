@@ -60,6 +60,7 @@ Thumbs.db
 # --- Obsidian (machine-local layout + downloaded plugins; config via scripts/obsidian-bootstrap.ps1) ---
 .obsidian/
 *.canvas
+*.base
 # Intentional, hub-linked canvases are tracked (negate the blanket *.canvas ignore above):
 !docs/architecture/SYSTEM_MAP.canvas
 !docs/cases/DEPLOY_SEQUENCE.canvas
