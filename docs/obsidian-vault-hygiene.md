@@ -68,6 +68,8 @@ Cannot be automated. Requires reading code to verify claims.
 | Contract out of sync with actual API | Open case; contrarian triage first |
 | DRIFT_MAJOR flagged in audit | Open plt-case referencing the audit; scribe rewrites affected doc |
 
+**Note on case audits:** `CASE_DASHBOARD.md` is the live view (auto-updates via Dataview after each registry run). Full case audits (code correctness verification, risk narrative) are point-in-time Tier C documents — create a dated `docs/CASE_AUDIT_YYYY-MM-DD.md` when a comprehensive audit is needed, don't attempt to maintain one as a living document.
+
 ---
 
 ## Commands — Copy Paste
