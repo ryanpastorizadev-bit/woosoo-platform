@@ -43,7 +43,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-029-kds-action-payload-optimistic]] | ✅ COMPLETE | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
 | [[nex-case-030-kds-server-authoritative-time]] | ✅ COMPLETE | 2026-06-14 | > KDS P3 closeout. Two rounds on one branch: (1) server-authoritative elapsed time so |
 | [[nex-case-031-admin-functional-gap-fill]] | 🟡 IN_PROGRESS | 2026-06-13 | > Functional checklist gap-fill for Laravel/Vue admin console. React prototype handoff ignored; real app is target. |
-| [[nex-case-032-packages-dining-tier-consolidation]] | 🟡 IN_PROGRESS | 2026-06-13 | > Schema-level completion of the packages consolidation begun in PR #200. Gives the canonical |
+| [[nex-case-032-packages-dining-tier-consolidation]] | ✅ COMPLETE | 2026-06-14 | > Schema-level completion of the packages consolidation begun in PR #200. PR #216 merged; operator must run migrate + cache:clear. |
 
 ## Tablet (`tab-case-*`)
 

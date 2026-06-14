@@ -108,8 +108,27 @@ Verifier PASS (2026-06-13, cursor) for Round 2:
 - `scripts/pre-merge-check.ps1 -App woosoo-nexus` — PASS (tests green, routes/config clean, recurrence 6/6)
 - PR: [#201](https://github.com/tech-artificer/woosoo-nexus/pull/201) **MERGED 2026-06-14** — CI green: build-and-test, ci, PWA, quality, CodeRabbit
 
+Verifier PASS (2026-06-14, claude-code) for Round 3 (PR #204):
+- All 5 CI checks green: build-and-test, ci, quality, PWA unit tests, CodeRabbit auto-skip
+- PR diff verified against success criteria:
+  - TOCTOU re-check present inside `DB::transaction` after `lockForUpdate()` — `if (($fresh->recalled ?? 0) >= self::MAX_RECALLS)` at the correct line
+  - `canRecallTicket()` gates on `(ticket.recalled ?? 0) < MAX_RECALLS` with local `MAX_RECALLS = 5` constant
+  - New PHP test: recall at cap (recalled=5) → 422, count unchanged
+  - New TS tests: boundary at 5 (false) and 4 (true)
+  - N+1 fixed: `$item->loadMissing('device_order')` before synchronous broadcast
+
+## Files Changed
+
+**Round 3 (PR #204):**
+- `app/Http/Controllers/Admin/KdsController.php` — in-transaction recall cap re-check + N+1 `loadMissing` fix
+- `resources/js/components/KDS/kdsHelpers.ts` — `canRecallTicket()` gates on recalled count
+- `resources/js/components/KDS/kdsHelpers.test.ts` — boundary tests (recalled=5/4)
+- `tests/Feature/Admin/KdsControllerTest.php` — recall-at-cap PHP test + advance in_progress→served test
+
 ## Executioner Verdict
 
 > [!success] APPROVED
-> Gate satisfied by merge of PR #201 to `dev` (2026-06-14); all 5 CI checks passed.
-> Formal Executioner callout not separately recorded — merge is the gate evidence.
+> Round 1 (PR #199): gate satisfied by merge 2026-06-14.
+> Round 2 (PR #201): gate satisfied by merge 2026-06-14.
+> Round 3 (PR #204): APPROVED 2026-06-14 — all 5 CI checks green; diff verified: TOCTOU
+> in-transaction re-check present, `canRecallTicket()` mirrors server cap, boundary tests added.
