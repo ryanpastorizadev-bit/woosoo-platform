@@ -81,6 +81,8 @@ Thumbs.db
 # .claude/skills/ contains symlinks/junctions the harness uses to load skills.
 # They are recreated locally by scripts/setup-skills.ps1 — do not commit.
 .claude/skills/
+# --- Machine-local Claude Code worktree tracking (recreated by harness; not shared) ---
+.claude/worktrees/
 
 # --- Machine-local Codex runtime config (sandbox_mode etc.; not shared) ---
 .codex/config.toml
