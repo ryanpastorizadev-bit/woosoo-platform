@@ -165,6 +165,16 @@ Flow: **incident → ledger entry (guard noted) → if it recurs or is high-risk
 - Automated: no — `obsidian-lint.ps1` always exits 0, so `recurrence-check` enforces the specific link/canvas invariants directly (`CHK-WIKILINK-RELATIVE`, `CHK-CANVAS-TRACKED`) rather than trusting the lint's exit code.
 - Promoted: no — ledger only.
 
+### L-016 — Workflow bypass is never acceptable, even for "trivial" docs changes
+
+- Tags: #process #docs #governance
+- Symptom: Direct docs edits committed without a case file, Contrarian review, Verifier, or Executioner — because the change "felt trivial."
+- Root cause: `hooks/work.md` Step 0b excluded agents from the Obsidian vault ("Agents do not open Obsidian"), so there was no mandatory oracle providing the active task slug and phase. Without vault context at boot, the authority structure that prevents bypass was absent.
+- Guard: No implementation without a case file. No case file without a Contrarian phase. Docs changes, config changes, and script changes all require the full chain: Contrarian → Specialist → Verifier → Executioner. "Low risk" is not a documented exception — the chain is non-negotiable.
+- Evidence: `plt-case-vault-audit-live-2026-06-14` (2026-06-14). Root cause fix: `plt-case-obsidian-orchestration-wiring`.
+- Automated: partial — `plt-case-obsidian-orchestration-wiring` wires vault state into `UserPromptSubmit` hook so agents always receive current task context at boot, removing the void that enabled the bypass.
+- Promoted: no — ledger only.
+
 ### L-015 — PowerShell `-Include` multi-pattern dir scans are flaky
 - Tags: #env/powershell #tooling
 - Symptom: `Get-ChildItem -Recurse -Include '*.a','*.b'` intermittently returned nothing on some hosts.

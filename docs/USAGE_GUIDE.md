@@ -159,6 +159,11 @@ Cursor session, the paste-preamble for that app becomes optional.
 
 ## 6. WSL dev test (Windows edit → Docker run)
 
+> [!warning] **Agents: this section is for human operators only.**
+> Agent working directory is always `E:\Projects\woosoo-platform` on Windows — never a WSL clone
+> (`~/projects/woosoo-platform`) or any `~/` path. If a case file lists commands under this section,
+> those steps must be performed by the human operator, not the agent.
+
 Use this when you **edit on Windows** (Cursor) and **run/test on WSL** with Docker.
 Full Path B detail: [`deployment/DEPLOYMENT_GUIDE.md § 4`](deployment/DEPLOYMENT_GUIDE.md#4-path-b--dev-deploy-on-wsl2--docker-desktop--dev-linux).
 

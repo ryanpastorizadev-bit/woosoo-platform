@@ -1,8 +1,13 @@
 ---
-status: canonical
+status: archived
 date: 2026-05-18
+last_reviewed: 2026-05-18
 scope: woosoo-platform
 ---
+
+> [!warning] Archived snapshot — 2026-05-18
+> This document is a point-in-time audit (11 cases). The live equivalent is [[CASE_DASHBOARD]]
+> (85+ cases, auto-updating via Dataview). This file is kept as a historical record only.
 
 # Case File Audit — 2026-05-18
 

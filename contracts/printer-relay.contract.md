@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-06
+last_reviewed: 2026-06-15
 scope: ecosystem
 ---
 
@@ -9,7 +9,16 @@ scope: ecosystem
 **Implementation verified against live code (2026-06-06): `PrinterHeartbeatRequest.php` (Nexus)
 and `app_controller.dart::_startHeartbeat()` (Bridge).**
 
-## Heartbeat (bridge → backend)
+## Polling and Heartbeat
+
+**Polling interval (HTTP fallback):** The Print Bridge polls `/api/printer/unprinted-events`
+every **5 seconds** (was 30 seconds until 2026-06-01 to cap worst-case order-to-print latency
+at ~6–10 seconds on a flaky LAN when WebSocket is down).
+
+**Heartbeat interval:** The Print Bridge sends a POST to `/api/printer/heartbeat` every
+**30 seconds** to signal that the device is alive and to report queue status.
+
+### Heartbeat (bridge → backend)
 
 All fields except `printer_id` are nullable. `printer_id` is required and validated as a
 non-empty string (max 100 chars).
@@ -37,6 +46,19 @@ non-empty string (max 100 chars).
 | `queue_pending` | Jobs pending, awaiting ack, or queue paused |
 | `printer_connected` | No pending/failed jobs and BT printer connected |
 | `online` | Default — bridge running but printer not yet connected |
+
+## Job retention
+
+The Print Bridge maintains a local job queue (Sembast DB) with automatic purge logic:
+
+| Job state | TTL | Purpose |
+|---|---|---|
+| Completed / success | 30 days | Keep recent successful prints as a local audit trail |
+| Dead-letter (failed after max retries) | 90 days | Extended retention for failed jobs to aid diagnosis |
+
+The purge check runs every 24 hours. These TTLs are implementation-level only (not part of the
+API contract); if the queue needs longer retention for compliance, the backend should archive
+completed jobs to the POS history DB and signal the bridge to purge older locally.
 
 ## Rules
 - `printer_id` is **required**. A missing/empty printer ID is a **validation error**, never a

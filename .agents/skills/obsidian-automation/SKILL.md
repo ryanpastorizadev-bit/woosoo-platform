@@ -12,16 +12,8 @@ tags:
   - pkm
 department: content
 models:
-  - claude-3-opus
-  - claude-3-sonnet
-  - gpt-4
-mcp:
-  server: notes-mcp
-  tools:
-    - obsidian_create_note
-    - obsidian_search
-    - obsidian_link
-    - obsidian_template
+  - claude-opus-4-8
+  - claude-sonnet-4-6
 capabilities:
   - Note creation
   - Knowledge linking
@@ -253,3 +245,13 @@ graph_insights:
 4. **Daily Practice**: Regular review
 5. **Templates**: Standardize note types
 6. **Tags vs Links**: Use both strategically
+
+## Vault Automation in This Project
+
+Vault automation (lint, case registry sync, bootstrap) is handled by PowerShell scripts, not MCP tools:
+
+- `scripts/obsidian-lint.ps1` — broken-link and orphan checks
+- `scripts/obsidian-case-registry.ps1` — regenerates `docs/cases/CASE_REGISTRY.md` hub
+- `scripts/obsidian-bootstrap.ps1` — deploys plugin settings (Dataview, Templater, Git) to `.obsidian/`
+
+Run these directly; no MCP server is required or configured for this vault.

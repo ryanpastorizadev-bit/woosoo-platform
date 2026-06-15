@@ -28,6 +28,7 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[WOOSOO_DOCUMENT_CONTEXT]]
 - [[WOOSOO_ECOSYSTEM_ENGINEERING_REVIEW_2026-05-14]]
 - [[WOOSOO_ROADMAP_REVIEW]]
+- [[WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14]] — five-thread productivity + delivery improvement program (Threads A-E)
 
 ## Architecture
 
@@ -46,9 +47,9 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 - [[business/WOOSOO_PLATFORM_BRD_SUPPLEMENT]]
 - [[business/WOOSOO_ORIGIN_SPECIFICATION]]
 - [[business/WOOSOO_SPEC_DELTA]]
+- [[business/WOOSOO_DELIVERY_DASHBOARD]] — stakeholder delivery dashboard (4 lenses, feature inventory, cost model)
 - [[audits/DOCS_AUDIT_2026-05-14]]
 - [[audits/infra-assessment-validated-2026-05-19]]
-- [[CASE_AUDIT_2026-05-18]]
 
 ## Operator logs
 
@@ -56,5 +57,6 @@ Vault: [[VAULT_INDEX]] · Cases: [[cases/CASE_REGISTRY|CASE_REGISTRY]]
 
 ## Archive (historical)
 
+- [[CASE_AUDIT_2026-05-18]] — point-in-time snapshot (11 cases, 2026-05-18); live view is [[cases/CASE_DASHBOARD|CASE_DASHBOARD]]
 - [[archive/agent-sessions-2026-05]] — not source of truth
 - [[archive/refactor-woosoo-nexus-n1-query-fixes-plan-2026-05-16]] — N+1 query refactor plan (planned; not yet a case)
