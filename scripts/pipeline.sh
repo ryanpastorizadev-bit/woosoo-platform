@@ -20,6 +20,8 @@
 #   network   Sync PUBLIC_HOST + ensure LAN bridge + verify (WSL portproxy)
 #   logs      Tail all service logs
 #   check     Preflight check (scripts/deployment/check.sh)
+#   pi-verify Post-deploy stability check (session/CSRF, print env, Docker runtime)
+#   pi-health Post-reboot diagnostic (port ownership, Reverb listener, Pi throttle)
 #
 # Flags (dev target only):
 #   --no-pull       Skip git pull step
@@ -48,6 +50,7 @@ REGEN_CERTS=0
 SYNC_FULL=0
 SYNC_BUILD=0
 REBUILD_PHP=0
+PI_HOST=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -60,6 +63,8 @@ while [[ $# -gt 0 ]]; do
     --php)           REBUILD_PHP=1 ;;
     --from-step)   FROM_STEP="${2:?--from-step requires a step number}"; shift ;;
     --from-step=*) FROM_STEP="${1#*=}" ;;
+    --host)        PI_HOST="${2:?--host requires an ip-or-host}"; shift ;;
+    --host=*)      PI_HOST="${1#*=}" ;;
     -h|--help)     TARGET="help" ;;
     *)
       echo "Unknown flag: $1" >&2
@@ -404,6 +409,8 @@ target_help() {
     dev       Full local Docker dev deploy
     staging   Staging-parity (requires woosoo.env; uses WOOSOO_ALLOW_NON_PI)
     pi        Production Pi deploy (requires root + woosoo.env)
+    pi-verify Post-deploy stability check (session/CSRF, print env, Docker runtime)
+    pi-health Post-reboot diagnostic (port ownership, Reverb listener, Pi throttle)
     health    Dev health check
     network   Sync PUBLIC_HOST + LAN bridge + verify
     logs      Tail all service logs
@@ -726,6 +733,39 @@ target_pi() {
   pipeline_summary
 }
 
+target_pi_verify() {
+  cd "$PLATFORM_ROOT"
+  pipeline_banner "pi-verify"
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "  (dry-run) sudo bash scripts/deployment/pi-stability-verify.sh ${PI_HOST:+--host $PI_HOST}"
+    pipeline_summary
+    return 0
+  fi
+  sudo bash "$SCRIPT_DIR/deployment/pi-stability-verify.sh" ${PI_HOST:+--host "$PI_HOST"}
+  pipeline_summary
+}
+
+target_pi_health() {
+  cd "$PLATFORM_ROOT"
+  pipeline_banner "pi-health"
+
+  local config_file=""
+  if [[ -f "$PLATFORM_ROOT/woosoo.env" ]]; then
+    config_file="$PLATFORM_ROOT/woosoo.env"
+  elif [[ -f "/etc/woosoo/woosoo.env" ]]; then
+    config_file="/etc/woosoo/woosoo.env"
+  fi
+  [[ -n "$config_file" ]] && export CONFIG_FILE="$config_file"
+
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "  (dry-run) sudo -E bash scripts/deployment/pi-reboot-health.sh"
+    pipeline_summary
+    return 0
+  fi
+  sudo -E bash "$SCRIPT_DIR/deployment/pi-reboot-health.sh"
+  pipeline_summary
+}
+
 target_health() {
   cd "$PLATFORM_ROOT"
   pipeline_banner "health"
@@ -758,8 +798,10 @@ case "$TARGET" in
   certs)   target_certs ;;
   dev)     target_dev ;;
   staging) target_staging ;;
-  pi)      target_pi ;;
-  health)  target_health ;;
+  pi)         target_pi ;;
+  pi-verify)  target_pi_verify ;;
+  pi-health)  target_pi_health ;;
+  health)     target_health ;;
   network) target_network ;;
   logs)    target_logs ;;
   check)   target_check ;;
