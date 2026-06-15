@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-06-01
+last_reviewed: 2026-06-15
 scope: ecosystem
 ---
 
@@ -74,6 +74,18 @@ with a terminal status on `device.{id}`) → the tablet's id-guarded handler
 order/session, mutex-guarded, idempotent via `SessionEnd.startTransition`) → routes to
 `/order/session-ended` → returns to welcome for the next guest. **Per-order** terminal events reset
 **one** tablet; **`session.reset`** (daily POS close) resets every tablet on that session.
+
+### `session.{session_id}` channel authorization
+
+`session.{session_id}` is currently implemented as a **public broadcast channel** (class
+`Channel('session.' . $sessionId)` in `app/Events/SessionReset.php`). There is no authorization
+callback for it in `routes/channels.php`. Any Reverb subscriber can listen to any session's
+`session.reset` events without authentication.
+
+This is an **open security hardening item**: the channel was designed as public for on-premise
+LAN-only deployments (trusted network). When device-auth broadcasting is hardened, it should
+be migrated to `PrivateChannel` with a device-auth callback to verify that only devices
+participating in that session may receive its reset events.
 
 ---
 
