@@ -37,6 +37,10 @@ Create:
 docs/cases/<task-slug>.md
 ```
 
+After creation: run `scripts/obsidian-case-registry.ps1` (or add `[[<task-slug>]]` to
+`docs/cases/CASE_REGISTRY.md`) so the case is not an Obsidian graph orphan. Add `[[related-case]]`
+wikilinks in the case body when dependencies exist.
+
 Required sections:
 - YAML frontmatter with `status: canonical`, `last_reviewed`, and `scope`
 - `## Run State`

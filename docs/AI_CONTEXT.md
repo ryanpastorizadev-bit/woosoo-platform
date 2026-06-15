@@ -75,6 +75,17 @@ Customer-facing screens: friendly messages only. Example fallback: "We could not
 
 Watch for key mismatches: app key, Reverb key, API keys, POS IP. Admin tooling should support a `woosoo:verify-integrity` command. Do not write secrets to `.env` without backup and review.
 
+## Obsidian vault (agents + operators)
+
+The platform repo is an **Obsidian vault** on the same markdown agents read and write.
+**Agents** refer to `docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`, and
+`docs/cases/CONTRACTS_HUB.md` when navigating cases; add `[[case-slug]]` wikilinks in case
+bodies for cross-references. Resume state stays in `docs/cases/<slug>.md` — not Obsidian UI.
+
+**Operators** pin `docs/cases/OPERATOR_HOME.md`; use `OPS_KANBAN`, Calendar daily logs in
+`docs/operator/daily/`. Bootstrap: `scripts/obsidian-bootstrap.ps1`.
+See `docs/obsidian-setup-guide.md` and `docs/USAGE_GUIDE.md § 6`.
+
 ## Workspace Boundary Rule
 
 One app per task unless documented integration. Cross-app changes require updating the relevant contract section in the corresponding audit doc first.

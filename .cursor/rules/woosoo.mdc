@@ -15,6 +15,26 @@ alwaysApply: true
 
 ---
 
+## Obsidian Skills Reference
+
+When writing case files or vault notes, read the relevant skill file for detailed spec:
+
+| Task | Skill file | Trigger |
+|------|-----------|---------|
+| Write wikilinks, callouts, frontmatter, embeds | `.agents/skills/obsidian-markdown/SKILL.md` | Any case file or vault `.md` edit |
+| Search vault, navigate notes | `.agents/skills/obsidian-vault/SKILL.md` | Need to find a note |
+| Create `.base` view files | `.agents/skills/obsidian-bases/SKILL.md` | OPS_KANBAN / CASE_INDEX changes |
+| Create `.canvas` diagrams | `.agents/skills/json-canvas/SKILL.md` | Architecture or flow diagrams |
+| Run Obsidian CLI commands | `.agents/skills/obsidian-cli/SKILL.md` | CLI vault operations |
+
+**Mandatory for your Specialist checkpoint (last action in Cursor mode):**
+
+- Use `[[wikilinks]]` for cross-references between case files — bare markdown links break the vault graph
+- YAML frontmatter must include `status:`, `last_reviewed:`, `scope:` on all canonical docs
+- New case file slug? Run `.\scripts\obsidian-case-registry.ps1` to update CASE_REGISTRY
+
+---
+
 ## Prime Directive
 
 Correctness > speed. This system runs a live restaurant. A bad change can break ordering,
@@ -26,6 +46,24 @@ printing, and table sessions in real time.
 
 Always open via **`woosoo-platform.code-workspace`** (multi-root workspace). This keeps the
 platform repo (with `docs/cases/` and `contracts/`) in scope alongside the app repo.
+
+**Obsidian vault:** platform repo root. **Agents** refer to `docs/VAULT_INDEX.md`,
+`docs/cases/CASE_REGISTRY.md`, `docs/cases/CONTRACTS_HUB.md`; use `[[wikilinks]]` in case files.
+**Operators** pin `docs/cases/OPERATOR_HOME.md`. Bootstrap: `.\scripts\obsidian-bootstrap.ps1`.
+Registry: `.\scripts\obsidian-case-registry.ps1` · Lint: `.\scripts\obsidian-lint.ps1`.
+Guide: `docs/obsidian-setup-guide.md`.
+
+**WSL testing (operator — do not confuse with Windows dev):** Changes land on **Windows** first;
+WSL validates via **Docker from platform root** `~/projects/woosoo-platform/` (not `/mnt/e/...`).
+Browser URL: **<https://192.168.100.7>** — not localhost.
+
+| ❌ Never on WSL | ✅ Correct |
+|----------------|------------|
+| `composer dev` / `composer install` inside `woosoo-nexus` on the host | `./run dev` from platform root |
+| Host `npm run dev` in nexus | `docker compose … exec app` or `WOOSOO_FORCE_VITE_BUILD=true … up -d --build app` |
+| `http://localhost:8000` | **https://192.168.100.7** |
+
+Host `composer` on WSL hits Windows Composer and fails (`php: not found`). See `CLAUDE.local.md § WSL commands` and `docs/cases/kds-implementation-plan.md § WSL test workflow`.
 
 **Edit only the one active app's directory.** If you are asked to modify files in more than one
 app in the same session: STOP, tell the operator, and request the task be split. Do not proceed
@@ -48,6 +86,7 @@ cross-app.
 - **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code. Production POS static IP is `192.168.1.32` — detect mismatches; never write it into tablet/bridge source.
 - **No secrets in `.env`** without explicit operator review and backup.
 - **One app per branch/commit** unless this is an explicitly approved integration-scoped change recorded in the case file.
+- **Automated recurrence guards are binding.** `scripts/recurrence-check.{ps1,sh}` (wired into `pre-merge-check`) mechanically enforces the LESSONS-derived guards: PowerShell ASCII/parse, anchored case-status classification, no `../` wikilinks, tracked hub canvases, and registry-summary integrity. It must pass before any merge. Never weaken, skip, or comment out a detector to make a change pass; fix the cause.
 
 ---
 
@@ -87,7 +126,7 @@ Canonical gate: `bash scripts/pre-merge-check.sh --app <name>` (run by Claude Co
 You may run these as self-checks only — they are not a substitute for the Verifier gate:
 
 | App | Self-check commands |
-|-----|---------------------|
+| --- | --- |
 | woosoo-nexus | `php artisan test` |
 | tablet-ordering-pwa | `npm run typecheck && npm run lint && npm run build` |
 | woosoo-print-bridge | `flutter analyze && flutter test` |
@@ -97,8 +136,24 @@ You may run these as self-checks only — they are not a substitute for the Veri
 ## Before First Edit
 
 Complete **PRE_EDIT_GATE** (`hooks/pre-edit-gate.md`): files table, minimal patch, non-goals, risk
-review. Do not edit until done. After edits, run **POST_EDIT_REVIEW** (`hooks/post-edit-review.md`)
-before the case checkpoint.
+review. Do not edit until done. After edits, run **POST_EDIT_REVIEW** (`hooks/post-edit-review.md`),
+then **hygiene gates** (below), before the case checkpoint.
+
+---
+
+## Hygiene Gates (mandatory on every code task)
+
+After **POST_EDIT_REVIEW** and before the checkpoint:
+
+1. Invoke the **`code-simplifier`** subagent on every changed file.
+   - Scope: only files touched in this task, within the active app's directory.
+   - Standards: apply rules from the target app's `.agents.md` (PSR-12 for nexus, Vue/Nuxt for
+     tablet, Dart for bridge). Do **not** apply generic React/ESM defaults.
+   - `dead-code-cleanup` runs internally as its final sub-step — no separate invocation needed.
+2. Record outcomes under `## Code Simplification` in the case file.
+   - If no changes were made, write `SKIPPED — no simplifications identified`.
+
+Applies to **all code tasks** in Cursor (Tier 1–2), not just Tier 2–3.
 
 ---
 
@@ -107,9 +162,11 @@ before the case checkpoint.
 When you finish implementing, your **last action** must be to write the Specialist checkpoint to
 `docs/cases/<slug>.md` in the platform repo (it is always in scope via the multi-root workspace).
 
-Write or update these two sections:
+Write or update these three sections:
 
 **`## Specialist Investigation & Implementation`** — what you investigated, what you changed, why.
+
+**`## Code Simplification`** — what `code-simplifier` changed (or `SKIPPED — no simplifications identified`).
 
 **`## Run State`** — refresh these fields:
 ```

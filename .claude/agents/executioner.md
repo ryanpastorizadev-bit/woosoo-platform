@@ -48,6 +48,12 @@ an explicit, approved split.
 - Temporary files or dead code remain.
 - Security boundaries are uncertain (auth, secrets, Reverb auth, tablet sanitization).
 - The working tree has uncommitted changes outside the declared scope.
+- The case file lacks `## Code Simplification`, or the section reads `SKIPPED` without a
+  documented reason (valid: Tier 1, pure-docs, no code path changed; bare `SKIPPED` is not).
+- The case file lacks `## Hygiene` audit lines (dead-code-cleanup outcome), or Hygiene reads
+  `SKIPPED` without a documented reason when code was touched.
+- `scripts/recurrence-check` was not run, reported FAIL, or had a detector disabled, weakened, or
+  commented out to force a pass (the recurrence guards are binding per `AGENTS.md § Immutable Rules`).
 
 ## `APPROVED` may carry follow-ups
 

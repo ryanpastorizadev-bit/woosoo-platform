@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-17
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -23,6 +23,12 @@ Read this when you need the routing summary without loading the full AGENTS.md.
 5. If no active task → read `state/QUEUE.md`, pick first unblocked row.
 6. Classify task tier before doing anything else.
 
+**Obsidian vault (agents + operators):** platform repo root. Agents refer to `docs/VAULT_INDEX.md`,
+`docs/cases/CASE_REGISTRY.md`, `docs/cases/CONTRACTS_HUB.md` for navigation; use `[[wikilinks]]`
+in case files. Operators pin `docs/cases/OPERATOR_HOME.md`, `OPS_KANBAN`, Calendar daily logs.
+Bootstrap: `scripts/obsidian-bootstrap.ps1`. Lint orphans: `scripts/obsidian-lint.ps1`.
+See `docs/obsidian-setup-guide.md`.
+
 ---
 
 ## Task Tiers
@@ -30,8 +36,8 @@ Read this when you need the routing summary without loading the full AGENTS.md.
 | Tier | What it covers | Agent chain |
 |---|---|---|
 | **1 — Trivial** | Typo, single-line config, comment, README link, label change. No contract/auth/state/payment/print impact. | `Specialist → Executioner` |
-| **2 — Standard** | Bug fix, new endpoint, UI component, doc rewrite, API validation, local refactor. One app per task. | `Contrarian → Specialist → Verifier → scribe → Executioner` |
-| **3 — High-risk** | Order state machine, session lifecycle, payment/pricing, printing, auth/token, API contract change, Reverb/broadcasting, queue/scheduler, race conditions, DB migrations, cross-app, production deployment. | `Contrarian (written risk analysis) → Specialist → Verifier → scribe → Executioner` |
+| **2 — Standard** | Bug fix, new endpoint, UI component, doc rewrite, API validation, local refactor. One app per task. | `Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner` |
+| **3 — High-risk** | Order state machine, session lifecycle, payment/pricing, printing, auth/token, API contract change, Reverb/broadcasting, queue/scheduler, race conditions, DB migrations, cross-app, production deployment. | `Contrarian (written risk analysis) → Specialist → code-simplifier → Verifier → scribe → Executioner` |
 
 **When in doubt, escalate the tier. Never downgrade without written justification.**
 

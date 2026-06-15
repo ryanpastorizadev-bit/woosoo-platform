@@ -60,7 +60,10 @@ the script fix lives); `WOOSOO_ENV=production` (the default — no action needed
 
 **Verify:**
 ```bash
-# On the Pi — SESSION_DOMAIN must echo empty:
+# Automated P0/P1 checks (preferred):
+sudo bash scripts/deployment/pi-stability-verify.sh --host 192.168.1.31
+
+# Manual fallback — SESSION_DOMAIN must echo empty:
 grep SESSION_DOMAIN /opt/woosoo/woosoo-nexus/.env
 # (or run scripts/deployment/legacy/verify-client.sh and read its "Environment identity" block)
 

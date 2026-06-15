@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# case-status — print or update the "## Run State" block in docs/cases/<slug>.md
+# case-status - print or update the "## Run State" block in docs/cases/<slug>.md
 #
 # Cross-runner resume helper (Claude Code / Codex / Copilot). Dependency-free.
 # Behaviour-identical to scripts/case-status.sh. See docs/RESUME_PROTOCOL.md.

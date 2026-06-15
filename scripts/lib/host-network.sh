@@ -516,6 +516,8 @@ woosoo_regen_dev_certs() {
     _hn_info "DRY-RUN: would run generate-dev-certs.sh $host"
     return 0
   fi
-  bash "$gen" "$host"
+  # Propagate the generator's exit code: on keypair-verify failure it exits non-zero
+  # and leaves live certs untouched — the caller must NOT restart nginx in that case.
+  bash "$gen" "$host" || return 1
   _hn_info "Certs regenerated for $host — restart nginx: docker compose restart nginx"
 }

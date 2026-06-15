@@ -1,5 +1,5 @@
 # Bootstrap Obsidian vault config + community plugins for woosoo-platform.
-# Idempotent — safe to re-run. Does not auto-push; Obsidian Git pull-on-boot only.
+# Idempotent - safe to re-run. Does not auto-push; Obsidian Git pull-on-boot only.
 #
 # Usage (from platform root):
 #   .\scripts\obsidian-bootstrap.ps1
@@ -39,7 +39,9 @@ function Repair-Junction {
     if (Test-Path $LinkPath) {
         $item = Get-Item $LinkPath -Force
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-            Remove-Item $LinkPath -Force
+            # Remove-Item -Force throws NullReferenceException on directory junctions in
+            # PS 5.1; rmdir removes only the link and never follows into the target.
+            cmd /c rmdir "$LinkPath" | Out-Null
         } else {
             Write-Host "    skip $LinkPath (exists and is not a junction)" -ForegroundColor DarkYellow
             return
@@ -50,7 +52,7 @@ function Repair-Junction {
     Write-Ok "junction $LinkPath -> $TargetPath"
 }
 
-# Obsidian lstat's the whole vault at startup — broken Docker/Linux junctions crash before
+# Obsidian lstat's the whole vault at startup - broken Docker/Linux junctions crash before
 # userIgnoreFilters apply. Repair known sibling-repo links on Windows.
 Write-Step "Repairing sibling-repo junctions (Obsidian startup requirement)"
 Repair-Junction `
@@ -68,15 +70,24 @@ Copy-Item -Force (Join-Path $ConfigDir "app.json") (Join-Path $ObsidianDir "app.
 Copy-Item -Force (Join-Path $ConfigDir "community-plugins.json") (Join-Path $ObsidianDir "community-plugins.json")
 Copy-Item -Force (Join-Path $ConfigDir "core-plugins.json") (Join-Path $ObsidianDir "core-plugins.json")
 Copy-Item -Force (Join-Path $ConfigDir "templates.json") (Join-Path $ObsidianDir "templates.json")
-Write-Ok "app.json, community-plugins.json, core-plugins.json, templates.json"
+Copy-Item -Force (Join-Path $ConfigDir "daily-notes.json") (Join-Path $ObsidianDir "daily-notes.json")
+Copy-Item -Force (Join-Path $ConfigDir "graph.json") (Join-Path $ObsidianDir "graph.json")
+Write-Ok "app.json, community-plugins.json, core-plugins.json, templates.json, daily-notes.json, graph.json"
+
+# Operator daily-log folder (Calendar plugin target)
+$DailyDir = Join-Path $VaultPath "docs\operator\daily"
+New-Item -ItemType Directory -Force -Path $DailyDir | Out-Null
+Write-Ok "docs/operator/daily/"
 
 # --- Plugin-specific settings ---
 $TemplaterDir = Join-Path $PluginsDir "templater-obsidian"
 $GitDir       = Join-Path $PluginsDir "obsidian-git"
-New-Item -ItemType Directory -Force -Path $TemplaterDir, $GitDir | Out-Null
+$DataviewDir  = Join-Path $PluginsDir "dataview"
+New-Item -ItemType Directory -Force -Path $TemplaterDir, $GitDir, $DataviewDir | Out-Null
 Copy-Item -Force (Join-Path $ConfigDir "templater-data.json") (Join-Path $TemplaterDir "data.json")
 Copy-Item -Force (Join-Path $ConfigDir "obsidian-git-data.json") (Join-Path $GitDir "data.json")
-Write-Ok "Templater + Obsidian Git settings"
+Copy-Item -Force (Join-Path $ConfigDir "dataview-data.json") (Join-Path $DataviewDir "data.json")
+Write-Ok "Templater + Obsidian Git + Dataview settings"
 
 function Install-ObsidianPlugin {
     param([string]$Id, [string]$Repo)
@@ -114,6 +125,11 @@ Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Open Obsidian -> Open folder as vault -> $VaultPath"
 Write-Host "  2. If prompted about community plugins, choose Enable / Trust"
 Write-Host "  3. Open and pin docs/cases/OPERATOR_HOME.md"
-Write-Host "  4. Settings -> Community plugins -> confirm all six are ON"
-Write-Host "  5. CASE_INDEX.md should render a Dataview table (not a code block)"
+Write-Host "  4. Settings -> Community plugins -> master switch ON; confirm all six are ON"
+Write-Host "  5. Settings -> About -> Restricted mode OFF (blocks community plugins)"
+Write-Host "  6. CASE_INDEX.md + CASE_DASHBOARD.md should render Dataview tables (not code blocks)"
+Write-Host "  7. Fallback: open CASES.base in Bases view (core plugin; no Dataview required)"
+Write-Host "  8. Open OPS_KANBAN.md in Kanban view; Calendar -> today for operator log"
+Write-Host "  9. Graph view (Ctrl+G) - color groups for cases/contracts/state"
+Write-Host " 10. Open docs/VAULT_INDEX.md and docs/cases/CASE_REGISTRY.md (graph hubs)"
 Write-Host ""

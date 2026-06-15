@@ -1,16 +1,40 @@
 ---
 status: under-review
-last_reviewed: 2026-06-14
+last_reviewed: 2026-06-15
 scope: ecosystem
 ---
 
 # Doc-Alignment Enforcement Recommendation
 
-**Author:** platform agent session, 2026-06-14
+**Author:** platform agent session, 2026-06-15 (reconciled against `dev`)
 **For review by:** Ryan (platform lead)
-**Scope:** Woosoo orchestration system — doc alignment gates across all six doc types
-**Action required:** Review and approve; a subsequent scribe case implements the rule changes in
-`AGENTS.md`, `AGENT_USAGE_GUIDE.md`, and adds the `## Lessons` section.
+**Scope:** Woosoo orchestration system — preventive doc-closure gate across the six tracked doc types
+**Action required:** Review and approve; a subsequent scribe case applies the rule + lesson.
+
+> **Reconciliation note (2026-06-15):** This document was first drafted on a branch that predated
+> ~6 weeks of `dev` governance work. It has been rewritten to match the current `dev` reality:
+> `docs/LESSONS.md` already exists (entries **L-001…L-016**, two-tier model + automated
+> `recurrence-check`), the tooling-improvement program is already merged (PR #57), and
+> `dev` already has **detection** tooling for case/state drift
+> (`plt-case-non-complete-audit-2026-06-08`, the registry status classifier, vault orphan lint).
+> What `dev` still lacks — and what this recommendation supplies — is a **preventive closure gate**
+> at the Executioner → Contrarian boundary. The earlier draft's stale claims ("no LESSONS.md",
+> a colliding "L-001", a "## Lessons in AGENTS.md" section) have been removed.
+
+---
+
+## Prior art already on `dev` (do not duplicate)
+
+| Mechanism | Where | What it does |
+|---|---|---|
+| Lessons ledger (two-tier) | `docs/LESSONS.md` → promote to `docs/AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules` | Records recurring failures + guards; L-001…L-016 exist |
+| Recurrence-check gate | `scripts/recurrence-check.{ps1,sh}` via `pre-merge-check` | Fails the merge gate if a guarded pattern reappears |
+| Case status classifier | `scripts/lib/case-status-classify.ps1`, `scripts/case-status.ps1` | Classifies each case file's status by anchored leading token |
+| Non-COMPLETE audit | `docs/cases/plt-case-non-complete-audit-2026-06-08.md` | Cross-tracks every non-COMPLETE case against `WORK.md`/`QUEUE.md`/`DONE.md`/`DEPS.md` |
+| Vault orphan lint | `scripts/obsidian-lint.ps1` | Flags orphaned/broken-link docs |
+| Workflow-bypass guard | `docs/LESSONS.md` **L-016** | No implementation without a case file + full chain |
+
+These are **detection / audit** tools — they find drift after the fact. The gap below is **prevention**.
 
 ---
 
@@ -20,164 +44,130 @@ scope: ecosystem
 
 **APPROVED and handover are not atomic.** The 4-agent chain ends when the Executioner issues
 `APPROVED`. The state-sync step — appending to `state/DONE.md`, marking the `state/QUEUE.md`
-row `done`, and clearing `state/WORK.md` — lives in `hooks/handover.md` and runs **only when
-the operator explicitly types "handover"**. No agent in the current chain checks that DONE.md
-was updated, and the Executioner auto-reject list contains no such check. When the operator moves
-on to the next task without triggering handover, the case remains open in state files
-indefinitely.
+row `done`, and clearing `state/WORK.md` — lives in `hooks/handover.md` and runs **only when the
+operator explicitly types "handover."** No agent in the chain checks that `DONE.md` was updated or
+that the case file reached `status: COMPLETE`, and the Executioner auto-reject list contains no
+such check. When the operator moves to the next task without triggering handover, the case stays
+open in the state files indefinitely. The `recurrence-check` gate does not cover this, and the
+non-COMPLETE audit catches it only on a later manual sweep.
 
 ### Secondary contributors
 
-1. **Scribe phase has no enforcement check.** `AGENTS.md` states "The scribe docs-sync phase
-   (step 4) is mandatory for code-specialist tasks" but the Executioner auto-reject list in
-   `AGENT_USAGE_GUIDE.md` does not include "Documentation Sync section empty or missing" as an
-   auto-reject condition. The rule exists in prose; the gate does not.
+1. **Scribe phase has no enforcement check.** `AGENTS.md` marks the scribe docs-sync phase
+   "mandatory for code-specialist tasks," but the Executioner auto-reject list in
+   `docs/AGENT_USAGE_GUIDE.md` has no "Documentation Sync section empty" condition. The rule
+   exists in prose; the gate does not.
+2. **Case-file lifecycle has a detection layer but no closing gate.** The status classifier and
+   non-COMPLETE audit *find* stale/orphaned case files, but nothing *forces* a case to reach
+   `COMPLETE` + a `DONE.md` row at the moment of approval.
 
-2. **Case files accumulate without lifecycle tracking.** `docs/cases/` grows as intake and triage
-   create new files, but there is no mechanism that marks a case file `status: COMPLETE` and no
-   check that confirms a DONE.md row was appended when Executioner APPROVED. The result is
-   orphaned case files that neither QUEUE.md nor DONE.md reference.
+### Evidence
 
-3. **No LESSONS infrastructure.** `AGENTS.md` has no `## Lessons` section and no `LESSONS.md`
-   file exists. Recurring failure patterns cannot be formally recorded, so the same drift recurs
-   across sessions without a durable lesson being written.
-
-### Evidence (factual — based on file reads in this session)
-
-| Finding | Source |
-|---|---|
-| `nex-case-008` has case file; no DONE.md row; QUEUE.md "Completed" section carries explicit warning: "DONE.md row pending verification backfill" | `state/QUEUE.md` line 102 |
-| `nex-case-009` same warning | `state/QUEUE.md` line 103 |
-| `nex-case-005` QUEUE.md Completed section marks "CLOSED OBE" but no DONE.md row | `state/QUEUE.md` line 99 |
-| ~20 case files in `docs/cases/` have no corresponding QUEUE.md row and no DONE.md row | `docs/cases/` glob vs QUEUE.md + DONE.md cross-check |
-| Named orphans: `tab-case-007`, `tab-case-008`, `infra-case-005`, `infra-case-006`, `infra-case-009`, `prn-case-003`, `plt-case-006`, `plt-case-007`, `plt-case-010`, plus informal-name cases (`tablet-package-ui-redesign`, `tablet-screen-ui-ux-review`, etc.) | `docs/cases/` glob |
-| No `memory/` directory exists; no `LESSONS.md` at root or `docs/` | filesystem check |
-| `AGENTS.md` `## Immutable Rules` section has no task-closure rule | `AGENTS.md` direct read |
-| Executioner auto-reject list (AGENT_USAGE_GUIDE.md) has no "Documentation Sync empty" or "case file not COMPLETE" check | `AGENT_USAGE_GUIDE.md` lines 95–106 |
+This recommendation does **not** re-derive case counts — `plt-case-non-complete-audit-2026-06-08`
+already owns that catalog on `dev`. The pattern it documents (case files whose status diverges from
+`WORK.md`/`QUEUE.md`/`DONE.md`) is exactly the failure this preventive gate is meant to stop at the
+source. The historical trigger (`state/WORK.md` reconciliation, 2026-05-30) noted
+`NEX-CASE-001/008/009` and others as "APPROVED but missing canonical DONE.md rows — flagged for a
+verification backfill," confirming the drift is recurring, not one-off.
 
 ---
 
 ## Enforcement per Doc Type
 
-| Doc type | Drift observed | Proposed enforcement step | Wire to |
+| Doc type | Drift | Preventive enforcement step | Wired to (existing role) |
 |---|---|---|---|
-| `docs/cases/<slug>.md` | Case files exist with stale status; never reach `status: COMPLETE`; orphaned files with no QUEUE/DONE row | Executioner MUST read `## Run State` and REJECT if `status ≠ COMPLETE` or `next_agent ≠ done` at time of issuing verdict | **Executioner** — new auto-reject bullet |
-| `state/DONE.md` | APPROVED cases missing rows; explicit "pending backfill" warnings not resolved | Executioner APPROVED verdict MUST include a mandatory `HANDOVER REQUIRED` block instructing operator to run `handover` before starting the next task; Contrarian pre-task check confirms DONE.md row exists for the previous case before starting a new one | **Executioner** verdict format + **Contrarian** pre-task check |
-| `state/QUEUE.md` | Completed rows not updated to `status: done`; rows sit in "Completed" section indefinitely without migration to DONE.md | `hooks/handover.md` Step 2 already requires the QUEUE row update; enforce via Executioner auto-reject: Contrarian must confirm the prior task's QUEUE row shows `done` before the new task's chain begins | **Executioner** (via Contrarian gate) |
-| `state/WORK.md` | Active cache left pointing at a closed case; next task inherits stale `task_id` | `hooks/handover.md` Step 2 already clears WORK.md; same enforcement as QUEUE.md — the Contrarian pre-task check catches a stale WORK.md by comparing `task_id` against the case file status | **Contrarian** pre-task check |
-| `memory/MEMORY.md` (does not yet exist) | No memory infrastructure; out of scope | Out of scope for this recommendation. Address in a future `plt-case-memory-infrastructure` case if memory infrastructure is added. | — |
-| `AGENTS.md` / Lessons | No LESSONS section or file; recurring failures cannot be formally recorded | Add `## Lessons` section to `AGENTS.md`. The scribe specialist is responsible for drafting an L-0XX entry whenever the Executioner APPROVED verdict carries a systemic finding (a `Follow-Ups` or `Remaining Risks` block that identifies a recurring pattern). Lesson is appended before the operator moves to the next task. | **scribe** post-Executioner step (new responsibility) |
+| `docs/cases/<slug>.md` | Reaches APPROVED but never set to `status: COMPLETE`; orphaned files | Executioner reads `## Run State`; **REJECT** if `status ≠ COMPLETE` or `next_agent ≠ done` at verdict time | **Executioner** auto-reject |
+| `state/DONE.md` | APPROVED cases missing rows | Executioner `APPROVED` verdict MUST carry a `HANDOVER REQUIRED` line; **Contrarian** pre-task check confirms the previous case has a `DONE.md` row before a new task starts | **Executioner** verdict + **Contrarian** gate |
+| `state/QUEUE.md` | Completed rows never set to `done` | Covered by the Contrarian pre-task check: the prior case's QUEUE row must read `done` before the next chain begins (`hooks/handover.md` Step 2 already performs the write) | **Contrarian** gate |
+| `state/WORK.md` | Cache left pointing at a closed case | Same Contrarian check catches a stale `task_id` by comparing `WORK.md` against the case file status | **Contrarian** gate |
+| `memory/MEMORY.md` | Does not exist | Out of scope; revisit only if memory infrastructure is added | — |
+| `docs/LESSONS.md` | No closure/DONE-drift lesson yet | Append **L-017** (below) in the existing ledger format; if it recurs after the gate lands, promote to `AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules` and wire a `recurrence-check` detector | **scribe** (ledger append) |
 
-### Executioner auto-reject additions (exact text for AGENT_USAGE_GUIDE.md)
+### Exact text — Executioner auto-reject additions (`docs/AGENT_USAGE_GUIDE.md`)
 
-Add these two bullets to the **Auto-rejects if any of the following** list:
+Add to the **Auto-rejects if any of the following** list:
 
 ```
-- Case file `## Run State → status` is not `COMPLETE` and `next_agent` is not `done` at time of
-  Executioner verdict
+- Case file `## Run State → status` is not `COMPLETE` (or `next_agent` is not `done`) at verdict time
 - Code-specialist task: case file `## Documentation Sync` section is empty, absent, or still
   contains template placeholder text
 ```
 
-### Contrarian pre-task check addition (exact text for hooks/work.md Step 4 or Step 0)
-
-Add as a mandatory first step before the Contrarian's seven-question challenge:
+### Exact text — Contrarian pre-task closure check (`hooks/work.md`, before the Step 4 challenge)
 
 ```
-[ ] 0. Previous-task closure check: if state/WORK.md shows a `task_id` that is not the current
-       task, read docs/cases/<that-slug>.md and confirm `status: COMPLETE` AND a DONE.md row
-       exists for it. If either is missing, halt. Report the orphaned task by ID and instruct
-       the operator to run `handover` before starting anything new.
+[ ] 0. Previous-task closure check: if state/WORK.md shows a `task_id` other than the current
+       task, read docs/cases/<that-slug>.md and confirm `status: COMPLETE` AND a state/DONE.md
+       row exists for it AND its state/QUEUE.md row reads `done`. If any is missing, halt; report
+       the unclosed task by ID and instruct the operator to run `handover` before starting new work.
 ```
 
 ---
 
-## Proposed Immutable Rule
+## Proposed Immutable Rule (`AGENTS.md` → `## Immutable Rules`)
 
-Add as a new bullet at the end of `## Immutable Rules` in `AGENTS.md`:
+Per the governance-hardening precedent, any new Immutable Rule must be mirrored verbatim into
+`.cursor/rules/woosoo.mdc`.
 
 ```
 - **Task closure is atomic.** A task is DONE only when ALL three are true:
   (1) the case file `## Run State → status: COMPLETE` and `next_agent: done`;
   (2) `state/DONE.md` has an APPROVED row for this case;
   (3) `state/QUEUE.md` row for this case shows `status: done`.
-  The Executioner APPROVED verdict must include a "HANDOVER REQUIRED" instruction.
-  The Executioner REJECTS if the case file Run State is not COMPLETE at time of verdict.
-  The Contrarian halts and reports any unclosed prior task before starting a new one.
+  The Executioner `APPROVED` verdict must include a "HANDOVER REQUIRED" instruction, and the
+  Executioner REJECTS if the case file Run State is not COMPLETE at verdict time. The Contrarian
+  halts and reports any unclosed prior task before starting a new one.
 ```
 
 ---
 
-## Drafted LESSON Entry (L-001)
+## Drafted Lesson — L-017 (append to `docs/LESSONS.md § Ledger`, in the existing format)
 
-Copy this verbatim into a new `## Lessons` section at the end of `AGENTS.md`:
-
-```markdown
-## Lessons
-
-### L-001 — Doc-alignment drift: APPROVED and handover must be treated as atomic
-
-**Date recorded:** 2026-06-14
-**Scope:** orchestration system (ecosystem)
-
-**Pattern:** Cases receive Executioner APPROVED but state files (`state/DONE.md`,
-`state/QUEUE.md`) and the case file itself (`## Run State → status: COMPLETE`) are not
-updated. The root cause: `hooks/handover.md` is a separate operator-triggered step, not part of
-the 4-agent chain. When the operator moves to the next task without typing "handover", state
-diverges indefinitely. The Executioner auto-reject list contained no check for this condition.
-The scribe "mandatory" docs-sync requirement existed in prose but had no enforcement gate.
-
-**Evidence found 2026-06-14:**
-- `nex-case-008` and `nex-case-009`: QUEUE.md carries explicit "DONE.md row pending
-  verification backfill" warnings from a reconciliation pass in 2026-05-30 — never resolved.
-- `nex-case-005`: QUEUE.md marks "CLOSED OBE" but no DONE.md row exists.
-- ~20 case files in `docs/cases/` have no corresponding QUEUE.md row or DONE.md row (including
-  `tab-case-007/008`, `infra-case-005/006/009`, `prn-case-003`, `plt-case-006/007/010`, and
-  several informal-name cases).
-
-**Rules added (see AGENTS.md Immutable Rules and AGENT_USAGE_GUIDE.md auto-reject list):**
-- Immutable Rule: "Task closure is atomic" — all three closure conditions must be true before
-  a task is treated as DONE.
-- Executioner auto-reject: case file `status ≠ COMPLETE`; Documentation Sync empty on code task.
-- Contrarian pre-task check (step 0): halt if prior task has no DONE.md row or case file
-  `status ≠ COMPLETE`.
-- Executioner APPROVED verdict format: must carry "HANDOVER REQUIRED" instruction.
-
-**Recurrence prevention:**
-The Contrarian now checks prior-task closure before starting any new task. The Executioner
-rejects if the case file is not COMPLETE. These two gates make handover non-skippable in
-practice even if the operator forgets to type "handover" — the next task's Contrarian catches
-the gap and halts.
+```md
+### L-017 — Task closure not atomic: APPROVED without state-file sync
+- Tags: #process #governance #docs
+- Symptom: A case reaches Executioner APPROVED, but `state/DONE.md` has no row, the
+  `state/QUEUE.md` row never flips to `done`, and the case file never reaches `status: COMPLETE`.
+  Drift is only caught later by the non-COMPLETE audit.
+- Root cause: `hooks/handover.md` (the DONE.md/QUEUE/WORK sync) is a separate operator-triggered
+  step, not part of the agent chain. The chain ends at APPROVED; no gate verifies closure, so when
+  the operator starts the next task without typing "handover", state diverges.
+- Guard: "Task closure is atomic" Immutable Rule (AGENTS.md + `.cursor/rules/woosoo.mdc`).
+  Executioner auto-rejects if the case file is not `COMPLETE` and its APPROVED verdict carries a
+  HANDOVER REQUIRED line. Contrarian step-0 halts a new task until the prior case shows
+  `COMPLETE` + a DONE.md row + a `done` QUEUE row.
+- Evidence: `state/WORK.md` reconciliation (2026-05-30, NEX-CASE-001/008/009 missing DONE rows);
+  `plt-case-non-complete-audit-2026-06-08` (recurring catalog of case/state drift).
+- Promoted: candidate — promote to `AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules` + a
+  `recurrence-check` detector if drift recurs after the gate lands.
 ```
 
 ---
 
 ## Implementation Scope (for the follow-on scribe case)
 
-This recommendation is a read-only artifact. After operator approval, create a scribe case
-(`plt-case-doc-alignment-enforcement`) to apply these changes:
+This document is read-only. After approval, create `plt-case-doc-closure-gate` to apply:
 
-| Change | File | Section |
-|---|---|---|
-| Add "Task closure is atomic" bullet | `AGENTS.md` | `## Immutable Rules` |
-| Add two auto-reject bullets | `docs/AGENT_USAGE_GUIDE.md` | Executioner **Auto-rejects** list |
-| Add step 0 previous-task closure check | `hooks/work.md` | Step 0 or new preamble before Step 4 |
-| Add HANDOVER REQUIRED to Executioner verdict format | `docs/AGENT_USAGE_GUIDE.md` | **Mandatory End-of-Task Output** template |
-| Add `## Lessons` section + L-001 entry | `AGENTS.md` | new section at end of file |
-| Backfill DONE.md rows | `state/DONE.md` | Append rows for `nex-case-008`, `nex-case-009` with evidence from their case files |
-| Update QUEUE.md Completed rows | `state/QUEUE.md` | Set `nex-case-005`, `nex-case-008`, `nex-case-009` to `done` in Completed section or prune to DONE.md |
+| Change | File |
+|---|---|
+| Add "Task closure is atomic" Immutable Rule | `AGENTS.md` + mirror in `.cursor/rules/woosoo.mdc` |
+| Add two Executioner auto-reject bullets | `docs/AGENT_USAGE_GUIDE.md` |
+| Add HANDOVER REQUIRED to the Executioner verdict format | `docs/AGENT_USAGE_GUIDE.md` |
+| Add Contrarian step-0 closure check | `hooks/work.md` |
+| Append L-017 | `docs/LESSONS.md` |
+| Backfill missing rows | `state/DONE.md` (NEX-CASE-008/009 and any others the non-COMPLETE audit lists) |
 
-**Out of scope for this recommendation:** CI/CD pipeline changes, pre-commit hooks, scheduled cron, changes to individual case files beyond the DONE.md backfill, memory infrastructure.
+**Out of scope:** CI/CD changes, pre-commit hooks, cron; memory infrastructure; bulk case-file
+cleanup (owned by `plt-case-non-complete-audit-2026-06-08`).
 
 ---
 
 ## Verification Checklist (for reviewer)
 
-- [ ] Every file-existence claim (or absence) matches what is actually in the repo
-- [ ] Every proposed enforcement step names a specific existing file and section
-      (`hooks/work.md`, `AGENT_USAGE_GUIDE.md` auto-reject list, `AGENTS.md` Immutable Rules)
-- [ ] The Immutable Rule text is a plain-English bullet — no new scripts or hooks required
-- [ ] The LESSON entry is copy-pasteable verbatim into `AGENTS.md`
-- [ ] No new agents or skills are proposed; all changes use existing roles
-- [ ] The two Executioner auto-reject bullets are expressible as plain conditions
-- [ ] No forward estimates — all claims are factual observations from repo reads
+- [ ] No claim contradicts current `dev` (LESSONS.md exists; L-017 is the next free number; the
+      rule is genuinely absent from `AGENTS.md` and `AGENT_DEFAULT_INSTRUCTIONS.md`)
+- [ ] Every enforcement step names an existing role + file (`hooks/work.md`, `AGENT_USAGE_GUIDE.md`,
+      `AGENTS.md`) — no new agents or skills
+- [ ] L-017 matches the `docs/LESSONS.md` entry format exactly
+- [ ] The Immutable Rule is plain English and mirrored to `.cursor/rules/woosoo.mdc`
+- [ ] Builds on dev's existing detection tooling rather than duplicating it

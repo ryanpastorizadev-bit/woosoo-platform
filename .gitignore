@@ -48,6 +48,9 @@ public/hot
 npm-debug.log*
 yarn-error.log*
 
+# --- Scratch review mirrors (real code lives in woosoo-nexus) ---
+.kds-review/
+
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db
@@ -57,6 +60,10 @@ Thumbs.db
 # --- Obsidian (machine-local layout + downloaded plugins; config via scripts/obsidian-bootstrap.ps1) ---
 .obsidian/
 *.canvas
+*.base
+# Intentional, hub-linked canvases are tracked (negate the blanket *.canvas ignore above):
+!docs/architecture/SYSTEM_MAP.canvas
+!docs/cases/DEPLOY_SEQUENCE.canvas
 
 # --- Independent app repos (managed as their own git repos / sibling model) ---
 # The platform repo is the orchestration/governance layer only.
@@ -69,6 +76,11 @@ Thumbs.db
 
 # --- Machine-local Claude Code settings (not shared) ---
 .claude/settings.local.json
+
+# --- Machine-local skill loader links (canonical source is .agents/skills/) ---
+# .claude/skills/ contains symlinks/junctions the harness uses to load skills.
+# They are recreated locally by scripts/setup-skills.ps1 — do not commit.
+.claude/skills/
 
 # --- Machine-local Codex runtime config (sandbox_mode etc.; not shared) ---
 .codex/config.toml
@@ -85,3 +97,7 @@ Thumbs.db
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+/.playwright-mcp/
+
+# Personal working scratchpad (private, not checked in)
+/CLAUDE.local.md

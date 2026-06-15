@@ -8,6 +8,14 @@ scope: ecosystem
 
 This is the canonical entry point for all Woosoo platform documentation. Only docs listed here with `status: canonical` are source of truth.
 
+## Obsidian vault (agents + operators)
+
+- [VAULT_INDEX.md](VAULT_INDEX.md) — **vault entry** — navigation hubs, orphan policy
+- [cases/CASE_REGISTRY.md](cases/CASE_REGISTRY.md) — full case wikilink index (graph hub)
+- [cases/OPERATOR_HOME.md](cases/OPERATOR_HOME.md) — operator daily dashboard (pin in Obsidian)
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — bootstrap + plugins
+- Maintenance: `scripts/obsidian-case-registry.ps1`, `scripts/obsidian-lint.ps1` (target: 0 actionable orphans in `docs/`)
+
 ## Boot Layer
 
 - [AGENTS.md](../AGENTS.md) — AI operating rules for the platform (Claude Code entrypoint)
@@ -27,6 +35,8 @@ in [AGENTS.md](../AGENTS.md) and runs on Claude Code.
 - Claude skills: `.claude/skills/*/SKILL.md` — task playbooks
 - [RESUME_PROTOCOL.md](RESUME_PROTOCOL.md) — **resume & handoff** (rate-limit / interruption
   recovery; case file is the durable state)
+- [LESSONS.md](LESSONS.md) — **Lessons Ledger**: recurring issues + guards. Read before non-trivial
+  work; append after any mistake. Recurrence promotes a guard to an enforced rule.
 - [HANDOVER_PROTOCOL.md](HANDOVER_PROTOCOL.md) — required handover before `APPROVED`
 - [PROTOCOL.md](../PROTOCOL.md) — concise routing reference for the hook/state system
 - `docs/cases/<task-slug>.md` — per-task case files, the durable resume point (template:
@@ -79,8 +89,6 @@ claim against live source and contracts before relying on those older audit file
 - `tablet-ordering-pwa/docs/` — Tablet detailed docs (see audit doc for canonical pointers)
 - `woosoo-print-bridge/docs/` — Print Bridge detailed docs
 
-## Deployment
-
 ## Ecosystem components (5 repos)
 
 Production runs as sibling repos orchestrated from this platform root. See
@@ -96,6 +104,7 @@ Production runs as sibling repos orchestrated from this platform root. See
 
 Docker orchestration authority is the **platform repo root** (sibling model — not a monorepo).
 
+- [architecture/pld-cli-decision.md](architecture/pld-cli-decision.md) — **ADR (canonical)**: Palisade `pld` CLI vs Woosoo Bash, multi-OS strategy, migration phases
 - [deployment/DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) — **operator guide**: Pi vs dev path, first-time setup, update flow, recovery, rollback, troubleshooting
 - [deployment/production-docker.md](deployment/production-docker.md) — canonical platform-root Docker deployment, topology, deploy scripts, verification + transition state
 - `deployment/examples/woosoo.env.example` — `/etc/woosoo/woosoo.env` template (incl. `WOOSOO_PLATFORM_PATH`, per-repo deploy branches)
@@ -104,6 +113,8 @@ Docker orchestration authority is the **platform repo root** (sibling model — 
 ## Strategic
 
 - [WOOSOO_ROADMAP_REVIEW.md](WOOSOO_ROADMAP_REVIEW.md) — strategic roadmap, reconciled with the four 2026-05-14 audits (Audit reconciliation section is canonical; original analysis preserved)
+- [WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14.md](WOOSOO_IMPROVEMENT_STRATEGY_2026-06-14.md) — five-thread productivity and delivery improvement program (tooling, WSL staging, docs gaps, UI tests, dashboard)
+- [business/WOOSOO_DELIVERY_DASHBOARD.md](business/WOOSOO_DELIVERY_DASHBOARD.md) — stakeholder delivery dashboard: 4 lenses, feature inventory, cost model
 
 ## Audit trail
 
@@ -120,8 +131,9 @@ Documents in `docs/archive/` and per-app `docs/archive/` directories are histori
 
 ## Tooling
 
-- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: run `scripts/obsidian-bootstrap.ps1`,
-  open this repo as vault root; pin [OPERATOR_HOME.md](cases/OPERATOR_HOME.md) (daily dashboard)
+- [obsidian-setup-guide.md](obsidian-setup-guide.md) — **Obsidian vault**: `scripts/obsidian-bootstrap.ps1`,
+  pin [OPERATOR_HOME.md](cases/OPERATOR_HOME.md), [OPS_KANBAN.md](cases/OPS_KANBAN.md),
+  [CONTRACTS_HUB.md](cases/CONTRACTS_HUB.md); Calendar → `docs/operator/daily/`
 - `scripts/pre-merge-check.sh` — Bash pre-merge validation
 - `scripts/pre-merge-check.ps1` — PowerShell wrapper for Windows
 - `scripts/case-status.sh` / `scripts/case-status.ps1` — print/update the `## Run State` block

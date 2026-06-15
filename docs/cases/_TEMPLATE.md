@@ -11,21 +11,27 @@ the shared file is not used (concurrent tasks would collide). This file is the *
 runner-agnostic resume point** — see `docs/RESUME_PROTOCOL.md`. Every agent checkpoints here
 before handing off; any runner (Claude Code / Codex / Copilot) resumes from here.
 
+## Vault links
+<!-- Obsidian wikilinks — keeps graph connected. Update CASE_REGISTRY after create. -->
+- Registry: [[CASE_REGISTRY]] · Contracts: [[CONTRACTS_HUB]] · Home: [[OPERATOR_HOME]]
+- Related cases: _add `[[case-slug]]` when cross-referencing_
+
 ## Run State
 <!-- Rewritten in full by each agent when it finishes its phase. The resume header. -->
 - task_slug: <slug>
 - tier: 1 | 2 | 3
 - branch: agent/<slug>            <!-- platform governance work uses staging/orchestration-hooks -->
 - status: IN_PROGRESS | BLOCKED | COMPLETE
-- last_completed_agent: none | contrarian | specialist:<name> | verifier | executioner
-- next_agent: contrarian | specialist:<name> | verifier | executioner | done
+- last_completed_agent: none | contrarian | specialist:<name> | code-simplifier | verifier | executioner
+- next_agent: contrarian | specialist:<name> | code-simplifier | verifier | executioner | done
 - active_runner: <runner>   # claude-code | codex | copilot | cascade | cursor
 - interrupted: false | true
 - interrupt_reason: none | rate-limit | context-limit | error | manual-handoff
 - updated: <YYYY-MM-DD HH:MM>
 
 ## Handoff
-<!-- Filled when a phase is interrupted (e.g. rate limit). Empty otherwise. -->
+<!-- Filled when a phase is interrupted (e.g. rate limit). Empty otherwise.
+     If BLOCKED, lead with a callout:  > [!danger] Blocker: <what blocks + who/what unblocks> -->
 - Phase in progress:
 - Done so far:
 - Exact next action:
@@ -54,6 +60,10 @@ agent/<slug>
 
 ## Files Changed
 
+## Code Simplification
+<!-- Written by code-simplifier. What was refined; hygiene (dead-code-cleanup) result.
+     SKIPPED with reason on Tier 1, pure-docs, or no code path changed. -->
+
 ## Verification
 
 ## Documentation Sync
@@ -61,5 +71,8 @@ agent/<slug>
      confirms no update was needed with a reason. Mandatory for code-specialist tasks. -->
 
 ## Executioner Verdict
+<!-- Use a callout for the verdict so it reads at a glance:
+     > [!success] APPROVED   /   > [!failure] REJECTED   /   > [!warning] SPLIT_REQUIRED -->
 
 ## Remaining Risks
+<!-- One  > [!warning]  callout per material risk; plain bullets for minor notes. -->

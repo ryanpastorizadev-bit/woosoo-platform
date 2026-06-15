@@ -11,5 +11,10 @@
       "Read(./storage/logs/**)",
       "Read(./.git/config)"
     ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      { "matcher": "", "hooks": [{ "type": "command", "command": "powershell -NonInteractive -NoProfile -File scripts/vault-inject.ps1" }] }
+    ]
   }
 }

@@ -11,6 +11,7 @@
     "Woosoo Food Assets/",
     "node_modules/",
     "vendor/",
-    ".git/"
+    ".git/",
+    "APPLICATION_MATERIALS.md"
   ]
 }

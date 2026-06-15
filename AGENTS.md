@@ -10,18 +10,59 @@ scope: ecosystem
 
 ---
 
+## Environment (read before anything else)
+
+**Working directory:** `E:\Projects\woosoo-platform` — this is always the root. Every file path and git command originates here.
+
+**Sibling repos live inside this root as subdirectories:**
+
+| Repo | Path from platform root |
+|------|------------------------|
+| woosoo-nexus | `woosoo-nexus/` |
+| tablet-ordering-pwa | `tablet-ordering-pwa/` |
+| woosoo-print-bridge | `woosoo-print-bridge/` |
+
+To run git commands in a sibling repo: `git -C woosoo-nexus <command>` (do not `cd` out of platform root).
+
+**Never use:** WSL paths (`~/projects/woosoo-platform`), `/mnt/e/` mounts, or any path outside `E:\Projects\woosoo-platform`. If a task instructs you to run commands "in WSL" or at a `~/` path, that is a human operator step — flag it and stop. Agents run on Windows from platform root only.
+
+---
+
 ## Hook System — Read This First
 
-**Step 1 — Resume check (mandatory, per `docs/RESUME_PROTOCOL.md`).**
-Derive the task slug and check `docs/cases/<task-slug>.md`.
+**Step 1 — Read vault state (mandatory first, before anything else).**
+The platform vault already knows what is active. Read these two files; do not search.
+- `state/WORK.md` → `task_id`, `status`, `tier`, `case_file`, `next_action`
+- `docs/cases/OPERATOR_HOME.md` → P0/P1/P2 gates, deploy queue, priority table
+
+If `task_id` is non-empty and `status` is `in_progress`: use that slug as the resume target.
+Do not derive the slug from the user's message — the vault is authoritative.
+
+> **Note:** `state/WORK.md` is injected automatically via `UserPromptSubmit` hook. If already
+> present in your context, skip the manual read and proceed directly to Step 1b.
+
+**Step 1b — Resume check (mandatory, per `docs/RESUME_PROTOCOL.md`).**
+Using the slug from Step 1, check `docs/cases/<task-slug>.md`.
 - Exists with `IN_PROGRESS` or `BLOCKED`: resume from `## Run State → next_agent`. Do not restart.
-- Exists with `COMPLETE`: do not reopen.
+- Exists with `COMPLETE`: do not reopen. Pull next task from `state/QUEUE.md`.
 - Absent: start fresh as Contrarian. Create case file from `docs/cases/_TEMPLATE.md`.
 
-**Step 1b — Consult `state/WORK.md` for quick routing after the resume check.**
-`state/WORK.md` is a convenience cache mirroring the active case's Run State.
-It is NOT the authoritative durable state — `docs/cases/<slug>.md` is.
-It tells you the active task, current status, and exact next action when you already know no resume is needed.
+**Step 1c — Vault hub map (navigation when needed).**
+The platform repo is an Obsidian vault. Use these hubs when finding related cases or contracts.
+Do not duplicate state from these hubs — they are read-only navigation sources.
+
+| Hub | Path | Use when |
+|-----|------|----------|
+| Vault index | `docs/VAULT_INDEX.md` | First-time navigation; orphan policy |
+| Operator home | `docs/cases/OPERATOR_HOME.md` | Active work, priority table, queue (already read in Step 1) |
+| Case registry | `docs/cases/CASE_REGISTRY.md` | Full case list + wikilink graph |
+| Case index | `docs/cases/CASE_INDEX.md` | Dataview — recently reviewed cases |
+| Contracts | `docs/cases/CONTRACTS_HUB.md` | Cross-app contract links |
+| Docs hub | `docs/DOCS_HUB.md` | Canonical docs outside cases |
+
+When writing or updating case files: add `[[related-case-slug]]` wikilinks for cross-references.
+New cases: ensure slug appears in `CASE_REGISTRY` (run `scripts/obsidian-case-registry.ps1`).
+Setup: `docs/obsidian-setup-guide.md` · `docs/USAGE_GUIDE.md § 6`.
 
 **Step 2 — Match the user's phrase to an installed hook. Load that hook and follow it completely.**
 
@@ -55,6 +96,7 @@ If no phrase matches: load `hooks/work.md` as default.
 3. Read that app's `.agents.md` for its scope-specific hard rules.
 4. Do **not** modify more than one app per task unless this is an explicitly approved integration change.
 5. Investigate before editing. For non-trivial work, document findings inline in your response or in a case file under the app's `docs/` directory.
+6. Skim `docs/LESSONS.md` (Lessons Ledger) for failure modes tagged for the tools/app you will touch. When you hit or spot a mistake, append a ledger entry before you finish — every fix leaves a guard.
 
 ## Immutable Rules
 
@@ -64,6 +106,7 @@ If no phrase matches: load `hooks/work.md` as default.
 - **Sibling-repo boundary:** one app per branch/commit unless integration-scoped. Cross-app changes require contract updates first.
 - **Config integrity:** production POS uses static IP `192.168.1.32`. Detect mismatches; never write secrets to `.env` without backup and review.
 - **No hardcoded LAN IPs or API/Reverb hosts** in tablet or bridge code.
+- **Automated recurrence guards are binding.** `scripts/recurrence-check.{ps1,sh}` (wired into `pre-merge-check`) mechanically enforces the LESSONS-derived guards: PowerShell ASCII/parse, anchored case-status classification, no `../` wikilinks, tracked hub canvases, and registry-summary integrity. It must pass before any merge. Never weaken, skip, or comment out a detector to make a change pass; fix the cause.
 
 ## Mandatory Workflow
 
@@ -141,8 +184,8 @@ This operating system runs on **Claude Code** and lives in this file (the source
 Claude Code executes it via `.claude/agents/*` (subagents) and `.claude/skills/*` (skills).
 Agent definitions live only in `.claude/agents/`. Per-app rules live in each app's `.agents.md`.
 
-A single chatbox adopts each role in turn (Contrarian → Specialist → Verifier → Executioner) by
-reading `.claude/agents/<role>.md` as its instruction set for that phase.
+A single chatbox adopts each role in turn (Contrarian → Specialist → code-simplifier → Verifier →
+scribe → Executioner) by reading `.claude/agents/<role>.md` as its instruction set for that phase.
 
 ## Resume & Handoff (mandatory)
 
@@ -173,11 +216,12 @@ subsequent runner. A resuming runner must not widen scope or skip a gate to "cat
 ## The Chain
 
 ```txt
-1. Contrarian   — challenge the request, classify risk, decide path
-2. Specialist   — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
-3. Verifier     — prove it works by running tests/build/lint/health
-4. scribe   — sync affected docs (mandatory when Specialist is a code specialist)
-5. Executioner  — final verdict gate
+1. Contrarian      — challenge the request, classify risk, decide path
+2. Specialist      — implement (ranpo-backend | chuya-frontend | relay-ops | scribe | infra)
+3. code-simplifier — refine recently modified code (runs dead-code-cleanup internally)
+4. Verifier        — prove it works by running tests/build/lint/health
+5. scribe          — sync affected docs (mandatory when Specialist is a code specialist)
+6. Executioner     — final verdict gate
 ```
 
 First agent is always the Contrarian. Last is always the Executioner. A task is complete only
@@ -192,8 +236,8 @@ when the Specialist is already scribe.
 | Tier | Examples | Sequence |
 | ---- | -------- | -------- |
 | **1 — Trivial** | typo, single-line config, comment, README link | `Specialist → Executioner` (no Verifier if no code path changed) |
-| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → Verifier → scribe → Executioner` |
-| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → Verifier → scribe → Executioner` |
+| **2 — Standard** (default) | bug fix in one app, new endpoint, UI component, doc rewrite | `Contrarian → Specialist → code-simplifier → Verifier → scribe → Executioner` |
+| **3 — High-risk** | auth, POS DB writes, order state machine, payment/order lifecycle, race conditions, queue/retry, printer duplicate prevention, production deployment, cross-app architecture, unexplained repeated failures | `Contrarian (deep, written risk analysis) → Specialist → code-simplifier → Verifier → scribe → Executioner` |
 
 For Tier 3 the Specialist must reference the relevant `contracts/*.md` file and the Executioner
 uses the strongest model (opus).
@@ -239,10 +283,19 @@ Scenario → skill (the Contrarian selects from these; the Specialist loads only
 | Docker/Nginx/compose/health/deployment | `docker-deployment-debug` |
 | Any doc/spec/contract change | `documentation-truth-audit` |
 | Proving a change works — before claiming "done" (every code task) | `test-verification` |
-| Pre-completion hygiene sweep — before the Verifier (every code task) | `dead-code-cleanup` |
+| After Specialist on Tier 2–3 code tasks — clarity pass before Verifier | `code-simplifier` |
+| Pre-completion hygiene sweep — final sub-step of code-simplifier; also incremental during Specialist | `dead-code-cleanup` |
+| Writing/editing case files, wikilinks, callouts, embeds, frontmatter | `obsidian-markdown` |
+| Vault search, note navigation, case file location | `obsidian-vault` |
+| Creating `.base` database view files (OPS_KANBAN, CASE_INDEX, Dataview) | `obsidian-bases` |
+| Creating `.canvas` visual diagrams or architecture maps | `json-canvas` |
+| Obsidian CLI commands against running vault instance | `obsidian-cli` |
+| Vault automation, auto-linking, Dataview query patterns | `obsidian-automation` |
+| Knowledge base architecture, LLM wiki structure | `llm-wiki` |
 
-`agent-sequence` is mandatory on every task; `test-verification` and `dead-code-cleanup` are
-effectively mandatory on every code task.
+`agent-sequence` is mandatory on every task; `test-verification` is mandatory on every code task;
+`code-simplifier` is mandatory on Tier 2–3 code tasks (runs `dead-code-cleanup` internally before
+Verifier).
 
 ## Model Selection Policy
 
@@ -252,8 +305,8 @@ Use the cheapest competent model.
 Contrarian:     haiku        Ranpo Backend:  sonnet
 Scribe:         haiku        Chuya Frontend: sonnet
 Verifier:       haiku        Relay Ops:      sonnet
+Code Simplifier: sonnet       Infra:          sonnet
 Executioner:    opus (final correctness gate; Prime Directive = correctness > speed)
-                             Infra:          sonnet
 ```
 
 Escalate the Specialist to opus only for: security/auth, POS DB writes, payment/order lifecycle,
@@ -308,8 +361,10 @@ Rules:
 - Tier 1 still requires a minimal Claude Code precheck (slug + case file + Run State checkpoint)
   before Cursor takes over. Slug/case/resume discipline is never skipped.
 - Open via **`woosoo-platform.code-workspace`** (multi-root) so `docs/cases/` is in scope.
-- Cursor must write the Specialist checkpoint to the case file before handing off to Verifier.
-  Operator confirms the checkpoint landed before typing `verify` in Claude Code.
+- Cursor must run the `code-simplifier` phase (invoke subagent on changed files; runs
+  `dead-code-cleanup` internally) before the Specialist checkpoint, then write the case file with
+  `next_agent: verifier`. Operator confirms the checkpoint landed before typing `verify` in Claude Code.
+  This applies to **all code tasks** in Cursor (Tier 1–2), not only Tier 2–3.
 - `.cursor/rules/woosoo.mdc` encodes the project rules for Cursor AI. **Rule Sync checklist:**
   when immutable rules change in this file, update `.cursor/rules/woosoo.mdc` to match.
 - Known Cursor limitation: `.cursor/rules` may not load reliably in multi-root workspaces.
@@ -324,3 +379,5 @@ Rules:
 - No technical errors to customers.
 - Order state: `OrderStatus` enum; terminal = `completed | cancelled | voided | archived`. See `contracts/order-state.contract.md`.
 - Only docs with `status: canonical` are source of truth.
+- **Never repeat a known mistake.** Consult `docs/LESSONS.md` before non-trivial work; append a new entry when a failure mode appears. Recurrence promotes the guard to an enforced rule in `docs/AGENT_DEFAULT_INSTRUCTIONS.md § Extended Rules`.
+- **Obsidian vault** = platform repo. Agents refer to `docs/VAULT_INDEX.md`, `docs/cases/CASE_REGISTRY.md`, and `docs/cases/CONTRACTS_HUB.md` for navigation; use `[[wikilinks]]` in case files. Operators pin `docs/cases/OPERATOR_HOME.md`. Bootstrap: `scripts/obsidian-bootstrap.ps1`.

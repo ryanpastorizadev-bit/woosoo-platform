@@ -1,6 +1,6 @@
 ---
 status: canonical
-last_reviewed: 2026-05-18
+last_reviewed: 2026-06-08
 scope: ecosystem
 ---
 
@@ -133,7 +133,7 @@ override, production path untouched):
 # main stack up (for API/Reverb), then:
 docker compose --env-file ./woosoo-nexus/.env -f compose.yaml \
   --profile dev up tablet-pwa-dev
-# open http://localhost:3000 — edits in ./tablet-ordering-pwa hot-reload
+# open http://localhost:3000 on the dev host — tablet hot-reload only (not nexus admin URL)
 ```
 
 `tablet-pwa-dev` runs `Dockerfile.dev` (Nuxt dev server) with `./tablet-ordering-pwa`
