@@ -61,7 +61,7 @@ section() { echo; echo "== $* =="; }
 
 env_get() {
   local key="$1" file="$2"
-  grep -E "^${key}=" "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'"
+  grep -E "^${key}=" "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true
 }
 
 compose() {
