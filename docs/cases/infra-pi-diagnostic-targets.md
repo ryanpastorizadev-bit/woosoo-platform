@@ -61,7 +61,7 @@ Add `PI_HOST` arg, `--host` parser case, `target_pi_verify`, `target_pi_health`,
 - `E:\Projects\woosoo-platform\scripts\pipeline.sh`
 
 ## Verification commands (Verifier — no Pi hardware needed)
-```
+```bash
 bash -n scripts/pipeline.sh
 bash scripts/pipeline.sh help
 bash scripts/pipeline.sh pi-verify --dry-run
@@ -72,12 +72,12 @@ bash scripts/pipeline.sh pi-health --dry-run
 ## Specialist Output
 
 ### `bash -n scripts/pipeline.sh`
-```
+```text
 SYNTAX OK
 ```
 
 ### `bash scripts/pipeline.sh help` (relevant excerpt)
-```
+```text
     pi        Production Pi deploy (requires root + woosoo.env)
     pi-verify Post-deploy stability check (session/CSRF, print env, Docker runtime)
     pi-health Post-reboot diagnostic (port ownership, Reverb listener, Pi throttle)
@@ -85,7 +85,7 @@ SYNTAX OK
 ```
 
 ### `bash scripts/pipeline.sh pi-verify --dry-run`
-```
+```text
 ══════════════════════════════════════════════
   Woosoo Pipeline  ·  pi-verify  ·  branch: dev
 ══════════════════════════════════════════════
@@ -95,7 +95,7 @@ SYNTAX OK
 ```
 
 ### `bash scripts/pipeline.sh pi-verify --host 192.168.1.31 --dry-run`
-```
+```text
 ══════════════════════════════════════════════
   Woosoo Pipeline  ·  pi-verify  ·  branch: dev
 ══════════════════════════════════════════════
@@ -105,7 +105,7 @@ SYNTAX OK
 ```
 
 ### `bash scripts/pipeline.sh pi-health --dry-run`
-```
+```text
 ══════════════════════════════════════════════
   Woosoo Pipeline  ·  pi-health  ·  branch: dev
 ══════════════════════════════════════════════

@@ -35,8 +35,8 @@ tags: [app/platform, status/complete, tier/1]
 
 ## Handoff
 
-- Phase in progress: verifier
-- Done so far: Scribe phase complete (see ## Scribe Implementation below). All edits committed to dev (c33e905).
+- Phase in progress: COMPLETE — executioner APPROVED 2026-06-14
+- Done so far: Scribe phase complete (see ## Scribe Implementation below). All edits committed to dev (c33e905). Verifier and executioner completed same session.
 - Exact next action: Verifier runs vault-hygiene.ps1 and confirms CASE_DASHBOARD renders "At a glance" section; confirms CASE_AUDIT deprecation callout is present; confirms no broken wikilinks.
 - Working-tree state: clean (all changes in commit c33e905)
 - Risks / do-not-redo: Do not re-archive CASE_AUDIT_2026-05-18.md — already done. Do not duplicate the "At a glance" Dataview queries — "Counts by status" was removed from the bottom to avoid duplication.

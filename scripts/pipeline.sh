@@ -428,6 +428,10 @@ target_help() {
     --dry-run       Preview changes without writes
     --regen-certs   Regenerate dev TLS certs for PUBLIC_HOST + restart nginx
 
+  Pi-verify flags:
+    --host <ip>      Override verify target (default: PUBLIC_HOST or hostname -I)
+    --dry-run        Print command without running it
+
   Dev flags:
     --no-pull        Skip git pull
     --no-build       Skip docker compose build

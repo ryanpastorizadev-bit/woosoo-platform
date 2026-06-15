@@ -1,5 +1,6 @@
 ---
 status: canonical
+last_reviewed: 2026-06-15
 scope: ecosystem
 ---
 
