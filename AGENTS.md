@@ -10,6 +10,24 @@ scope: ecosystem
 
 ---
 
+## Environment (read before anything else)
+
+**Working directory:** `E:\Projects\woosoo-platform` — this is always the root. Every file path and git command originates here.
+
+**Sibling repos live inside this root as subdirectories:**
+
+| Repo | Path from platform root |
+|------|------------------------|
+| woosoo-nexus | `woosoo-nexus/` |
+| tablet-ordering-pwa | `tablet-ordering-pwa/` |
+| woosoo-print-bridge | `woosoo-print-bridge/` |
+
+To run git commands in a sibling repo: `git -C woosoo-nexus <command>` (do not `cd` out of platform root).
+
+**Never use:** WSL paths (`~/projects/woosoo-platform`), `/mnt/e/` mounts, or any path outside `E:\Projects\woosoo-platform`. If a task instructs you to run commands "in WSL" or at a `~/` path, that is a human operator step — flag it and stop. Agents run on Windows from platform root only.
+
+---
+
 ## Hook System — Read This First
 
 **Step 1 — Read vault state (mandatory first, before anything else).**

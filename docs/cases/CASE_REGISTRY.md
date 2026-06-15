@@ -6,7 +6,7 @@ scope: ecosystem
 
 # Case Registry (summarized wikilink index)
 
-**116 cases** · 95 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
+**118 cases** · 97 complete · 19 active/blocked. Auto-generated summary of every case file in docs/cases/; full files remain the durable audit trail (see RESUME_PROTOCOL). Regenerate: scripts/obsidian-case-registry.ps1.
 
 Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|CASES.base]] · Index: [[CASE_INDEX]] · Contracts: [[CONTRACTS_HUB]] · Vault: [[VAULT_INDEX]]
 
@@ -27,6 +27,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-011-duplicate-order-printing]] | code-complete | 2026-06-05 | Client reports submitted orders printing on BOTH the Bluetooth printer and the 3rd-party POS |
 | [[nex-case-012-admin-ui-prototype-impl]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded.** Deliverable 3 (Vue SFCs for Packages and Tablet Categories) was |
 | [[nex-case-013-pos-order-detail-sync]] | ✅ COMPLETE | 2026-06-01 | Canonicalize the order identifier on order_id and add a POS→device live order-detail sync: |
+| [[nex-case-014-session-domain-login-419]] | ✅ COMPLETE | 2026-06-05 | > **Cross-repo stub.** This case was implemented in woosoo-nexus. The authoritative case file lives at woosoo-nexus/d… |
 | [[nex-case-015-tablet-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-07 | StoreDeviceOrderRequest (app/Http/Requests/StoreDeviceOrderRequest.php) currently accepts |
 | [[nex-case-016-kds-ui-only]] | ✅ COMPLETE | 2026-06-07 | Kitchen needs an early visual KDS surface for a Samsung Galaxy Tab A11+ target before production feed/write integrati… |
 | [[nex-case-017-refill-intent-payload-hardening]] | ✅ COMPLETE | 2026-06-09 | RefillOrderRequest.php:64 allows items.*.price as a nullable/numeric field. |
@@ -43,7 +44,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[nex-case-029-kds-action-payload-optimistic]] | ✅ COMPLETE | 2026-06-12 | KDS advance / recall / toggleItem endpoints returned only { status } (or { done, done_at } for toggle). The board onl… |
 | [[nex-case-030-kds-server-authoritative-time]] | ✅ COMPLETE | 2026-06-14 | > KDS P3 closeout. Two rounds on one branch: (1) server-authoritative elapsed time so |
 | [[nex-case-031-admin-functional-gap-fill]] | 🟡 IN_PROGRESS | 2026-06-13 | > Functional checklist gap-fill for Laravel/Vue admin console. React prototype handoff ignored; real app is target. |
-| [[nex-case-032-packages-dining-tier-consolidation]] | ✅ COMPLETE | 2026-06-14 | > Schema-level completion of the packages consolidation begun in PR #200. PR #216 merged; operator must run migrate + cache:clear. |
+| [[nex-case-032-packages-dining-tier-consolidation]] | ✅ COMPLETE | 2026-06-14 | > Schema-level completion of the packages consolidation begun in PR #200. Gives the canonical |
 
 ## Tablet (`tab-case-*`)
 
@@ -61,8 +62,8 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[tab-case-010-canonical-order-id-and-detail-sync]] | ✅ COMPLETE | 2026-06-02 | Make the tablet use the canonical POS order_id consistently, and consume the new |
 | [[tab-case-011-active-order-recovery-filter]] | ✅ COMPLETE | 2026-06-07 | The tablet active-order recovery filter at stores/Order.ts (~line 807) queries only |
 | [[tab-case-012-settings-diagnostic-hardening]] | ✅ COMPLETE | 2026-06-09 | pages/settings.vue:1176 renders raw testOrderError text in a <pre> block inside the |
-| [[tab-case-013-settings-device-ip-display]] | ✅ COMPLETE | 2026-06-14 | Settings IP field showed WSL2 gateway instead of real LAN IP — WebRTC-first + private-IP filter fix. PR #205 merged. |
-| [[tab-case-014-packages-api-v2-compatibility]] | ✅ COMPLETE | 2026-06-14 | PWA adaptation to the new v2 packages API shape (PR #207). `allowed_menus[]` replaces `modifiers[]`; `base_price` replaces `price`. Executioner APPROVED. |
+| [[tab-case-013-settings-device-ip-display]] | ✅ COMPLETE | 2026-06-14 | > Settings page "IP Address" showed 172.21.112.1 (WSL2 NAT gateway) for every tablet instead |
+| [[tab-case-014-packages-api-v2-compatibility]] | ✅ COMPLETE | 2026-06-14 | > PWA adaptation to the new v2 packages API shape introduced by nex-case-032 (PR #216). The |
 
 ## Print bridge (`prn-*`)
 
@@ -105,6 +106,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[plt-case-obsidian-operator-wiring]] | ✅ COMPLETE | 2026-06-08 | Wire Obsidian into the agent boot layer as the operator UI (same files, richer navigation). |
 | [[plt-case-obsidian-orchestration-wiring]] | ✅ COMPLETE | 2026-06-14 | The agent orchestration workflow treats Obsidian as a human-only UI. hooks/work.md Step 0b |
 | [[plt-case-stability-remediation]] | 🟡 IN_PROGRESS | 2026-06-08 | Platform orchestration plan: stabilize the restaurant stack on the Pi **before** starting KDS |
+| [[plt-case-tooling-improvement-program]] | ✅ COMPLETE | 2026-06-14 | Five-thread productivity and delivery improvement program for the Woosoo ecosystem. Routes every |
 | [[plt-case-vault-audit-live-2026-06-14]] | ✅ COMPLETE | 2026-06-14 | docs/CASE_AUDIT_2026-05-18.md is a static point-in-time snapshot (11 cases, dated 2026-05-18) now |
 | [[plt-case-vault-doc-automation]] | ✅ COMPLETE | 2026-06-10 | Widespread vault doc staleness with no single operator-runnable hygiene entry-point. |
 
@@ -122,6 +124,7 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[infra-case-008-deployment-env-audit]] | ✅ COMPLETE | 2026-06-07 | Read-only deployment audit remediation: unify operator config paths, document three POS/Reverb |
 | [[infra-case-009-deploy-script-hardening]] | 🟡 IN_PROGRESS | 2026-06-07 | Post-audit hardening for Pi deployment scripts: config guard parity, deploy readiness |
 | [[infra-case-010-wsl-lan-bridge-runbook]] | ✅ COMPLETE | 2026-06-09 | WSL2 Docker dev stack healthy inside VM but https://192.168.100.7 unreachable from Windows/LAN |
+| [[infra-case-011-wsl-staging-mirror]] | 🟡 IN_PROGRESS | 2026-06-14 | Stand up a WSL-local staging mirror of the Woosoo stack (Sail or local MySQL) so that Laravel |
 
 ## Infra other (`infra-*`)
 
@@ -140,7 +143,6 @@ Hub: [[OPERATOR_HOME]] · Dashboard: [[CASE_DASHBOARD]] · Bases: [[CASES.base|C
 | [[kds-p2-recall]] | ✅ COMPLETE | 2026-06-12 | KDS P2 recall: add served → in_progress recall edge so kitchen staff can re-fire a served order without voiding it. I… |
 | [[nex-coderabbit-inline-review-2026-05-22]] | ✅ COMPLETE | 2026-05-22 | CodeRabbit AI left 11 numbered inline comments and 4 nitpick comments on recent PRs. Each needed verification against… |
 | [[nexus-colors-backgrounds-fonts]] | ✅ COMPLETE | 2026-05-25 | Nexus needed the approved first UI foundation pass for colors, backgrounds, and fonts. During validation, the require… |
-| [[nexus-ui-handoff-visual-implementation]] | ✅ COMPLETE | 2026-06-12 | > **CLOSED — Superseded by [[nex-case-028-admin-ui-handoff-completion]].** The handoff brand-alignment work scoped he… |
 | [[nexus-vite-entrypoint-rebuild]] | ✅ COMPLETE | 2026-05-30 | PR comment on woosoo-nexus/docker/docker-entrypoint.sh: the current entrypoint skips npm run build when public/build… |
 | [[pi-docker-runtime-diagnostics]] | ✅ COMPLETE | 2026-05-22 | The Raspberry Pi deployment needs production-ready diagnostics that enforce the Docker-only runtime model and catch R… |
 | [[pld-cli-hardening]] | ✅ COMPLETE | 2026-06-08 | Four MEDIUM hardening gaps in the pld CLI: |
