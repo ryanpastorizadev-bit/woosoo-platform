@@ -52,14 +52,15 @@ local `device_orders.id`. The order channel is always `orders.{order_id}`.
 | `order.completed` | `Order/OrderCompleted` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | `OrderBroadcastPayload` |
 | `order.voided` | `Order/OrderVoided` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | `OrderBroadcastPayload` |
 | `order.cancelled` | `Order/OrderCancelled` | orders.{order_id}, admin.orders | ✅ orders.{order_id} | ✅ | — | minimal order |
-| `order.printed` | `Order/OrderPrinted` **+** `PrintOrder` **+** `PrintRefill` ⚠️ | admin.orders (+orders.{order_id} for OrderPrinted) | — | ✅ | ✅ admin.orders | varies per producer |
+| `order.printed` | `PrintOrder` **+** `PrintRefill` ⚠️ | admin.orders | — | — | ✅ admin.orders | print **trigger** (print-bridge only; admin doesn't print) |
+| `order.print_confirmed` | `Order/OrderPrinted` | admin.orders, orders.{order_id} | — | ✅ | — | print **ack** (renamed from `order.printed` in `d5a7532` to de-collide) |
+| `item.toggled` | `Kds/ItemToggled` | admin.orders, orders.{order_id}, device.{id} | — | KDS ✅ (admin.orders) | — | item ready toggle (KDS) |
 | `payment.completed` | `Order/PaymentCompleted` | device.{id}, orders.{order_id} | ❌ none | ❌ none | ❌ none | order |
 | `session.reset` | `SessionReset` | session.{session_id} | ✅ session.{id} | — | — | `{session_id, version}` |
 | `service-request.notification` | `ServiceRequest/ServiceRequestNotification` | service-requests.{order_id}, admin.service-requests | ✅ | ✅ (2 pages) | — | `{service_request}` |
 | `device.control` | `AppControlEvent` | device.{id} | ✅ device.{id} | — | — | `{action, payload, deviceId}` |
 | `menu.updated` | `Menu/MenuUpdated` | device.{id} | ❌ none | ❌ none | ❌ none | menu |
 | `package.updated` | `Menu/PackageUpdated` | device.{id} | ❌ none | ❌ none | ❌ none | package |
-| `table-service` | `TableService` | service-requests | ❌ none | ❌ none | ❌ none | service |
 
 `OrderBroadcastPayload` = `woosoo-nexus/app/Helpers/OrderBroadcastPayload.php` (carries `order_id`,
 `status`, `guest_count`, `subtotal`/`tax`/`discount`/`total`, `items`, `table`, …).
@@ -133,10 +134,13 @@ from multiple sites.
 
 ### Kitchen Display System (KDS) consumer
 On-premise, **single branch, single station (the kitchen)**. The KDS subscribes to **`admin.orders`**
-and renders all orders in the current POS session — no new channel needed. It consumes (via the
-shared constants): `order.created`, `order.status.changed`, `order.details.updated`,
-`order.cancelled`/`order.voided`. Accuracy comes from every event flowing through the single
-broadcaster + canonical payload, keyed on `order_id`.
+(`resources/js/components/KDS/useKdsEcho.ts`) and renders all orders in the current POS session — no
+new channel needed. It **currently** consumes: `order.created`, `order.updated`, `order.completed`,
+`order.voided`, `order.cancelled`, and `item.toggled`. **Gap:** it does not yet listen for
+`order.details.updated`, so live POS detail edits are not reflected on the board (tracked — wire when
+the single-broadcaster migration lands). The dead `.order.archived` listener (no producer emits it;
+archived arrives via `order.updated`) was removed. Accuracy otherwise comes from every event flowing
+through the canonical payload, keyed on `order_id`.
 
 ### Event-name de-collision (planned)
 The registry assigns the three print producers distinct names — `order.print.requested`
@@ -145,16 +149,21 @@ is cross-app (touches print-bridge + admin consumers), so it is phased and track
 
 ## Known issues (tracked; do not "fix" silently)
 
-- **`order.printed` name collision.** Three distinct events (`OrderPrinted`, `PrintOrder`,
-  `PrintRefill`) all broadcast `order.printed` on `admin.orders`. **Partially resolved:** NEX-CASE-011
-  PR #163 (merged 2026-06-04) removed the spurious `PrintOrder::dispatch()` calls from all ack
-  paths and added `is_printed` idempotency in `OrderApiController`. The event-name de-collision
-  (renaming to `order.print.requested` / `order.print.refill` / `order.print.acked`) remains
-  planned but not yet implemented — tracked in the Event-name de-collision section above.
-- **Dead consumer.** Admin `Orders/Index.vue` subscribes `admin.print` → `.order.printed`, but no
-  producer broadcasts on `admin.print` (all go to `admin.orders`). Minor nexus cleanup.
+- **`order.printed` name collision — confirmation de-collided.** `Order/OrderPrinted` (the print
+  **ack**) was renamed to `order.print_confirmed` in `d5a7532`; the admin `Orders/Index.vue`
+  listens only for `.order.print_confirmed` (ack) to update the printed badge. The print **trigger**
+  `order.printed` is consumed only by the print-bridge — admin has nothing to print. The remaining
+  shared name is `PrintOrder` **+** `PrintRefill`, which are **both print triggers** on `admin.orders`
+  (acceptable today — the print-bridge treats both as "print this"). Full de-collision into
+  `order.print.requested` / `order.print.refill` remains planned (Event-name de-collision section).
+  NEX-CASE-011 PR #163 (merged 2026-06-04) removed spurious `PrintOrder::dispatch()` calls and added
+  `is_printed` idempotency in `OrderApiController`.
+- **Dead consumer — resolved.** The admin `Orders/Index.vue` `admin.print` subscription (no producer
+  broadcasts there) was removed; the `admin.print` channel auth was already dropped from
+  `routes/channels.php`.
 - **Dead producers (no consumer anywhere):** `payment.completed`, `menu.updated`,
-  `package.updated`, `table-service`. Classification pending (wire a consumer vs stop emitting).
+  `package.updated`. Classification pending (wire a consumer vs stop emitting). (`table-service`/
+  `TableService` was deleted in `f7883c5` — no longer a producer.)
 - **`preparing` vs `in_progress`.** The tablet keys a kitchen toast on `preparing`; the enum value
   is `in_progress`. Cosmetic; fixed alongside **tab-case-010**.
 
